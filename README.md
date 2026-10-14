@@ -44,3 +44,9 @@ Das fertige **PDF** ist das eigentliche Prüfprotokoll – das gehört immer zus
 ## 5. Update der App
 
 Neue `index.html` hochladen und in `sw.js` die Zeile `const CACHE = "evse-v1";` auf `evse-v2` usw. erhöhen und ebenfalls hochladen. Die iPads holen sich die neue Version beim nächsten Öffnen mit Internet.
+
+## Für Entwickler
+
+- Quelltext der App: `src/app.html`
+- `python3 tools/build.py` baut daraus `index.html` (bettet `vendor/jspdf.umd.min.js` und das Icon ein).
+- Nach jeder Änderung in `sw.js` die Cache-Version erhöhen.
