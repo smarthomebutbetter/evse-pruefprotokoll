@@ -840,7 +840,7 @@ const GROUPS = [
     "Isolation: Erstprüfung an der Zuleitung vor dem Anklemmen, Wiederholungsprüfung im Verteiler – L1+L2+L3+N gebrückt gegen PE. Mit Überspannungsschutz 250 V, sonst 500 V."], rows:[
     {k:"rpe", l:"Schutzleiter", d:"Gehäuseschraube ↔ PE-Buchse FEV300", u:"Ω", soll:"≤ 0,3 Ω", t:v=>v<=0.3},
     {k:"riso", l:"Isolation", d:"L1+L2+L3+N gebrückt gegen PE", u:"MΩ", soll:"≥ 1 MΩ", t:v=>v>=1},
-    {k:"risov", l:"Prüfspannung Isolation", type:"sel", pre:true, opts:["500 V","250 V"], soll:"250 V bei Überspannungsschutz"},
+    {k:"risov", l:"Prüfspannung Isolation", type:"sel", pre:true, opts:["500 V","250 V"], soll:"250 V bei Überspannungsschutz", psoll:"500 V (250 V mit SPD)"},
   ]},
   {id:"spann", ps:"FEV300 auf CP = C", t:"Unter Spannung", sub:"Helfer schaltet den LS wieder ein, FEV300 auf CP = C", how:[
     "PE-Vortest: Finger auf die Touch-Fläche des FEV300 – keine Warnanzeige.",
@@ -1352,7 +1352,7 @@ function render(){
 }
 function applyRO(){
   $("#app").querySelectorAll("input,select,textarea").forEach(e=>e.disabled=true);
-  $("#app").querySelectorAll('[data-act="sigOpen"],[data-act="frist"],[data-act="kAbw"],[data-act="pick"],[data-act="leistung"],[data-act="abs"],[data-act="rcdTyp"],[data-act="rdc"],[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
+  $("#app").querySelectorAll('[data-act="pdfIn"],[data-act="sigOpen"],[data-act="frist"],[data-act="kAbw"],[data-act="pick"],[data-act="leistung"],[data-act="abs"],[data-act="rcdTyp"],[data-act="rdc"],[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
 }
 
 // Felder: M3 Outlined Text Field
@@ -1582,6 +1582,8 @@ function abschlussView(){
   return `<div class="banner ${g}">${icon(g==="ok"?"done":g==="bad"?"warn":"pending")}<div><b>${g==="ok"?"Alle Ladepunkte bestanden":g==="bad"?"Mängel festgestellt":"Noch nicht alle Werte erfasst"}</b><span>${cur.s.length} Ladesäule${cur.s.length>1?"n":""} · ${nLP} Ladepunkt${nLP>1?"e":""}</span></div></div>
   ${SYNC_ON?`<p class="by-line" style="margin:0 0 16px">${cur.pdfAblage?`PDF abgelegt in: Prüfprotokolle/${esc(cur.pdfAblage)}`:"„PDF erstellen“ legt das PDF zusätzlich im Kundenordner der Share ab."}</p>`:""}
   <div class="cols">
+    ${cur.s.length>1?`<section class="card"><h3>Im Bericht</h3><p class="sup" style="margin:-8px 0 12px">Abgewählte Ladesäulen erscheinen nicht im PDF. Im Prüfumfang wird vermerkt, dass sie nicht Bestandteil dieses Berichts sind.</p>
+      <div class="chips">${cur.s.map((s,si)=>{ const aus=(a.pdfOhne||[]).includes(s.id); return `<button type="button" class="chip" data-act="pdfIn" data-id="${esc(s.id)}" aria-pressed="${!aus}">${icon("check")}${esc(sName(s,si))}</button>`; }).join("")}</div></section>`:""}
     <section class="card"><h3>Bewertung</h3><div class="fg">
       ${ta("a.maengel","Mängel / Maßnahmen",a.maengel,{full:true,ph:"Leer lassen, wenn keine Mängel"})}
       ${ta("a.funktion","Funktionsprüfung mit Prüfadapter",a.funktion,{full:true})}
@@ -1873,6 +1875,9 @@ document.addEventListener("click",ev=>{
     if(L.includes(v)) L=L.filter(x=>x!==v); else L=v===FREIGABEN[2]?[v]:[...L.filter(x=>x!==FREIGABEN[2]),v];
     s.freigabe=FREIGABEN.filter(f=>L.includes(f)).join(", "); scheduleSave();
     b.parentElement.querySelectorAll("button").forEach(x=>{ x.setAttribute("aria-pressed",L.includes(x.dataset.v)); x.classList.toggle("dim",x.dataset.v!==FREIGABEN[2]&&L.includes(FREIGABEN[2])); }); return; }
+  case "pdfIn": { const L=cur.a.pdfOhne=cur.a.pdfOhne||[], id=b.dataset.id, i=L.indexOf(id);
+    if(i>=0) L.splice(i,1); else { if(cur.s.length-L.length<=1){ toast("Mindestens eine Ladesäule muss im Bericht bleiben"); return; } L.push(id); }
+    b.setAttribute("aria-pressed",i>=0); scheduleSave(); return; }
   case "frist": { const n=b.dataset.v; if(String(cur.a.fristJ)===n){ delete cur.a.fristJ; cur.a.naechste=""; } else { cur.a.fristJ=n; const d=new Date((cur.p.datum||today())+"T12:00:00"); d.setFullYear(d.getFullYear()+(+n)); cur.a.naechste=d.toISOString().slice(0,10); }
     scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "kAbw": cur.a.kAbwesend=!cur.a.kAbwesend; if(cur.a.kAbwesend){ cur.a.sigK=""; } scheduleSave(); { const y=scrollY; render(); scrollTo(0,y); } return;
@@ -2023,7 +2028,9 @@ function makePDF(){
   saveNow();
   const fehlt=cur.s.flatMap(fotoIds).filter(id=>!fotoCache.has(id));
   if(fehlt.length&&SYNC_ON){ fotoFetch(fehlt); toast("Fotos werden noch geladen – gleich noch einmal tippen"); return; }
-  let blob; try{ blob=buildPDF(cur); }catch(e){ toast("PDF konnte nicht erstellt werden"); return; }
+  const ohne=(cur.a.pdfOhne||[]).filter(id=>cur.s.some(s=>s.id===id));
+  const P=ohne.length?Object.assign({},cur,{s:cur.s.filter(s=>!ohne.includes(s.id)),_ohne:cur.s.filter(s=>ohne.includes(s.id)).map(s=>s.name)}):cur;
+  let blob; try{ blob=buildPDF(P); }catch(e){ toast("PDF konnte nicht erstellt werden"); return; }
   const {k,s}=pfad(cur), base=[k&&k.name,s&&s.name].filter(Boolean).join("_").replace(/[^\wÄÖÜäöüß\-]+/g,"_")||"Protokoll";
   saveFile(blob,`EVSE-Prüfprotokoll_${base}_${cur.p.datum||today()}.pdf`);
   if(SYNC_ON&&ME.signedIn&&!cur.demo){ const id=cur.id;
@@ -2050,6 +2057,7 @@ function buildPDF(P){
       d.setFont("helvetica","normal"); d.setTextColor(...GR); d.text(pt(k),x,y); d.setFont("helvetica","bold"); d.setTextColor(20); const l=d.splitTextToSize(pt(v||"-"),cw-35); d.text(l,x+32,y,{lineHeightFactor:1.15}); n=Math.max(n,l.length); }
       const extra=(n-1)*LH; d.setDrawColor(...LINE); d.line(M,y+extra+1.9,M+CW,y+extra+1.9); y+=extra+6.1; } y+=2; };
   const para=t=>{ d.setFont("helvetica","normal"); d.setFontSize(8.5); d.setTextColor(30); const l=d.splitTextToSize(pt(t||"-"),CW); d.text(l,M,y); y+=l.length*4+4; };
+  const fitTxt=(t,w)=>{ if(d.getTextWidth(t)<=w) return t; while(t.length>1&&d.getTextWidth(t+"…".replace("…","..."))>w) t=t.slice(0,-1); return t.trimEnd()+"..."; };
   const badge=(x,yy,r)=>{ const col=r==="ok"?OKC:r==="bad"?BADC:GR; d.setFillColor(...col); const t=RES_TXT[r].toUpperCase(); d.setFontSize(7.5); d.setFont("helvetica","bold"); const w=d.getTextWidth(t)+5; d.roundedRect(x-w,yy-3.6,w,5,1.2,1.2,"F"); d.setTextColor(255); d.text(t,x-w+2.5,yy); };
 
   head("Prüfprotokoll Ladeeinrichtungen",`${P.p.art} | ${P.p.normen.join(" | ")}`);
@@ -2059,7 +2067,7 @@ function buildPDF(P){
       ["Standort",PF.s?[PF.s.name,adrText(PF.s)].filter(Boolean).join(", "):"-"],["Ladepark",PF.l?PF.l.name:"-"],
       ["Verteiler / Anlage",P.p.standort],["Bezeichnung",P.p.projekt],["Prüfdatum",deDate(P.p.datum)],["Prüfer",P.p.pruefer],
       ["Messgerät",P.p.geraet],["Seriennr.",P.p.geraetSn],["Prüfadapter",P.p.adapter],["Kal. gültig bis",P.p.kal],["Art der Prüfung",P.p.art],["Netzform",`${P.p.netz} | 230/400 V`]]);
-  sec("Prüfumfang"); para(P.p.umfang);
+  sec("Prüfumfang"); para(P.p.umfang+(P._ohne&&P._ohne.length?` Nicht Bestandteil dieses Berichts: ${P._ohne.join(", ")}.`:""));
   sec("Übersicht Ladesäulen");
   d.setFillColor(...NAVY); d.rect(M,y-4,CW,6,"F"); d.setTextColor(255); d.setFontSize(8); d.setFont("helvetica","bold");
   const oc=[M+2,M+42,M+100,M+140]; ["Ladesäule","Hersteller / Typ","Seriennummer","Ladepunkte"].forEach((t,i)=>d.text(t,oc[i],y)); d.text("Ergebnis",M+CW-2,y,{align:"right"}); y+=6;
@@ -2100,7 +2108,7 @@ function buildPDF(P){
       d.setFillColor(...SUNK); d.rect(M,y-off,CW,gh,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(fs-0.5); d.text(pt(`${g.t} (${g.ps||g.sub})`),cP,y+(gh-rh)/2); y+=gh;
       rows.forEach((r,ri)=>{
         if(ri%2){ d.setFillColor(250,251,252); d.rect(M,y-off,CW,rh,"F"); }
-        d.setFont("helvetica","normal"); d.setFontSize(fs); d.setTextColor(20); d.text(pt(r.l),cP,y); d.setTextColor(...GR); d.text(pt(sollOf(r,s)).slice(0,32),cS,y);
+        d.setFont("helvetica","normal"); d.setFontSize(fs); d.setTextColor(20); d.text(pt(r.l),cP,y); d.setTextColor(...GR); d.text(fitTxt(pt(r.psoll||sollOf(r,s)),c1-cS-3),cS,y);
         for(let li=0;li<s.lps;li++){ const x=li?c2:c1, val=s.lp[li].v[r.k]??"", e=evalRow(r,val,s);
           const t=r.type==="chk"?(val==="ok"?"i.O.":val==="nok"?"n.i.O.":"-"):(val===""?"-":`${val}${r.u?" "+r.u:""}`);
           d.setTextColor(...(e==="ok"?OKC:e==="bad"?BADC:GR)); d.setFont("helvetica",e==="open"?"normal":"bold"); d.text(pt(t),x,y); }
