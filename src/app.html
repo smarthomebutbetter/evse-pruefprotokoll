@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Irrgang EVSE">
+<meta name="apple-mobile-web-app-title" content="Ladeprüfung">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#FCFCFD">
 <link rel="apple-touch-icon" href="<!--ICON-->">
 <link rel="icon" href="<!--ICON-->">
-<title>EVSE-Prüfprotokoll · Elektro Irrgang</title>
+<title>Ladeprüfung · Elektro Irrgang</title>
 <style>
 /* Material 3 mit Elektro-Irrgang-Farben (Rot #E11D2F, neutrale Grautöne), Schrift Manrope */
 @font-face{font-family:"Manrope";font-weight:400;font-display:swap;src:url(data:font/woff2;base64,<!--F400-->) format("woff2")}
@@ -996,7 +996,7 @@ function archivView(){
   return `<div class="narrow">${listOf(L.map(p=>pItem(p,true)))}<p class="hint">Nach rechts wischen: zurückholen · nach links: löschen</p></div>`;
 }
 function loginView(){
-  return `<div class="login"><img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><h2>EVSE-Prüfprotokolle</h2>
+  return `<div class="login"><img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><h2>Ladeprüfung</h2>
     <p>Melde dich mit deinem Microsoft-Mitarbeiterkonto an. Danach siehst du alle Prüfungen der Firma, deine eigenen kannst du bearbeiten.</p>
     <button class="btn-filled" data-act="login">${icon("person")}Mit Microsoft anmelden</button>
     <p class="hint">${navigator.onLine?"":"Für die Anmeldung wird Internet benötigt."}</p></div>`;
