@@ -246,6 +246,50 @@ body.has-nav .snackbar{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 body.has-fab .snackbar{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
 body.has-fab.has-nav .snackbar{bottom:calc(168px + env(safe-area-inset-bottom,0px))}
 @media (min-width:840px){.snackbar{left:auto;right:auto;margin:0;left:50%;transform:translateX(-50%);width:max-content;max-width:560px;bottom:24px!important}body.has-fab .snackbar{bottom:96px!important}}
+.tb-title span{display:block;overflow:hidden;text-overflow:ellipsis}
+.tb-title small{display:block;font-size:12px;font-weight:600;color:var(--on-sv);overflow:hidden;text-overflow:ellipsis;letter-spacing:0}
+.tb-title:has(small){font-size:18px;line-height:1.25}
+.avatar{position:relative;width:40px;height:40px;margin:0 4px;border-radius:50%;border:0;background:var(--pc);color:var(--on-pc);font-weight:800;font-size:14px;display:grid;place-items:center;flex:none}
+.avatar::after{content:"";position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;border:2px solid var(--surface);background:var(--ok);display:none}
+.avatar[data-sync="ok"]::after,.avatar[data-sync="läuft"]::after,.avatar[data-sync="offline"]::after,.avatar[data-sync="fehler"]::after,.avatar[data-sync="anmelden"]::after{display:block}
+.avatar[data-sync="läuft"]::after{background:var(--primary)} .avatar[data-sync="offline"]::after{background:var(--outline)}
+.avatar[data-sync="fehler"]::after,.avatar[data-sync="anmelden"]::after{background:var(--err)}
+.search{display:flex;align-items:center;gap:12px;height:56px;border-radius:28px;background:var(--sc-high);padding:0 20px;margin:8px 0 8px;color:var(--on-sv)}
+.search input{flex:1;min-width:0;border:0;background:transparent;font-size:16px;color:var(--on-surface);outline:none;-webkit-appearance:none}
+.sec-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:20px 0 8px}
+.sec-row .sec-lbl{margin:0 4px}
+.sec-row .btn-text{display:flex;align-items:center;gap:4px;padding:0 12px 0 8px}
+.sec-row .btn-text .ic{width:18px;height:18px}
+.list + .sec-lbl,.meta + .sec-lbl{margin-top:24px}
+.lt .st{display:flex;align-items:center;gap:6px}
+.lk{color:var(--on-sv)} .lk .ic{width:16px;height:16px}
+.av .ic{width:22px;height:22px}
+.infok{background:var(--sc-low);border-radius:16px;padding:14px 16px;font-size:14px;color:var(--on-surface);margin:8px 0 4px;line-height:1.5}
+.infok .by,.by-line{font-size:12px;color:var(--on-sv)}
+.infok div + .by{margin-top:6px}
+.by-line{margin:16px 4px 0}
+.robanner{display:flex;align-items:center;gap:12px;background:var(--sc-high);color:var(--on-surface);border-radius:12px;padding:12px 16px;margin:0 0 16px;font-size:14px;font-weight:600}
+.robanner.warn{background:var(--err-c);color:var(--on-err-c)}
+.robanner span{flex:1}
+body.ro canvas.pad{pointer-events:none;opacity:.85}
+.tf input:disabled,.tf select:disabled,.tf textarea:disabled{box-shadow:inset 0 0 0 1px var(--outline-v);color:var(--on-surface);-webkit-text-fill-color:var(--on-surface);opacity:1;background:var(--sc)}
+body.ro .seg button:disabled,body.ro .chip:disabled{opacity:.7}
+.ort-zeile{display:flex;align-items:center;gap:12px;background:var(--sc-high);border-radius:12px;padding:10px 8px 10px 14px;margin:-4px 0 16px}
+.ort-zeile .ic{color:var(--primary)}
+.ort-zeile div{flex:1;min-width:0}
+.ort-zeile b{display:block;font-size:15px}
+.ort-zeile span{display:block;font-size:13px;color:var(--on-sv)}
+.fg1{display:grid;gap:16px;--fbg:var(--sc-high);padding-top:6px}
+.dlg{max-height:calc(100vh - 48px);overflow:auto}
+.konto{display:flex;gap:16px;align-items:center}
+.konto b,.konto span{display:block}
+.konto span{font-size:13px;color:var(--on-sv)}
+.avatar-big{width:56px;height:56px;border-radius:50%;background:var(--pc);color:var(--on-pc);display:grid!important;place-items:center;font-weight:800;font-size:20px;flex:none}
+.login{max-width:420px;margin:12vh auto 0;text-align:center;padding:0 8px}
+.login .logo-big{height:40px;width:auto;margin:0 auto 24px;display:block}
+.login h2{font-size:24px;margin:0 0 8px}
+.login p{color:var(--on-sv);margin:0 0 24px}
+.btn-filled{height:48px;border:0;border-radius:24px;background:var(--fab);color:var(--on-fab);font-size:15px;font-weight:700;padding:0 24px 0 18px;display:inline-flex;align-items:center;gap:10px;box-shadow:var(--e1)}
 @media (prefers-reduced-motion:no-preference){#app{animation:fade .18s ease-out}@keyframes fade{from{opacity:.6}to{opacity:1}}}
 </style>
 </head>
@@ -256,6 +300,7 @@ body.has-fab.has-nav .snackbar{bottom:calc(168px + env(safe-area-inset-bottom,0p
     <img class="logo l-hell" src="<!--LOGO_HELL-->" alt="Elektro Irrgang">
     <img class="logo l-dunkel" src="<!--LOGO_DUNKEL-->" alt="Elektro Irrgang">
     <h1 class="tb-title" id="topTitle">Prüfprotokolle</h1>
+    <button class="avatar" id="avBtn" data-act="konto" aria-label="Konto" hidden><span id="avTxt"></span></button>
     <button class="icon-btn" id="menuBtn" data-act="menu" aria-label="Weitere Optionen" aria-haspopup="menu" aria-expanded="false"></button>
   </div>
   <div class="tabs" id="tabs" role="tablist" hidden></div>
@@ -271,6 +316,7 @@ body.has-fab.has-nav .snackbar{bottom:calc(168px + env(safe-area-inset-bottom,0p
 <input type="file" id="fotoFile" accept="image/*" hidden>
 
 <script><!--JSPDF--></script>
+<script><!--MSAL--></script>
 <script>
 (() => {
 "use strict";
@@ -327,7 +373,7 @@ const deDate = iso=>iso?iso.split("-").reverse().join("."):"";
 function newLP(){ return {v:{risov:"500 V"}, bem:""}; }
 function newSaeule(n){ return {id:uid(), name:`Ladesäule ${n}`, typ:"", sn:"", ort:"", fw:"", absTyp:"LS B", absIn:"16", zsMan:"", inenn:"", rcd:RCD_TYPES[0], idn:"30", freigabe:"", phasen:3, lps:2, lp:[newLP(),newLP()], fotos:{}}; }
 function newProto(){
-  return {id:uid(), created:Date.now(), updated:Date.now(),
+  return {id:uid(), kundeId:null, standortId:null, ladeparkId:null,
     p:{projekt:"", auftraggeber:"", auftragsnr:"", standort:"", datum:today(), pruefer:"", geraet:"Wiha MFT one", geraetSn:"", kal:"", adapter:"Fluke FEV300", art:"Erstprüfung", normen:["DIN VDE 0100-600","DIN VDE 0100-722"], netz:"TN-C-S", umfang:DEF_UMFANG},
     s:[newSaeule(1)], a:{maengel:"", funktion:DEF_FUNKTION, naechste:"", sigP:"", sigK:"", sigPName:"", sigKName:""}};
 }
@@ -360,24 +406,283 @@ function lpResult(s,li){ const rs=GROUPS.map(g=>groupResult(g,s,li)); return rs.
 function saeuleResult(s){ const rs=[]; for(let i=0;i<s.lps;i++) rs.push(lpResult(s,i)); return rs.includes("bad")?"bad":rs.includes("open")?"open":"ok"; }
 function protoResult(p){ const rs=p.s.map(saeuleResult); return rs.includes("bad")?"bad":rs.includes("open")?"open":"ok"; }
 
-// ================= Speicher (nur dieses Gerät) =================
-const LS_KEY="evse_protos_v1", TH_KEY="evse_theme";
-let protos=[], cur=null, nav={v:"list"}, saveTimer=null;
-function lsLoad(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ return []; } }
-function lsSave(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(protos)); return true; }catch(e){ return false; } }
-function scheduleSave(){ if(!cur) return; cur.updated=Date.now(); setSub("Ungespeichert …"); clearTimeout(saveTimer); saveTimer=setTimeout(saveNow,900); }
+// ================= Konfiguration Microsoft 365 =================
+// Wird nach der App-Registrierung durch die IT ausgefüllt. Solange leer, arbeitet die App nur auf dem Gerät.
+const CONFIG=Object.assign({
+  tenantId:"",              // Verzeichnis-ID (Mandant) aus Microsoft Entra
+  clientId:"",              // Anwendungs-ID der App-Registrierung „EVSE-Prüfprotokoll“
+  shareUrl:"",              // Freigabe-Link des Ordners „Prüfprotokolle“ (OneDrive/SharePoint)
+  admins:[],                // optional: E-Mail-Adressen mit Admin-Rechten (zusätzlich zur App-Rolle „Admin“)
+  dataFolder:"_App-Daten",  // Unterordner für die Daten der App
+}, window.__EVSE_CONFIG__||{});
+const SYNC_ON=!!(CONFIG.tenantId&&CONFIG.clientId&&CONFIG.shareUrl);
+
+// ================= Speicher (IndexedDB) =================
+const TH_KEY="evse_theme", OLD_KEY="evse_protos_v1";
+const KINDS=["kunden","standorte","ladeparks","pruefungen"];
+const DB={kunden:new Map(),standorte:new Map(),ladeparks:new Map(),pruefungen:new Map()};
+let META={profil:{name:""},pins:[],archiv:[],filter:"alle",sync:{}};   // nur auf diesem Gerät, wird nicht abgeglichen
+let cur=null, nav={v:"start"}, saveTimer=null, dirtyCur=false, dataDB=null, query="";
+let ME={name:"",mail:"",admin:false,signedIn:false};
+
+function idbReq(rq){ return new Promise((res,rej)=>{ rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error); }); }
+function dataOpen(){ return new Promise((res,rej)=>{ if(!window.indexedDB) return rej(0); const r=indexedDB.open("evse_daten",1);
+  r.onupgradeneeded=()=>{ const db=r.result; KINDS.forEach(k=>db.createObjectStore(k,{keyPath:"id"})); db.createObjectStore("meta"); };
+  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+let warned=false;
+function dbPut(kind,rec){ DB[kind].set(rec.id,rec); if(!dataDB) return;
+  try{ const t=dataDB.transaction(kind,"readwrite"); t.objectStore(kind).put(rec); t.onerror=t.onabort=storageWarn; }catch(e){ storageWarn(); } }
+function dbDelHard(kind,id){ DB[kind].delete(id); if(dataDB) try{ dataDB.transaction(kind,"readwrite").objectStore(kind).delete(id); }catch(e){} }
+function metaSave(){ if(dataDB) try{ dataDB.transaction("meta","readwrite").objectStore("meta").put(META,"meta"); }catch(e){} }
+function storageWarn(){ if(!warned){ warned=true; toast("Speichern auf dem Gerät fehlgeschlagen – bitte „Alle sichern“"); } }
+async function dataLoad(){
+  try{ dataDB=await dataOpen();
+    for(const k of KINDS){ (await idbReq(dataDB.transaction(k).objectStore(k).getAll())).forEach(r=>DB[k].set(r.id,r)); }
+    const m=await idbReq(dataDB.transaction("meta").objectStore("meta").get("meta")); if(m) META=Object.assign(META,m);
+  }catch(e){ dataDB=null; toast("Gerätespeicher nicht verfügbar – Daten nur bis zum Schließen"); }
+  if(!META.migriert){ let old=null; try{ old=JSON.parse(localStorage.getItem(OLD_KEY)||"null"); }catch(e){}
+    if(Array.isArray(old)&&old.length) importLegacy(old); META.migriert=true; metaSave(); }
+}
+const live=k=>[...DB[k].values()].filter(r=>!r.deleted);
+const who=()=>({name:ME.name||META.profil.name||"",mail:ME.mail||""});
+function stamp(rec,isNew){ const t=Date.now(), w=who(); if(isNew||!rec.created){ rec.created=t; rec.createdBy=w; } rec.updated=t; rec.updatedBy=w; if(!rec.demo) rec._dirty=true; }
+function saveRec(kind,rec,isNew){ stamp(rec,isNew); dbPut(kind,rec); syncSoon(); return rec; }
+function scheduleSave(){ if(!cur||!canEdit(cur)) return; dirtyCur=true; setSub("Ungespeichert …"); clearTimeout(saveTimer); saveTimer=setTimeout(saveNow,900); }
+function commit(){ dirtyCur=true; saveNow(); }
 function saveNow(){
-  if(!cur) return; clearTimeout(saveTimer);
-  const copy=JSON.parse(JSON.stringify(cur)); const i=protos.findIndex(p=>p.id===copy.id);
-  if(i>=0) protos[i]=copy; else protos.unshift(copy);
-  setSub(lsSave()?"Gespeichert auf diesem Gerät":"Speicher voll – bitte „Alle sichern“");
+  if(!cur) return; clearTimeout(saveTimer); if(!dirtyCur||!canEdit(cur)) return; dirtyCur=false;
+  const c=JSON.parse(JSON.stringify(cur)), old=DB.pruefungen.get(c.id); if(old){ c._etag=old._etag; c._itemId=old._itemId; }
+  stamp(c,false); cur.updated=c.updated; cur.updatedBy=c.updatedBy; dbPut("pruefungen",c);
+  setSub(SYNC_ON?"Gespeichert · wird abgeglichen":"Gespeichert auf diesem Gerät"); syncSoon();
 }
 let saveTxt="Gespeichert auf diesem Gerät";
 function setSub(t){ saveTxt=t; const e=$("#saveState"); if(e) e.textContent=t; }
 function toast(t,action,fn){ const el=$("#toast"); el.innerHTML=`<span>${esc(t)}</span>${action?`<button type="button">${esc(action)}</button>`:""}`; el.hidden=false;
   if(action) el.querySelector("button").onclick=()=>{ el.hidden=true; fn(); };
   clearTimeout(toast._t); toast._t=setTimeout(()=>el.hidden=true,action?6000:2800); }
-// Fotos: IndexedDB (localStorage ist für Bilder zu klein), zusätzlich im Speicher gespiegelt
+
+// Rechte: jeder bearbeitet nur seine eigenen Einträge, Admin (Chef) darf alles
+const sameUser=(a,b)=>!!(a&&b&&a.mail&&b.mail&&a.mail.toLowerCase()===b.mail.toLowerCase());
+function canEdit(rec){ if(!rec) return false; if(!SYNC_ON||rec.demo) return true; if(!ME.signedIn) return false;
+  return ME.admin||!rec.createdBy||!rec.createdBy.mail||sameUser(rec.createdBy,ME); }
+
+// Hierarchie: Kunde › Standort › (Ladepark) › Prüfungen
+const kundeOf=id=>DB.kunden.get(id), standortOf=id=>DB.standorte.get(id), ladeparkOf=id=>id?DB.ladeparks.get(id):null;
+function pfad(p){ return {k:kundeOf(p.kundeId), s:standortOf(p.standortId), l:ladeparkOf(p.ladeparkId)}; }
+function pfadText(p,sep=" › "){ const {k,s,l}=pfad(p); return [k&&k.name,s&&s.name,l&&l.name].filter(Boolean).join(sep); }
+const byDate=(a,b)=>(b.p.datum||"").localeCompare(a.p.datum||"")||(b.updated||0)-(a.updated||0);
+const pruefAt=(sid,lid)=>live("pruefungen").filter(p=>p.standortId===sid&&(p.ladeparkId||null)===(lid||null)).sort(byDate);
+const pruefUnter=(kind,id)=>live("pruefungen").filter(p=>kind==="kunden"?p.kundeId===id:kind==="standorte"?p.standortId===id:p.ladeparkId===id).sort(byDate);
+const standorteVon=kid=>live("standorte").filter(s=>s.kundeId===kid).sort((a,b)=>a.name.localeCompare(b.name,"de"));
+const ladeparksVon=sid=>live("ladeparks").filter(l=>l.standortId===sid).sort((a,b)=>a.name.localeCompare(b.name,"de"));
+const pTitel=p=>`${deDate(p.p.datum)||"ohne Datum"} · ${p.p.art}`;
+
+// Übernahme alter Protokolle (vor der Kunden-Gliederung) und alter Sicherungen
+function importLegacy(list){
+  let n=0;
+  for(const o of list){ if(!o||!o.p||!Array.isArray(o.s)||DB.pruefungen.has(o.id)) continue;
+    const kname=(o.p.auftraggeber||"Ohne Kunde").trim(), demo=!!o.demo||/^BEISPIEL/.test(o.p.projekt||"");
+    let k=live("kunden").find(x=>x.name===kname); if(!k){ k=saveRec("kunden",{id:uid(),name:kname,adresse:"",notiz:"",demo:demo||undefined},true); }
+    const sname=(o.p.projekt||"Standort").replace(/^BEISPIEL\s*[–-]\s*/,"").trim()||"Standort";
+    let s=live("standorte").find(x=>x.kundeId===k.id&&x.name===sname); if(!s){ s=saveRec("standorte",{id:uid(),kundeId:k.id,name:sname,adresse:"",demo:demo||undefined},true); }
+    const p=JSON.parse(JSON.stringify(o)); p.kundeId=k.id; p.standortId=s.id; p.ladeparkId=null; p.p.projekt=""; delete p.pinned; delete p.archived; if(demo) p.demo=true;
+    const c=o.created, u=o.updated; saveRec("pruefungen",p,true); p.created=c||p.created; p.updated=u||p.updated; dbPut("pruefungen",p); n++;
+  }
+  return n;
+}
+
+// ================= Microsoft 365: Anmeldung =================
+const SCOPES=["User.Read","Files.ReadWrite.All"];
+const Auth={pca:null,account:null,test:null,
+  async init(){
+    if(window.__EVSE_TEST_AUTH__){ this.test=window.__EVSE_TEST_AUTH__; this.account=this.test.account; return; }
+    if(!SYNC_ON||!window.msal) return;
+    try{
+      this.pca=new msal.PublicClientApplication({auth:{clientId:CONFIG.clientId,authority:"https://login.microsoftonline.com/"+CONFIG.tenantId,
+        redirectUri:location.origin+location.pathname,postLogoutRedirectUri:location.origin+location.pathname,navigateToLoginRequestUrl:false},
+        cache:{cacheLocation:"localStorage"}});
+      await this.pca.initialize();
+      const r=await this.pca.handleRedirectPromise(); if(r&&r.account) this.account=r.account;
+    }catch(e){ toast("Anmeldung fehlgeschlagen: "+(e.errorMessage||e.message||e)); }
+    if(this.pca&&!this.account) this.account=this.pca.getAllAccounts()[0]||null;
+    if(this.account) this.pca.setActiveAccount(this.account);
+  },
+  login(){ saveNow(); if(!this.pca){ toast("Anmeldung nicht verfügbar"); return; } this.pca.loginRedirect({scopes:SCOPES,prompt:"select_account"}); },
+  relogin(){ saveNow(); if(this.pca) this.pca.acquireTokenRedirect({scopes:SCOPES,account:this.account}); },
+  logout(){ saveNow(); if(this.pca) this.pca.logoutRedirect({account:this.account}); },
+  async token(){
+    if(this.test) return this.test.expired?null:this.test.token;
+    if(!this.pca||!this.account) return null;
+    try{ return (await this.pca.acquireTokenSilent({scopes:SCOPES,account:this.account})).accessToken; }
+    catch(e){ if((window.msal&&e instanceof msal.InteractionRequiredAuthError)||/interaction_required|login_required|consent_required|no_tokens_found/.test(e.errorCode||"")) return null; throw e; }
+  },
+};
+function setMe(){
+  const a=Auth.account;
+  if(!a){ ME={name:META.profil.name||"",mail:"",admin:false,signedIn:false}; return; }
+  const roles=(a.idTokenClaims&&a.idTokenClaims.roles)||[], mail=(a.username||"").toLowerCase();
+  ME={name:a.name||mail,mail,admin:roles.includes("Admin")||CONFIG.admins.map(x=>x.toLowerCase()).includes(mail),signedIn:true};
+  // Auf diesem Gerät angelegte, noch nie hochgeladene Einträge gehören dem angemeldeten Nutzer
+  for(const k of KINDS) for(const r of DB[k].values()) if(!r.demo&&!r._etag&&(!r.createdBy||!r.createdBy.mail)){ r.createdBy={name:ME.name,mail:ME.mail}; r._dirty=true; dbPut(k,r); }
+}
+
+// ================= Microsoft 365: Abgleich mit der Share =================
+const GRAPH="https://graph.microsoft.com/v1.0";
+const SY={state:SYNC_ON?"ok":"aus",err:"",running:false,again:false,drive:null,rootId:null,folders:{},fotoBusy:new Set()};
+async function g(path,opt={}){
+  const t=await Auth.token(); if(!t) throw Object.assign(new Error("anmelden"),{auth:true});
+  for(let i=0;i<4;i++){
+    const r=await fetch(path.startsWith("http")?path:GRAPH+path,{...opt,headers:{Authorization:"Bearer "+t,...(opt.headers||{})}});
+    if(r.status===401) throw Object.assign(new Error("anmelden"),{auth:true});
+    if(r.status===429||r.status===503||r.status===504){ await new Promise(x=>setTimeout(x,Math.min(+(r.headers.get("Retry-After")||2),10)*1000)); continue; }
+    return r;
+  }
+  throw new Error("Microsoft ist gerade ausgelastet");
+}
+async function gj(path,opt){ const r=await g(path,opt); if(!r.ok) throw Object.assign(new Error(`Microsoft meldet Fehler ${r.status}`),{status:r.status}); return r.status===204?null:r.json(); }
+const b64u=s=>btoa(unescape(encodeURIComponent(s))).replace(/=+$/,"").replace(/\//g,"_").replace(/\+/g,"-");
+async function syncRoot(){
+  if(SY.drive) return;
+  const c=META.sync.root;
+  if(c&&c.url===CONFIG.shareUrl){ SY.drive=c.drive; SY.rootId=c.id; SY.folders=c.folders||{}; return; }
+  const it=await gj(`/shares/u!${b64u(CONFIG.shareUrl)}/driveItem`);
+  SY.drive=it.parentReference.driveId; SY.rootId=it.id; SY.folders={};
+  META.sync.root={url:CONFIG.shareUrl,drive:SY.drive,id:SY.rootId,folders:SY.folders}; metaSave();
+}
+const itemPath=(parent,name)=>`/drives/${SY.drive}/items/${parent}:/${encodeURIComponent(name)}`;
+async function folderId(rel){
+  if(SY.folders[rel]) return SY.folders[rel];
+  let parent=SY.rootId, acc="";
+  for(const part of rel.split("/")){
+    acc=acc?acc+"/"+part:part;
+    if(SY.folders[acc]){ parent=SY.folders[acc]; continue; }
+    let r=await g(itemPath(parent,part));
+    if(r.status===404){
+      r=await g(`/drives/${SY.drive}/items/${parent}/children`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:part,folder:{},"@microsoft.graph.conflictBehavior":"fail"})});
+      if(r.status===409) r=await g(itemPath(parent,part));
+    }
+    if(!r.ok) throw new Error(`Ordner „${acc}“ nicht erreichbar (${r.status})`);
+    parent=(await r.json()).id; SY.folders[acc]=parent;
+  }
+  if(META.sync.root){ META.sync.root.folders=SY.folders; metaSave(); }
+  return parent;
+}
+async function listAll(fid){ let url=`/drives/${SY.drive}/items/${fid}/children?$top=200`, out=[];
+  while(url){ const j=await gj(url); out.push(...j.value); url=j["@odata.nextLink"]||null; } return out; }
+async function readItem(it){ const u=it["@microsoft.graph.downloadUrl"]; const r=u?await fetch(u):await g(`/drives/${SY.drive}/items/${it.id}/content`); if(!r.ok) throw new Error("Download "+r.status); return r; }
+const strip=r=>{ const o={...r}; delete o._dirty; delete o._etag; delete o._itemId; return o; };
+let konflikte=[];
+function takeServer(k,rec,it){
+  const loc=DB[k].get(rec.id);
+  if(loc&&loc._dirty&&(loc.updated||0)>(rec.updated||0)){ loc._etag=it.eTag; loc._itemId=it.id; dbPut(k,loc); return false; } // eigene Fassung ist neuer
+  if(loc&&loc._dirty) konflikte.push(rec.updatedBy&&rec.updatedBy.name||"jemand anderes");
+  rec._etag=it.eTag; rec._itemId=it.id; dbPut(k,rec);
+  if(k==="pruefungen"&&cur&&cur.id===rec.id&&!dirtyCur){ cur=JSON.parse(JSON.stringify(rec)); }
+  return true;
+}
+async function pull(){
+  let changed=false;
+  for(const k of KINDS){
+    const items=await listAll(await folderId(`${CONFIG.dataFolder}/${k}`));
+    for(const it of items){
+      if(!it.file||!it.name.endsWith(".json")) continue;
+      const id=it.name.slice(0,-5), loc=DB[k].get(id);
+      if(loc&&loc._etag===it.eTag) continue;
+      try{ const rec=await (await readItem(it)).json(); if(rec&&rec.id===id&&takeServer(k,rec,it)) changed=true; }catch(e){}
+    }
+  }
+  return changed;
+}
+async function pushOne(k,rec,fid,force){
+  const ver=rec.updated, headers={"Content-Type":"application/json"}; if(rec._etag&&!force) headers["If-Match"]=rec._etag;
+  const r=await g(`/drives/${SY.drive}/items/${fid}:/${rec.id}.json:/content`,{method:"PUT",headers,body:JSON.stringify(strip(rec))});
+  if(r.status===412){ // inzwischen von jemand anderem geändert: neuere Fassung gewinnt
+    const meta=await gj(`/drives/${SY.drive}/items/${fid}:/${rec.id}.json`); const srv=await (await readItem(meta)).json();
+    if((srv.updated||0)>(rec.updated||0)){ takeServer(k,srv,meta); return true; }
+    return pushOne(k,rec,fid,true);
+  }
+  if(r.status===404){ SY.folders={}; throw new Error("Ordner wurde verschoben – bitte erneut abgleichen"); }
+  if(!r.ok) throw new Error(`Hochladen fehlgeschlagen (${r.status})`);
+  const it=await r.json(), now=DB[k].get(rec.id)||rec; now._etag=it.eTag; now._itemId=it.id; if(now.updated===ver) delete now._dirty; dbPut(k,now);
+  return false;
+}
+async function push(){
+  let changed=false;
+  for(const k of KINDS){
+    const dirty=[...DB[k].values()].filter(r=>r._dirty&&!r.demo); if(!dirty.length) continue;
+    const fid=await folderId(`${CONFIG.dataFolder}/${k}`);
+    for(const rec of dirty) if(await pushOne(k,rec,fid)) changed=true;
+  }
+  return changed;
+}
+const dataUrlToBlob=d=>{ const [h,b]=d.split(","), bin=atob(b), a=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i); return new Blob([a],{type:h.slice(5).split(";")[0]}); };
+const blobToDataUrl=b=>new Promise(res=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(b); });
+async function pushFotos(){
+  const q=META.sync.fotoQueue||[]; if(!q.length) return;
+  const fid=await folderId(`${CONFIG.dataFolder}/fotos`);
+  for(const id of [...q]){
+    const d=fotoCache.get(id);
+    if(d){ const r=await g(`/drives/${SY.drive}/items/${fid}:/${id}.jpg:/content`,{method:"PUT",headers:{"Content-Type":"image/jpeg"},body:dataUrlToBlob(d)}); if(!r.ok) throw new Error(`Foto hochladen fehlgeschlagen (${r.status})`); }
+    META.sync.fotoQueue=(META.sync.fotoQueue||[]).filter(x=>x!==id); metaSave();
+  }
+}
+function fotoQueue(id){ if(!SYNC_ON) return; META.sync.fotoQueue=[...new Set([...(META.sync.fotoQueue||[]),id])]; metaSave(); syncSoon(); }
+async function fotoFetch(ids){
+  if(!SYNC_ON||!ME.signedIn||!navigator.onLine) return;
+  ids=ids.filter(id=>id&&!fotoCache.has(id)&&!SY.fotoBusy.has(id)); if(!ids.length) return;
+  ids.forEach(id=>SY.fotoBusy.add(id)); let got=0;
+  try{ await syncRoot(); const fid=await folderId(`${CONFIG.dataFolder}/fotos`);
+    for(const id of ids){ try{ const meta=await gj(`/drives/${SY.drive}/items/${fid}:/${id}.jpg`); const d=await blobToDataUrl(await (await readItem(meta)).blob()); await fotoPut(id,d); got++; }catch(e){} }
+  }catch(e){} finally{ ids.forEach(id=>SY.fotoBusy.delete(id)); }
+  if(got&&nav.v==="saeule"){ const y=scrollY; render(); scrollTo(0,y); }
+}
+// Lesbare Ablage: Kunde/Standort/[Ladepark]/Datum Prüfart Auftragsnr.pdf
+const fsName=s=>String(s||"").replace(/[\\/:*?"<>|#%\u0000-\u001f]/g,"-").replace(/\s+/g," ").trim().replace(/[. ]+$/,"").slice(0,80)||"Unbenannt";
+function pdfAblage(p){ const {k,s,l}=pfad(p);
+  return {dir:[k&&k.name,s&&s.name,l&&l.name].filter(Boolean).map(fsName).join("/")||"Ohne Zuordnung",
+          file:fsName(`${p.p.datum||today()} ${p.p.art}${p.p.auftragsnr?" "+p.p.auftragsnr:""}`)+".pdf"}; }
+async function pdfHochladen(p,blob){
+  if(!SYNC_ON||!ME.signedIn) return null;
+  const {dir,file}=pdfAblage(p); await syncRoot(); const fid=await folderId(dir);
+  if(blob.size<3.5*1024*1024){
+    const r=await g(`/drives/${SY.drive}/items/${fid}:/${encodeURIComponent(file)}:/content`,{method:"PUT",headers:{"Content-Type":"application/pdf"},body:blob});
+    if(!r.ok) throw new Error(`PDF ablegen fehlgeschlagen (${r.status})`);
+  } else {
+    const s=await gj(`/drives/${SY.drive}/items/${fid}:/${encodeURIComponent(file)}:/createUploadSession`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({item:{"@microsoft.graph.conflictBehavior":"replace"}})});
+    const CH=320*1024*10;
+    for(let o=0;o<blob.size;o+=CH){ const part=blob.slice(o,Math.min(o+CH,blob.size));
+      const r=await fetch(s.uploadUrl,{method:"PUT",headers:{"Content-Range":`bytes ${o}-${o+part.size-1}/${blob.size}`},body:part});
+      if(!r.ok&&r.status!==202) throw new Error(`PDF ablegen fehlgeschlagen (${r.status})`); }
+  }
+  return `${dir}/${file}`;
+}
+function setSync(s){ SY.state=s; const av=$("#avBtn"); if(av) av.dataset.sync=s; const e=$("#syncState"); if(e) e.textContent=syncText(); }
+function syncText(){
+  if(!SYNC_ON) return "Nur auf diesem Gerät gespeichert";
+  const t=META.sync.last?new Date(META.sync.last).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"noch nie";
+  return {ok:`Abgeglichen · ${t}`,"läuft":"Wird abgeglichen …",offline:`Offline · zuletzt ${t}`,fehler:`Abgleich fehlgeschlagen: ${SY.err}`,anmelden:"Anmeldung abgelaufen – bitte erneut anmelden"}[SY.state]||"";
+}
+async function syncNow(manual){
+  if(!SYNC_ON||!ME.signedIn) return;
+  if(SY.running){ SY.again=true; return; }
+  if(!navigator.onLine){ setSync("offline"); return; }
+  SY.running=true; setSync("läuft"); konflikte=[];
+  try{
+    await syncRoot(); const c1=await push(); const c2=await pull(); await pushFotos();
+    META.sync.last=Date.now(); metaSave(); setSync("ok");
+    if(konflikte.length) toast(`Änderung von ${konflikte[0]} übernommen – sie war neuer als deine`);
+    if(c1||c2) softRender();
+  }catch(e){
+    if(e.auth){ setSync("anmelden"); softRender(); } else { SY.err=e.message||String(e); setSync(navigator.onLine?"fehler":"offline"); if(manual) toast("Abgleich fehlgeschlagen: "+SY.err); }
+  }finally{ SY.running=false; if(SY.again){ SY.again=false; syncSoon(); } }
+}
+let syncT=null; function syncSoon(){ if(!SYNC_ON||!ME.signedIn) return; clearTimeout(syncT); syncT=setTimeout(()=>syncNow(),2500); }
+function softRender(){
+  const a=document.activeElement; if(a&&a.matches&&a.matches("input,textarea,select")&&$("#app").contains(a)) return; // nicht beim Tippen stören
+  if(!$("#dlg").hidden) return; const y=scrollY; render(); scrollTo(0,y);
+}
+
+// ================= Fotos (IndexedDB) =================
 const FOTO_SLOTS=[["ueb","Übersicht","von weiter weg"],["offen","Geöffnet","Anschlussraum"],["plak","Prüfplakette","gut lesbar"]];
 const fotoCache=new Map(); let fotoDB=null, fotoTarget=null;
 const fotoIds=s=>Object.values(s.fotos||{}).filter(Boolean);
@@ -388,7 +693,8 @@ function fotoPut(id,data){ fotoCache.set(id,data); if(!fotoDB) return Promise.re
 function fotoDel(ids){ ids=ids.filter(Boolean); ids.forEach(i=>fotoCache.delete(i)); if(!fotoDB||!ids.length) return; try{ const t=fotoDB.transaction("f","readwrite"); ids.forEach(i=>t.objectStore("f").delete(i)); }catch(e){} }
 async function fotoInit(){
   try{ fotoDB=await idbOpen(); const all=await idbAll(fotoDB);
-    const used=new Set(protos.flatMap(p=>p.s.flatMap(fotoIds))); if(cur) cur.s.flatMap(fotoIds).forEach(i=>used.add(i));
+    const used=new Set(live("pruefungen").flatMap(p=>p.s.flatMap(fotoIds))); if(cur) cur.s.flatMap(fotoIds).forEach(i=>used.add(i));
+    (META.sync.fotoQueue||[]).forEach(i=>used.add(i));
     const orphan=[]; for(const [k,v] of all){ if(used.has(k)) fotoCache.set(k,v); else orphan.push(k); } fotoDel(orphan);
   }catch(e){ fotoDB=null; }
   if(nav.v==="saeule"){ const y=scrollY; render(); scrollTo(0,y); }
@@ -399,7 +705,6 @@ function fotoVerkleinern(file){ return new Promise((res,rej)=>{ const url=URL.cr
     URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg",0.72)); };
   img.onerror=()=>{ URL.revokeObjectURL(url); rej(0); }; img.src=url; }); }
 function saveFile(blob,name){ const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=name; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000); }
-
 
 // ================= Darstellung =================
 const THEMES=["auto","light","dark"], TH_LABEL={auto:"Wie System",light:"Hell",dark:"Dunkel"};
@@ -438,105 +743,191 @@ const IC={
   upload:"M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z",
   bulb:"M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z",
   theme:"M20 15.31L23.31 12 20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69zM12 18V6c3.31 0 6 2.69 6 6s-2.69 6-6 6z",
+  home:"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z",
+  firma:"M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z",
+  ort:"M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+  search:"M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z",
+  lock:"M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z",
+  sync:"M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z",
+  edit:"M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
+  move:"M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 12v-3h-4v-4h4V8l5 5-5 5z",
+  logout:"M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z",
+  person:"M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
 };
 const icon=n=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 const pill=(r,t)=>`<span class="pill ${r}">${esc(t??RES_TXT[r])}</span>`;
 const DEST=[["projekt","Projekt","project"],["saeulen","Ladesäulen","ev"],["abschluss","Abschluss","done"]];
+const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"]];
+const EDITOR=["projekt","saeulen","saeule","abschluss"];
+const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
+const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
+const VIEW_KIND={kunde:"kunden",standort:"standorte",ladepark:"ladeparks"};
 const sName=(s,si)=>s.name||`Ladesäule ${si+1}`;
+const initials=n=>(n||"?").split(/[\s.@]+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join("")||"?";
+const vonText=r=>r&&r.createdBy&&r.createdBy.name?r.createdBy.name:"";
 
 function go(n){ nav=n; closeOverlays(); render(); window.scrollTo(0,0); }
 function render(){
-  const app=$("#app"), inP=nav.v!=="list";
+  const app=$("#app"), ed=EDITOR.includes(nav.v);
+  if(SYNC_ON&&!ME.signedIn&&nav.v!=="login") nav={v:"login"};
+  if(ed&&!cur) nav={v:"start"};
   if(nav.v==="saeule"&&!cur.s[nav.si]) nav={v:"saeulen"};
-  document.body.classList.toggle("is-list",!inP&&!nav.arch);
-  document.body.classList.toggle("has-nav",inP);
-  $("#backBtn").hidden=!inP&&!nav.arch; $("#navbar").hidden=!inP; $("#tabs").hidden=nav.v!=="saeule";
-  if(inP){ const active=nav.v==="saeule"?"saeulen":nav.v;
-    $("#navbar").innerHTML=DEST.map(([k,t,i])=>`<button class="nav-item" data-go="${k}" ${k===active?'aria-current="page"':""}><span class="ind">${icon(i)}</span><span>${t}</span></button>`).join(""); }
-  let title="Prüfprotokolle", fab=null;
-  if(!inP){ app.innerHTML=listView(); if(nav.arch) title="Archiv"; else fab=["new","Neues Protokoll","add"]; }
-  else{
-    title=cur.p.projekt||"Neues Protokoll";
-    if(nav.v==="projekt") app.innerHTML=projektView();
-    else if(nav.v==="saeulen"){ app.innerHTML=saeulenView(); fab=["addS","Ladesäule","add"]; }
-    else if(nav.v==="saeule"){ const s=cur.s[nav.si]; title=sName(s,nav.si); $("#tabs").innerHTML=saeuleTabs(s); app.innerHTML=saeuleView(); }
-    else if(nav.v==="abschluss"){ app.innerHTML=abschlussView(); fab=["pdf","PDF erstellen","pdf"]; }
+  const top=nav.v==="start"||nav.v==="kunden", login=nav.v==="login", E=EDITOR.includes(nav.v);
+  document.body.classList.toggle("is-list",top||login);
+  document.body.classList.toggle("has-nav",!login);
+  document.body.classList.toggle("ro",E&&!canEdit(cur));
+  $("#backBtn").hidden=top||login; $("#navbar").hidden=login; $("#tabs").hidden=nav.v!=="saeule"; $("#avBtn").hidden=login||!top;
+  const dests=E?DEST:TOPDEST, active=E?(nav.v==="saeule"?"saeulen":nav.v):(top?nav.v:"kunden");
+  $("#navbar").innerHTML=dests.map(([k,t,i])=>`<button class="nav-item" ${E?`data-go="${k}"`:`data-act="nav" data-v="${k}"`} ${k===active?'aria-current="page"':""}><span class="ind">${icon(i)}</span><span>${t}</span></button>`).join("");
+  let title="", sub="", fab=null, body="";
+  if(login){ body=loginView(); }
+  else if(nav.v==="start"){ body=startView(); fab=["newAny","Neue Prüfung","add"]; }
+  else if(nav.v==="kunden"){ title="Kunden"; body=kundenView(); fab=["newKunde","Kunde","add"]; }
+  else if(nav.v==="archiv"){ title="Archiv"; body=archivView(); }
+  else if(VIEW_KIND[nav.v]){ const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id);
+    if(!r||r.deleted){ nav={v:"kunden"}; return render(); }
+    title=r.name; sub=kind==="kunden"?"Kunde":kind==="standorte"?(kundeOf(r.kundeId)||{}).name:[ (kundeOf((standortOf(r.standortId)||{}).kundeId)||{}).name,(standortOf(r.standortId)||{}).name ].filter(Boolean).join(" › ");
+    body=nav.v==="kunde"?kundeView(r):nav.v==="standort"?standortView(r):ladeparkView(r);
+    fab=nav.v==="kunde"?["newStandort","Standort","add"]:["newHere","Neue Prüfung","add"]; }
+  else { const {s,l}=pfad(cur); title=nav.v==="saeule"?sName(cur.s[nav.si],nav.si):(l?l.name:s?s.name:"Prüfung"); sub=nav.v==="saeule"?pfadText(cur):[deDate(cur.p.datum),cur.p.art].filter(Boolean).join(" · ");
+    if(nav.v==="projekt") body=projektView();
+    else if(nav.v==="saeulen"){ body=saeulenView(); if(canEdit(cur)) fab=["addS","Ladesäule","add"]; }
+    else if(nav.v==="saeule"){ $("#tabs").innerHTML=saeuleTabs(cur.s[nav.si]); body=saeuleView(); }
+    else if(nav.v==="abschluss"){ body=abschlussView(); fab=["pdf","PDF erstellen","pdf"]; }
+    if(!canEdit(cur)) body=`<div class="robanner">${icon("lock")}<span>Nur lesen – erstellt von ${esc(vonText(cur)||"jemand anderem")}. Bearbeiten darf nur der Ersteller oder ein Admin.</span></div>`+body;
   }
-  $("#topTitle").textContent=title;
+  if(SY.state==="anmelden"&&!login) body=`<div class="robanner warn">${icon("sync")}<span>Anmeldung abgelaufen – Änderungen werden nur auf dem Gerät gespeichert.</span><button class="btn-text" data-act="relogin">Anmelden</button></div>`+body;
+  app.innerHTML=body;
+  $("#topTitle").innerHTML=title?`<span>${esc(title)}</span>${sub?`<small>${esc(sub)}</small>`:""}`:"";
   const f=$("#fab"); f.hidden=!fab; document.body.classList.toggle("has-fab",!!fab);
   if(fab){ f.dataset.act=fab[0]; f.innerHTML=`${icon(fab[2])}<span>${fab[1]}</span>`; }
+  $("#avTxt").textContent=initials(ME.name||META.profil.name); $("#avBtn").dataset.sync=SY.state;
   if(nav.v==="abschluss") setupSigs();
+  if(E&&!canEdit(cur)) applyRO();
+}
+function applyRO(){
+  $("#app").querySelectorAll("input,select,textarea").forEach(e=>e.disabled=true);
+  $("#app").querySelectorAll('[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
 }
 
 // Felder: M3 Outlined Text Field
 function tf(path,label,val,o={}){
   const cls=["tf"]; if(o.full) cls.push("full"); if(o.ph||o.type==="date") cls.push("fl"); if(o.sfx) cls.push("has-sfx");
-  return `<div class="${cls.join(" ")}"><input id="${esc(path)}" data-bind="${esc(path)}" type="${o.type||"text"}" ${o.im?`inputmode="${o.im}"`:""} value="${esc(val)}" placeholder="${esc(o.ph||" ")}" autocomplete="off"><label for="${esc(path)}">${esc(label)}</label>${o.sfx?`<span class="sfx">${esc(o.sfx)}</span>`:""}</div>`;
+  const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
+  return `<div class="${cls.join(" ")}"><input id="${esc(id)}" ${bind} type="${o.type||"text"}" ${o.im?`inputmode="${o.im}"`:""} value="${esc(val)}" placeholder="${esc(o.ph||" ")}" autocomplete="off"><label for="${esc(id)}">${esc(label)}</label>${o.sfx?`<span class="sfx">${esc(o.sfx)}</span>`:""}</div>`;
 }
 function ta(path,label,val,o={}){
-  return `<div class="tf${o.ph?" fl":""}${o.full?" full":""}"><textarea id="${esc(path)}" data-bind="${esc(path)}" placeholder="${esc(o.ph||" ")}">${esc(val)}</textarea><label for="${esc(path)}">${esc(label)}</label></div>`;
+  const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
+  return `<div class="tf${o.ph?" fl":""}${o.full?" full":""}"><textarea id="${esc(id)}" ${bind} placeholder="${esc(o.ph||" ")}">${esc(val)}</textarea><label for="${esc(id)}">${esc(label)}</label></div>`;
 }
 function sf(path,label,val,opts,o={}){
-  return `<div class="tf fl${o.full?" full":""}"><select id="${esc(path)}" data-bind="${esc(path)}">${opts.map(x=>`<option value="${esc(x)}" ${x===val?"selected":""}>${esc(x||"–")}</option>`).join("")}</select><label for="${esc(path)}">${esc(label)}</label><span class="arr">${icon("drop")}</span></div>`;
+  const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
+  return `<div class="tf fl${o.full?" full":""}"><select id="${esc(id)}" ${bind}>${opts.map(x=>{ const [v,t]=Array.isArray(x)?x:[x,x]; return `<option value="${esc(v)}" ${v===val?"selected":""}>${esc(t||"–")}</option>`; }).join("")}</select><label for="${esc(id)}">${esc(label)}</label><span class="arr">${icon("drop")}</span></div>`;
 }
 const seg=(act,cur,opts,cls="")=>`<div class="seg ${cls}" role="group">${opts.map(([v,t])=>`<button type="button" data-act="${act}" data-v="${v}" aria-pressed="${String(cur)===String(v)}">${icon("check")}${esc(t)}</button>`).join("")}</div>`;
 
-const isDemo=p=>!!p.demo||/^BEISPIEL\b/.test(p.p.projekt||"");
-function listItem(p){
-  const n=p.s.length, r=protoResult(p), arch=!!p.archived;
-  return `<div class="sw" data-id="${esc(p.id)}"><div class="sw-bg"><span class="l">${icon(arch?"unarchive":"archive")}${arch?"Wiederherstellen":"Archivieren"}</span><span class="r">Löschen${icon("del")}</span></div>
-    <div class="li" role="button" tabindex="0" data-act="open" data-id="${esc(p.id)}"><span class="lt"><span class="h">${esc(p.p.projekt||"Ohne Namen")}</span>
-      <span class="s">${esc([p.p.auftraggeber,p.p.auftragsnr].filter(Boolean).join(" · ")||"–")}</span>
-      <span class="s">${esc(deDate(p.p.datum))} · ${n} Ladesäule${n>1?"n":""}</span><span class="st">${pill(r)}</span></span>
-      ${arch?"":`<button class="pin" data-act="pin" data-id="${esc(p.id)}" aria-pressed="${!!p.pinned}" aria-label="${p.pinned?"Nicht mehr anpinnen":"Anpinnen"}">${icon(p.pinned?"pin":"pinOff")}</button>`}</div></div>`;
+// --- Listen-Einträge
+function pItem(p,mitPfad){
+  const n=p.s.length, r=protoResult(p), arch=META.archiv.includes(p.id), ro=!canEdit(p);
+  const zeile2=mitPfad?pfadText(p):[p.p.auftragsnr&&`Auftrag ${p.p.auftragsnr}`,p.p.projekt].filter(Boolean).join(" · ");
+  return `<div class="sw" data-id="${esc(p.id)}"><div class="sw-bg"><span class="l">${icon(arch?"unarchive":"archive")}${arch?"Zurückholen":"Archivieren"}</span><span class="r">Löschen${icon("del")}</span></div>
+    <div class="li" role="button" tabindex="0" data-act="open" data-id="${esc(p.id)}"><span class="lt"><span class="h">${esc(pTitel(p))}</span>
+      ${zeile2?`<span class="s">${esc(zeile2)}</span>`:""}
+      <span class="s">${n} Ladesäule${n>1?"n":""}${vonText(p)?` · ${esc(vonText(p))}`:""}</span><span class="st">${pill(r)}${ro?`<span class="lk">${icon("lock")}</span>`:""}</span></span>${icon("chev")}</div></div>`;
 }
-function listView(){
-  if(nav.arch){ const L=protos.filter(p=>p.archived);
-    if(!L.length) return `<div class="empty">${icon("archive")}<h2>Archiv ist leer</h2><p>Protokolle in der Liste nach rechts wischen, um sie hierher zu legen.</p></div>`;
-    return `<div class="narrow"><div class="list">${L.map(listItem).join("")}</div><p class="hint">Nach rechts wischen: wiederherstellen · nach links: löschen</p></div>`; }
-  const act=protos.filter(p=>!p.archived), pinned=act.filter(p=>p.pinned), rest=act.filter(p=>!p.pinned), nArch=protos.length-act.length;
-  if(!act.length) return `<div class="empty">${icon("doc")}<h2>Noch keine Protokolle</h2><p>Lege mit „Neues Protokoll“ das erste an. Zum Ausprobieren gibt es zwei Beispielprojekte.</p><button class="btn-tonal" data-act="demo">Beispielprojekte laden</button>${nArch?`<p><button class="btn-text" data-act="archiv">Archiv öffnen (${nArch})</button></p>`:""}</div>`;
-  let h=`<div class="narrow"><h2 class="hl">Prüfprotokolle</h2>`;
-  if(pinned.length) h+=`<div class="sec-lbl">Angepinnt</div><div class="list">${pinned.map(listItem).join("")}</div>${rest.length?`<div class="sec-lbl">Weitere</div>`:""}`;
-  if(rest.length) h+=`<div class="list">${rest.map(listItem).join("")}</div>`;
-  return h+`<p class="hint">Nach rechts wischen: archivieren · nach links: löschen</p></div>`;
+function locItem(kind,r){
+  const pins=META.pins.includes(r.id), view={kunden:"kunde",standorte:"standort",ladeparks:"ladepark"}[kind];
+  let sub="";
+  if(kind==="kunden"){ const n=standorteVon(r.id).length; sub=`${n} Standort${n===1?"":"e"}`; }
+  else if(kind==="standorte"){ sub=[r.adresse, (kundeOf(r.kundeId)||{}).name].filter(Boolean)[0]||""; }
+  else sub=nav.v==="standort"?(r.notiz||""):(standortOf(r.standortId)||{}).name||"";
+  const last=pruefUnter(kind,r.id)[0];
+  return `<div class="li" role="button" tabindex="0" data-act="nav" data-v="${view}" data-id="${esc(r.id)}"><span class="av">${icon(KIND_ICON[kind])}</span>
+    <span class="lt"><span class="h">${esc(r.name)}</span><span class="s">${esc([sub,last&&`zuletzt ${deDate(last.p.datum)}`].filter(Boolean).join(" · ")||"noch keine Prüfung")}</span>${last?`<span class="st">${pill(protoResult(last))}</span>`:""}</span>
+    <button class="pin" data-act="pinLoc" data-kind="${kind}" data-id="${esc(r.id)}" aria-pressed="${pins}" aria-label="${pins?"Nicht mehr anpinnen":"Anpinnen"}">${icon(pins?"pin":"pinOff")}</button></div>`;
+}
+const searchBar=ph=>`<div class="search">${icon("search")}<input id="q" type="search" placeholder="${esc(ph)}" value="${esc(query)}" autocomplete="off" aria-label="Suchen"></div>`;
+const listOf=items=>items.length?`<div class="list">${items.join("")}</div>`:"";
+const isDemo=r=>!!r.demo;
+
+function suche(q){
+  q=q.toLowerCase(); const hit=s=>String(s||"").toLowerCase().includes(q);
+  const k=live("kunden").filter(r=>hit(r.name)||hit(r.adresse)).map(r=>locItem("kunden",r));
+  const s=live("standorte").filter(r=>hit(r.name)||hit(r.adresse)).map(r=>locItem("standorte",r));
+  const l=live("ladeparks").filter(r=>hit(r.name)).map(r=>locItem("ladeparks",r));
+  const p=live("pruefungen").filter(r=>hit(r.p.auftragsnr)||hit(r.p.projekt)||hit(r.p.pruefer)||r.s.some(x=>hit(x.sn)||hit(x.typ))).sort(byDate).slice(0,30).map(r=>pItem(r,true));
+  const out=[k.length&&`<div class="sec-lbl">Kunden</div>${listOf(k)}`,s.length&&`<div class="sec-lbl">Standorte</div>${listOf(s)}`,l.length&&`<div class="sec-lbl">Ladeparks</div>${listOf(l)}`,p.length&&`<div class="sec-lbl">Prüfungen</div>${listOf(p)}`].filter(Boolean).join("");
+  return out||`<p class="meta" style="text-align:center;margin-top:24px">Nichts gefunden für „${esc(q)}“.</p>`;
+}
+function startView(){
+  const all=live("pruefungen"), empty=!all.length&&!live("kunden").length;
+  if(empty) return `<div class="empty">${icon("doc")}<h2>Noch keine Prüfungen</h2><p>Lege mit „Neue Prüfung“ die erste an – Kunde und Standort werden dabei gleich mit angelegt. Zum Ausprobieren gibt es Beispieldaten.</p><button class="btn-tonal" data-act="demo">Beispieldaten laden</button></div>`;
+  let h=`<div class="narrow">${searchBar("Kunde, Standort, Auftragsnr. oder Seriennr. suchen")}<div id="res">`;
+  h+=query?suche(query):startListen();
+  return h+`</div></div>`;
+}
+function startListen(){
+  const pins=META.pins.map(id=>{ for(const k of ["kunden","standorte","ladeparks"]){ const r=DB[k].get(id); if(r&&!r.deleted) return locItem(k,r); } return ""; }).filter(Boolean);
+  const mine=META.filter==="meine"&&SYNC_ON;
+  const rec=live("pruefungen").filter(p=>!META.archiv.includes(p.id)&&(!mine||sameUser(p.createdBy,ME))).sort((a,b)=>(b.updated||0)-(a.updated||0)).slice(0,25);
+  let h="";
+  if(pins.length) h+=`<div class="sec-lbl">Angepinnt</div>${listOf(pins)}`;
+  h+=`<div class="sec-row"><div class="sec-lbl">Zuletzt bearbeitet</div>${SYNC_ON?`<div class="chips">${[["alle","Alle"],["meine","Meine"]].map(([v,t])=>`<button class="chip" data-act="filter" data-v="${v}" aria-pressed="${META.filter===v}">${icon("check")}${t}</button>`).join("")}</div>`:""}</div>`;
+  h+=rec.length?listOf(rec.map(p=>pItem(p,true))):`<p class="meta">Keine Prüfungen.</p>`;
+  return h+`<p class="hint">Nach rechts wischen: archivieren · nach links: löschen</p>`;
+}
+function kundenListe(){
+  const q=query.toLowerCase(), ks=live("kunden").sort((a,b)=>a.name.localeCompare(b.name,"de")).filter(k=>!q||k.name.toLowerCase().includes(q)||standorteVon(k.id).some(s=>s.name.toLowerCase().includes(q)));
+  return ks.length?listOf(ks.map(k=>locItem("kunden",k))):`<p class="meta">Kein Kunde gefunden.</p>`;
+}
+function kundenView(){
+  if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Lege mit „Kunde“ den ersten an, zum Beispiel eine Firma mit mehreren Standorten.</p></div>`;
+  return `<div class="narrow">${searchBar("Kunde oder Standort suchen")}<div id="res">${kundenListe()}</div></div>`;
+}
+function infoKarte(r,extra=""){
+  const z=[r.adresse,r.notiz].filter(Boolean).map(esc).join("<br>");
+  return `<div class="infok">${z?`<div>${z}</div>`:""}${extra}<div class="by">Angelegt${r.createdBy&&r.createdBy.name?` von ${esc(r.createdBy.name)}`:""} am ${new Date(r.created||Date.now()).toLocaleDateString("de-DE")}</div></div>`;
+}
+function kundeView(k){
+  const ss=standorteVon(k.id);
+  return `<div class="narrow">${infoKarte(k)}<div class="sec-lbl">Standorte</div>${ss.length?listOf(ss.map(s=>locItem("standorte",s))):`<p class="meta">Noch kein Standort – über „Standort“ anlegen.</p>`}</div>`;
+}
+function standortView(s){
+  const lps=ladeparksVon(s.id), ps=pruefAt(s.id,null);
+  let h=`<div class="narrow">${infoKarte(s)}`;
+  h+=`<div class="sec-row"><div class="sec-lbl">Ladeparks</div><button class="btn-text" data-act="newLadepark">${icon("add")}Ladepark</button></div>`;
+  h+=lps.length?listOf(lps.map(l=>locItem("ladeparks",l))):`<p class="meta">Optional – nur nötig, wenn es am Standort mehrere Parkplätze mit Ladesäulen gibt.</p>`;
+  h+=`<div class="sec-lbl">Prüfungen${lps.length?" ohne Ladepark":""}</div>`+(ps.length?listOf(ps.map(p=>pItem(p,false))):`<p class="meta">Noch keine Prüfung – über „Neue Prüfung“ anlegen.</p>`);
+  return h+`</div>`;
+}
+function ladeparkView(l){
+  const ps=pruefAt(l.standortId,l.id);
+  return `<div class="narrow">${infoKarte(l)}<div class="sec-lbl">Prüfungen</div>${ps.length?listOf(ps.map(p=>pItem(p,false))):`<p class="meta">Noch keine Prüfung – über „Neue Prüfung“ anlegen.</p>`}</div>`;
+}
+function archivView(){
+  const L=live("pruefungen").filter(p=>META.archiv.includes(p.id)).sort((a,b)=>(b.updated||0)-(a.updated||0));
+  if(!L.length) return `<div class="empty">${icon("archive")}<h2>Archiv ist leer</h2><p>Prüfungen auf der Startseite nach rechts wischen, um sie hierher zu legen. Sie bleiben beim Kunden sichtbar.</p></div>`;
+  return `<div class="narrow">${listOf(L.map(p=>pItem(p,true)))}<p class="hint">Nach rechts wischen: zurückholen · nach links: löschen</p></div>`;
+}
+function loginView(){
+  return `<div class="login"><img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><h2>EVSE-Prüfprotokolle</h2>
+    <p>Melde dich mit deinem Microsoft-Mitarbeiterkonto an. Danach siehst du alle Prüfungen der Firma, deine eigenen kannst du bearbeiten.</p>
+    <button class="btn-filled" data-act="login">${icon("person")}Mit Microsoft anmelden</button>
+    <p class="hint">${navigator.onLine?"":"Für die Anmeldung wird Internet benötigt."}</p></div>`;
 }
 
-// Wischen wie in Gmail: rechts = archivieren/wiederherstellen, links = löschen
-let swipe=null;
-document.addEventListener("pointerdown",e=>{ const sw=e.target.closest(".sw"); if(!sw||e.target.closest(".pin")) return;
-  swipe={sw,li:sw.querySelector(".li"),x:e.clientX,y:e.clientY,dx:0,on:false}; });
-document.addEventListener("pointermove",e=>{ if(!swipe) return; const dx=e.clientX-swipe.x, dy=e.clientY-swipe.y;
-  if(!swipe.on){ if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){ swipe=null; return; } if(Math.abs(dx)<12) return; swipe.on=true; swipe.sw.classList.add("drag"); }
-  swipe.dx=dx; swipe.li.style.transform=`translateX(${dx}px)`; swipe.sw.classList.toggle("to-r",dx>0); swipe.sw.classList.toggle("to-l",dx<0); });
-function swipeEnd(){ if(!swipe) return; const {sw,li,dx,on}=swipe; swipe=null; if(!on) return;
-  sw.classList.remove("drag"); swipe_block=Date.now();
-  if(Math.abs(dx)>sw.offsetWidth*0.35){ li.style.transform=`translateX(${dx>0?"":"-"}110%)`; setTimeout(()=>swipeAction(sw.dataset.id,dx>0?"arch":"del"),180); }
-  else{ li.style.transform=""; setTimeout(()=>sw.classList.remove("to-r","to-l"),220); } }
-let swipe_block=0;
-document.addEventListener("pointerup",swipeEnd); document.addEventListener("pointercancel",swipeEnd);
-document.addEventListener("click",e=>{ if(Date.now()-swipe_block<400&&e.target.closest(".sw")){ e.stopPropagation(); e.preventDefault(); } },true);
-let undoDel=null;
-function finishDel(){ if(!undoDel) return; clearTimeout(undoDel.t); fotoDel(undoDel.p.s.flatMap(fotoIds)); undoDel=null; }
-function swipeAction(id,what){
-  const i=protos.findIndex(p=>p.id===id); if(i<0) return; const p=protos[i];
-  if(what==="arch"){ const was=!!p.archived; p.archived=!was; if(p.archived) p.pinned=false; lsSave(); render();
-    toast(was?"Wiederhergestellt":"Archiviert","Rückgängig",()=>{ p.archived=was; lsSave(); render(); }); return; }
-  finishDel(); protos.splice(i,1); lsSave(); render();
-  undoDel={p,i,t:setTimeout(finishDel,6500)};
-  toast("Protokoll gelöscht","Rückgängig",()=>{ if(!undoDel||undoDel.p!==p) return; clearTimeout(undoDel.t); protos.splice(Math.min(i,protos.length),0,p); undoDel=null; lsSave(); render(); });
-}
-
+// --- Prüfung bearbeiten
 function projektView(){
-  const p=cur.p;
+  const p=cur.p, {k,s,l}=pfad(cur);
   return `<div class="cols">
-    <section class="card"><h3>Auftrag</h3><div class="fg">
-      ${tf("p.projekt","Projektname",p.projekt,{full:true})}
-      ${tf("p.auftraggeber","Auftraggeber",p.auftraggeber)}
+    <section class="card"><h3>Auftrag</h3>
+      <div class="ort-zeile">${icon("ort")}<div><b>${esc(k?k.name:"Kein Kunde")}</b><span>${esc([s&&s.name,l&&l.name].filter(Boolean).join(" › ")||"Kein Standort")}</span></div><button class="btn-text" data-act="move">Ändern</button></div>
+      <div class="fg">
       ${tf("p.auftragsnr","Auftragsnr.",p.auftragsnr)}
-      ${tf("p.standort","Standort / Anlage",p.standort,{full:true})}
       ${tf("p.datum","Prüfdatum",p.datum,{type:"date"})}
+      ${tf("p.standort","Verteiler / Anlage",p.standort,{ph:"z. B. UV Tiefgarage"})}
       ${tf("p.pruefer","Prüfer",p.pruefer)}
+      ${tf("p.projekt","Bezeichnung (optional)",p.projekt,{full:true,ph:"z. B. Erweiterung Ladesäule 5 und 6"})}
     </div></section>
     <section class="card"><h3>Messmittel</h3><div class="fg">
       ${tf("p.geraet","Messgerät",p.geraet)}
@@ -550,9 +941,9 @@ function projektView(){
       <div class="full"><div class="lbl">Prüfung nach</div><div class="chips">${NORMEN.map(n=>`<button type="button" class="chip" data-act="norm" data-n="${esc(n)}" aria-pressed="${p.normen.includes(n)}">${icon("check")}${esc(n)}</button>`).join("")}</div></div>
     </div></section>
     <section class="card"><h3>Prüfumfang</h3>${ta("p.umfang","Text im Protokoll",p.umfang)}</section>
-  </div>`;
+  </div>
+  <p class="by-line">Angelegt${cur.createdBy&&cur.createdBy.name?` von ${esc(cur.createdBy.name)}`:""} am ${new Date(cur.created||Date.now()).toLocaleString("de-DE",{dateStyle:"medium",timeStyle:"short"})}${cur.updatedBy&&cur.updatedBy.name&&cur.updated?` · zuletzt geändert von ${esc(cur.updatedBy.name)} am ${new Date(cur.updated).toLocaleString("de-DE",{dateStyle:"medium",timeStyle:"short"})}`:""}</p>`;
 }
-
 function saeulenView(){
   const res=cur.s.map(saeuleResult), ok=res.filter(r=>r==="ok").length, bad=res.filter(r=>r==="bad").length;
   return `<div class="narrow"><p class="meta">${cur.s.length} Ladesäule${cur.s.length>1?"n":""} · ${ok} bestanden${bad?` · ${bad} mit Mängeln`:""}</p><div class="list">${cur.s.map((s,si)=>
@@ -560,21 +951,19 @@ function saeulenView(){
       <span class="s">${esc([s.typ,s.ort].filter(Boolean).join(" · ")||"Gerätedaten fehlen")}</span>
       <span class="lps">${Array.from({length:s.lps},(_,i)=>{const r=lpResult(s,i);return pill(r,`LP ${i+1} ${RES_SHORT[r]}`);}).join("")}</span></span>${icon("chev")}</button>`).join("")}</div></div>`;
 }
-
 function saeuleTabs(s){
   const st=nav.st||"geraet";
   const t=[["geraet","Gerät",null],...Array.from({length:s.lps},(_,i)=>[`lp${i}`,`LP ${i+1}`,lpResult(s,i)])];
   return t.map(([k,l,r])=>`<button class="tab" role="tab" data-act="sub" data-v="${k}" aria-selected="${st===k}"><span class="tl">${l}${r?`<i class="sd ${r}" data-lpres="${k}"></i>`:""}</span></button>`).join("");
 }
-
 function saeuleView(){
   const si=nav.si, s=cur.s[si], st=nav.st||"geraet", b=`s.${si}.`;
   if(st==="geraet"){
-    const z=zsInfo(s);
+    const z=zsInfo(s); fotoFetch(fotoIds(s));
     return `<div class="cols">
       <section class="card"><h3>Gerät</h3><div class="fg">
         ${tf(b+"name","Bezeichnung",s.name)}
-        ${tf(b+"ort","Standort / Stellplatz",s.ort)}
+        ${tf(b+"ort","Stellplatz",s.ort)}
         ${tf(b+"typ","Hersteller / Typ",s.typ)}
         ${tf(b+"sn","Seriennummer",s.sn)}
         ${tf(b+"fw","Firmware",s.fw)}
@@ -592,6 +981,7 @@ function saeuleView(){
       </div></section>
       <section class="card wide"><h3>Fotos</h3><div class="fotos">${FOTO_SLOTS.map(([k,l,hint])=>{ const id=(s.fotos||{})[k], src=id&&fotoCache.get(id);
         return src?`<button class="foto" data-act="fotoShow" data-k="${k}" aria-label="Foto ${l} ansehen"><img src="${src}" alt=""><span class="fl">${l}</span></button>`
+          :id?`<div class="foto leer">${icon("sync")}<span class="fl">${l}</span><span class="fh">wird geladen …</span></div>`
           :`<button class="foto leer" data-act="fotoAdd" data-k="${k}">${icon("cam")}<span class="fl">${l}</span><span class="fh">${hint}</span></button>`; }).join("")}</div></section>
     </div>`;
   }
@@ -613,10 +1003,10 @@ function saeuleView(){
   h+=`<section class="card">${ta(`${lb}bem`,`Bemerkung LP ${li+1}`,lp.bem,{ph:"z. B. Freigabe per Ladekarte nötig"})}</section></div>`;
   return h;
 }
-
 function abschlussView(){
   const a=cur.a, g=protoResult(cur), nLP=cur.s.reduce((n,s)=>n+s.lps,0);
   return `<div class="banner ${g}">${icon(g==="ok"?"done":g==="bad"?"warn":"pending")}<div><b>${g==="ok"?"Alle Ladepunkte bestanden":g==="bad"?"Mängel festgestellt":"Noch nicht alle Werte erfasst"}</b><span>${cur.s.length} Ladesäule${cur.s.length>1?"n":""} · ${nLP} Ladepunkt${nLP>1?"e":""}</span></div></div>
+  ${SYNC_ON?`<p class="by-line" style="margin:0 0 16px">${cur.pdfAblage?`PDF abgelegt in: Prüfprotokolle/${esc(cur.pdfAblage)}`:"„PDF erstellen“ legt das PDF zusätzlich im Kundenordner der Share ab."}</p>`:""}
   <div class="cols">
     <section class="card"><h3>Bewertung</h3><div class="fg">
       ${ta("a.maengel","Mängel / Maßnahmen",a.maengel,{full:true,ph:"Leer lassen, wenn keine Mängel"})}
@@ -630,39 +1020,137 @@ function abschlussView(){
   </div>`;
 }
 
-// Menü und Dialoge
+// --- Menü und Dialoge
 function closeOverlays(){ ["#menu","#dlg","#scrim"].forEach(s=>$(s).hidden=true); $("#scrim").classList.remove("dim"); $("#menuBtn").setAttribute("aria-expanded","false"); }
 function openMenu(){
-  const it=[];
-  if(nav.v==="list"){ const nArch=protos.filter(p=>p.archived).length;
-    if(!nav.arch) it.push(["archiv",`Archiv${nArch?` (${nArch})`:""}`,"archive"]);
+  const it=[], E=EDITOR.includes(nav.v), kind=VIEW_KIND[nav.v];
+  if(nav.v==="start"||nav.v==="kunden"||nav.v==="archiv"){
+    if(nav.v!=="archiv") it.push(["nav:archiv",`Archiv${META.archiv.length?` (${live("pruefungen").filter(p=>META.archiv.includes(p.id)).length})`:""}`,"archive"]);
+    if(SYNC_ON) it.push(["syncNow","Jetzt abgleichen","sync"]);
     it.push(["export","Alle sichern","backup"],["import","Sicherung laden","upload"]);
-    it.push(protos.some(isDemo)?["demoHide","Beispielprojekte ausblenden","bulb"]:["demo","Beispielprojekte laden","bulb"]); }
-  else{
-    if(nav.v==="saeule") it.push(["dupS","Säule duplizieren","copy"],["delSask","Säule entfernen","del","danger"],"-");
-    it.push(["pdf","PDF erstellen","pdf"],["dup","Als Vorlage kopieren","copy"],["pinCur",cur.pinned?"Nicht mehr anpinnen":"Anpinnen",cur.pinned?"pinOff":"pin"],["archCur",cur.archived?"Aus dem Archiv holen":"Archivieren",cur.archived?"unarchive":"archive"],["delask","Protokoll löschen","del","danger"]);
+    it.push(live("kunden").some(isDemo)?["demoHide","Beispieldaten ausblenden","bulb"]:["demo","Beispieldaten laden","bulb"]);
+  } else if(kind){
+    const r=DB[kind].get(nav.id), ok=canEdit(r), pinned=META.pins.includes(r.id);
+    if(ok) it.push(["editLoc",`${KIND_NAME[kind]} bearbeiten`,"edit"]);
+    if(kind==="standorte") it.push(["newLadepark","Ladepark hinzufügen","add"]);
+    it.push(["pinLocCur",pinned?"Nicht mehr anpinnen":"Anpinnen",pinned?"pinOff":"pin"]);
+    if(ok) it.push(["delLocAsk",`${KIND_NAME[kind]} löschen`,"del","danger"]);
+  } else if(E){
+    const ok=canEdit(cur);
+    if(nav.v==="saeule"&&ok) it.push(["dupAsk","Säule vervielfältigen","copy"],["delSask","Säule entfernen","del","danger"],"-");
+    it.push(["pdf","PDF erstellen","pdf"],["newSame","Neue Prüfung am selben Ort","copy"]);
+    if(ok) it.push(["move","Kunde / Standort ändern","move"]);
+    it.push(["archCur",META.archiv.includes(cur.id)?"Aus dem Archiv holen":"Archivieren",META.archiv.includes(cur.id)?"unarchive":"archive"]);
+    if(ok) it.push(["delask","Prüfung löschen","del","danger"]);
   }
-  it.push("-",["theme","Darstellung","theme"]);
-  $("#menu").innerHTML=(nav.v!=="list"?`<div class="mh" id="saveState">${esc(saveTxt)}</div>`:"")+
-    it.map(x=>x==="-"?"<hr>":`<button class="mi ${x[3]||""}" role="menuitem" data-act="${x[0]}">${icon(x[2])}<span>${x[1]}</span></button>`).join("");
+  it.push("-",["konto",SYNC_ON?"Konto":"Mein Name","person"],["theme","Darstellung","theme"]);
+  const head=E?`<div class="mh" id="saveState">${esc(saveTxt)}</div>`:SYNC_ON?`<div class="mh" id="syncState">${esc(syncText())}</div>`:"";
+  $("#menu").innerHTML=head+it.map(x=>x==="-"?"<hr>":`<button class="mi ${x[3]||""}" role="menuitem" data-act="${x[0]}">${icon(x[2])}<span>${x[1]}</span></button>`).join("");
   $("#menu").hidden=false; $("#scrim").hidden=false; $("#menuBtn").setAttribute("aria-expanded","true");
 }
 function dialog(title,body,actions){
   $("#dlg").innerHTML=`<h2>${esc(title)}</h2><div class="db">${body}</div>${actions?`<div class="da">${actions}</div>`:""}`;
   $("#menu").hidden=true; $("#dlg").hidden=false; $("#scrim").hidden=false; $("#scrim").classList.add("dim");
+  const f=$("#dlg").querySelector("input:not([type=hidden])"); if(f&&!f.value) setTimeout(()=>f.focus(),50);
 }
 const confirmDlg=(title,text,label,act)=>dialog(title,esc(text),`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text danger" data-act="${act}">${esc(label)}</button>`);
+const formVals=()=>{ const o={}; $("#dlg").querySelectorAll("[data-f]").forEach(e=>o[e.dataset.f]=e.value.trim()); return o; };
+let locForm=null;   // {kind, id?, parentId?}
+function locDialog(kind,rec,parentId){
+  locForm={kind,id:rec&&rec.id,parentId};
+  const r=rec||{};
+  const felder=kind==="ladeparks"?tf("name","Name",r.name,{form:true,ph:"z. B. Parkplatz Nord"})+ta("notiz","Notiz",r.notiz,{form:true})
+    :tf("name","Name",r.name,{form:true,ph:kind==="kunden"?"z. B. Musterfirma GmbH":"z. B. Werk Rheinbach"})+tf("adresse","Adresse",r.adresse,{form:true})+(kind==="kunden"?ta("notiz","Notiz",r.notiz,{form:true}):"");
+  dialog(`${KIND_NAME[kind]} ${rec?"bearbeiten":"anlegen"}`,`<div class="fg1">${felder}</div>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveLoc">${rec?"Speichern":"Anlegen"}</button>`);
+}
+// Auswahl Kunde › Standort › Ladepark (für neue Prüfung oder Verschieben)
+let pick=null;  // {mode:"new"|"move", k, s, l, kNeu, sNeu, lNeu}
+function pickDialog(){
+  const P=pick, ks=live("kunden").sort((a,b)=>a.name.localeCompare(b.name,"de"));
+  const ss=P.k&&P.k!=="__neu"?standorteVon(P.k):[], ls=P.s&&P.s!=="__neu"?ladeparksVon(P.s):[];
+  const body=`<div class="fg1">
+    ${sf("k","Kunde",P.k||"",[["","Bitte wählen"],...ks.map(k=>[k.id,k.name]),["__neu","+ Neuer Kunde …"]],{form:true})}
+    ${P.k==="__neu"?tf("kNeu","Name des neuen Kunden",P.kNeu||"",{form:true}):""}
+    ${P.k?sf("s","Standort",P.s||"",[["","Bitte wählen"],...ss.map(s=>[s.id,s.name]),["__neu","+ Neuer Standort …"]],{form:true}):""}
+    ${P.s==="__neu"?tf("sNeu","Name des neuen Standorts",P.sNeu||"",{form:true,ph:"z. B. Rheinbach"}):""}
+    ${P.s?sf("l","Ladepark (optional)",P.l||"",[["","– kein Ladepark –"],...ls.map(l=>[l.id,l.name]),["__neu","+ Neuer Ladepark …"]],{form:true}):""}
+    ${P.l==="__neu"?tf("lNeu","Name des neuen Ladeparks",P.lNeu||"",{form:true,ph:"z. B. Parkplatz Nord"}):""}
+  </div>`;
+  dialog(P.mode==="move"?"Kunde / Standort ändern":"Neue Prüfung – wo?",body,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="pickOk">${P.mode==="move"?"Übernehmen":"Weiter"}</button>`);
+}
+function pickResolve(){
+  Object.assign(pick,formVals());
+  const P=pick;
+  if(!P.k||(P.k==="__neu"&&!P.kNeu)){ toast("Bitte einen Kunden wählen oder anlegen"); return null; }
+  if(!P.s||(P.s==="__neu"&&!P.sNeu)){ toast("Bitte einen Standort wählen oder anlegen"); return null; }
+  if(P.l==="__neu"&&!P.lNeu){ toast("Bitte einen Namen für den Ladepark eingeben"); return null; }
+  let k=P.k==="__neu"?saveRec("kunden",{id:uid(),name:P.kNeu,adresse:"",notiz:""},true):kundeOf(P.k);
+  let s=P.s==="__neu"?saveRec("standorte",{id:uid(),kundeId:k.id,name:P.sNeu,adresse:""},true):standortOf(P.s);
+  let l=P.l==="__neu"?saveRec("ladeparks",{id:uid(),standortId:s.id,name:P.lNeu,notiz:""},true):P.l?ladeparkOf(P.l):null;
+  return {k,s,l};
+}
+
+let nachName=null;
+function nameFehlt(weiter){ if(SYNC_ON||META.profil.name) return false; nachName=weiter;
+  dialog("Wie heißt du?",`<div class="fg1">${tf("name","Dein Name",``,{form:true})}</div><p class="sup" style="margin:12px 0 0">Erscheint als Prüfer und Ersteller. Einmalig pro Gerät, änderbar über das Symbol oben rechts.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveName">Weiter</button>`); return true; }
+// Neue Prüfung: übernimmt die Ladesäulen der letzten Prüfung am selben Ort (ohne Messwerte, Fotos, Unterschriften)
+function neuePruefung(kundeId,standortId,ladeparkId){
+  const p=newProto(); p.kundeId=kundeId; p.standortId=standortId; p.ladeparkId=ladeparkId||null; p.p.pruefer=who().name;
+  const meine=live("pruefungen").filter(x=>!SYNC_ON||sameUser(x.createdBy,ME)).sort((a,b)=>(b.created||0)-(a.created||0))[0];
+  if(meine) ["geraet","geraetSn","kal","adapter"].forEach(f=>p.p[f]=meine.p[f]);   // eigenes Messgerät übernehmen
+  const prev=pruefAt(standortId,ladeparkId||null)[0];
+  if(prev){ p.s=JSON.parse(JSON.stringify(prev.s)).map(s=>Object.assign(s,{id:uid(),lp:s.lp.map(()=>newLP()),fotos:{}}));
+    p.p.art="Wiederholungsprüfung"; ["netz","standort","umfang"].forEach(f=>p.p[f]=prev.p[f]); p.p.normen=[...prev.p.normen]; p.a.funktion=prev.a.funktion; }
+  saveRec("pruefungen",p,true); cur=JSON.parse(JSON.stringify(p)); dirtyCur=false;
+  go({v:"projekt"}); toast(prev?`${p.s.length} Ladesäule${p.s.length>1?"n":""} aus der Prüfung vom ${deDate(prev.p.datum)} übernommen`:"Neue Prüfung angelegt");
+}
+function oeffne(id){ const p=DB.pruefungen.get(id); if(!p||p.deleted) return; cur=JSON.parse(JSON.stringify(p)); dirtyCur=false; setSub(SYNC_ON?"Abgeglichen":"Gespeichert auf diesem Gerät");
+  fotoFetch(cur.s.flatMap(fotoIds)); go({v:"saeulen"}); }
+function zurueck(){
+  saveNow();
+  if(nav.v==="saeule"){ go({v:"saeulen"}); return; }
+  if(EDITOR.includes(nav.v)){ const back=cur.ladeparkId&&ladeparkOf(cur.ladeparkId)?{v:"ladepark",id:cur.ladeparkId}:standortOf(cur.standortId)?{v:"standort",id:cur.standortId}:{v:"start"}; cur=null; go(back); return; }
+  if(nav.v==="ladepark"){ const l=ladeparkOf(nav.id); go(l?{v:"standort",id:l.standortId}:{v:"kunden"}); return; }
+  if(nav.v==="standort"){ const s=standortOf(nav.id); go(s?{v:"kunde",id:s.kundeId}:{v:"kunden"}); return; }
+  if(nav.v==="kunde"){ go({v:"kunden"}); return; }
+  go({v:"start"});
+}
+
+// Wischen wie in Gmail: rechts = archivieren/zurückholen, links = löschen
+let swipe=null, swipe_block=0;
+document.addEventListener("pointerdown",e=>{ const sw=e.target.closest(".sw"); if(!sw||e.target.closest(".pin")) return;
+  swipe={sw,li:sw.querySelector(".li"),x:e.clientX,y:e.clientY,dx:0,on:false}; });
+document.addEventListener("pointermove",e=>{ if(!swipe) return; const dx=e.clientX-swipe.x, dy=e.clientY-swipe.y;
+  if(!swipe.on){ if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){ swipe=null; return; } if(Math.abs(dx)<12) return; swipe.on=true; swipe.sw.classList.add("drag"); }
+  swipe.dx=dx; swipe.li.style.transform=`translateX(${dx}px)`; swipe.sw.classList.toggle("to-r",dx>0); swipe.sw.classList.toggle("to-l",dx<0); });
+function swipeEnd(){ if(!swipe) return; const {sw,li,dx,on}=swipe; swipe=null; if(!on) return;
+  sw.classList.remove("drag"); swipe_block=Date.now();
+  const p=DB.pruefungen.get(sw.dataset.id);
+  if(Math.abs(dx)>sw.offsetWidth*0.35&&!(dx<0&&!canEdit(p))){ li.style.transform=`translateX(${dx>0?"":"-"}110%)`; setTimeout(()=>swipeAction(sw.dataset.id,dx>0?"arch":"del"),180); }
+  else{ li.style.transform=""; setTimeout(()=>sw.classList.remove("to-r","to-l"),220); if(dx<0&&Math.abs(dx)>sw.offsetWidth*0.35) toast("Löschen darf nur der Ersteller oder ein Admin"); } }
+document.addEventListener("pointerup",swipeEnd); document.addEventListener("pointercancel",swipeEnd);
+document.addEventListener("click",e=>{ if(Date.now()-swipe_block<400&&e.target.closest(".sw")){ e.stopPropagation(); e.preventDefault(); } },true);
+function archToggle(id){ const i=META.archiv.indexOf(id); if(i>=0) META.archiv.splice(i,1); else META.archiv.push(id); metaSave(); return i<0; }
+function swipeAction(id,what){
+  const p=DB.pruefungen.get(id); if(!p) return;
+  if(what==="arch"){ const now=archToggle(id); softRender(); toast(now?"Archiviert":"Zurückgeholt","Rückgängig",()=>{ archToggle(id); softRender(); }); return; }
+  loeschePruefung(p);
+}
+function loeschePruefung(p){
+  p.deleted=true; saveRec("pruefungen",p); if(cur&&cur.id===p.id) cur=null; softRender();
+  toast("Prüfung gelöscht","Rückgängig",()=>{ p.deleted=false; saveRec("pruefungen",p); softRender(); });
+}
 
 // ================= Eingaben =================
 const getPath=p=>p.split(".").reduce((o,k)=>o==null?o:o[k],cur);
 function setPath(p,v){ const ks=p.split("."); let o=cur; for(let i=0;i<ks.length-1;i++) o=o[ks[i]]; o[ks[ks.length-1]]=v; }
 document.addEventListener("input",ev=>{
+  if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="kunden"?kundenListe():(query?suche(query):startListen()); return; }
   const el=ev.target.closest("[data-bind]"); if(!el||!cur) return;
   const path=el.dataset.bind; setPath(path,el.value); scheduleSave();
-  if(path==="p.projekt") $("#topTitle").textContent=cur.p.projekt||"Neues Protokoll";
   const m=path.match(/^s\.(\d+)\.(.+)$/); if(!m) return;
   const s=cur.s[+m[1]];
-  if(m[2]==="name") $("#topTitle").textContent=sName(s,+m[1]);
+  if(m[2]==="name"&&nav.v==="saeule") $("#topTitle span").textContent=sName(s,+m[1]);
   if(["absIn","zsMan"].includes(m[2])){ const c=$("#calc"); if(c) c.textContent=zsInfo(s).calc; }
   refresh();
 });
@@ -670,6 +1158,7 @@ document.addEventListener("change",ev=>{
   const el=ev.target;
   if(el.id==="importFile"){ importBackup(el); return; }
   if(el.id==="fotoFile"){ fotoAufnehmen(el); return; }
+  if(el.matches("#dlg select[data-f]")&&pick){ Object.assign(pick,formVals()); if(el.dataset.f==="k"){ pick.s=""; pick.l=""; } if(el.dataset.f==="s") pick.l=""; pickDialog(); return; }
   if(!el.matches("select[data-bind]")||!cur) return;
   if(/^s\.\d+\.(absTyp|rcd)$/.test(el.dataset.bind)){ const y=scrollY; render(); scrollTo(0,y); } else refresh();
 });
@@ -688,53 +1177,95 @@ function refresh(){
 // ================= Aktionen =================
 document.addEventListener("click",ev=>{
   const g=ev.target.closest("[data-go]"); if(g&&cur){ saveNow(); go({v:g.dataset.go}); return; }
-  const b=ev.target.closest("[data-act]"); if(!b) return;
-  const a=b.dataset.act;
+  const b=ev.target.closest("[data-act]"); if(!b||b.disabled) return;
+  let a=b.dataset.act;
   if(b.closest("#menu")) closeOverlays();
-  if(a==="menu"){ openMenu(); return; }
-  if(a==="cancel"){ closeOverlays(); return; }
-  if(a==="theme"){ dialog("Darstellung",THEMES.map(t=>`<button class="radio" role="radio" data-act="setTheme" data-v="${t}" aria-checked="${t===theme}"><span class="rb"></span>${TH_LABEL[t]}</button>`).join(""),`<button class="btn-text" data-act="cancel">Schließen</button>`); return; }
-  if(a==="setTheme"){ theme=b.dataset.v; applyTheme(theme); closeOverlays(); if(nav.v==="abschluss") render(); return; }
-  if(a==="new"){ cur=newProto(); saveNow(); go({v:"projekt"}); return; }
-  if(a==="open"){ const p=protos.find(x=>x.id===b.dataset.id); if(!p) return; cur=JSON.parse(JSON.stringify(p)); setSub("Gespeichert auf diesem Gerät"); go({v:"saeulen"}); return; }
-  if(a==="export"){ const fotos={}; protos.forEach(p=>p.s.flatMap(fotoIds).forEach(i=>{ const d=fotoCache.get(i); if(d) fotos[i]=d; }));
-    const blob=new Blob([JSON.stringify({app:"evse-pruefprotokoll",version:2,saved:Date.now(),protokolle:protos,fotos})],{type:"application/json"}); saveFile(blob,`EVSE-Protokolle_Sicherung_${today()}.json`); toast(`${protos.length} Protokoll(e) gesichert`); return; }
-  if(a==="import"){ $("#importFile").click(); return; }
-  if(a==="archiv"){ go({v:"list",arch:true}); return; }
-  if(a==="pin"){ const p=protos.find(x=>x.id===b.dataset.id); if(!p) return; p.pinned=!p.pinned; lsSave(); render(); toast(p.pinned?"Angepinnt":"Nicht mehr angepinnt"); return; }
-  if(a==="demoHide"){ const d=protos.filter(isDemo); fotoDel(d.flatMap(p=>p.s.flatMap(fotoIds))); protos=protos.filter(p=>!isDemo(p)); lsSave(); render(); toast(`${d.length} Beispielprojekt${d.length>1?"e":""} ausgeblendet`); return; }
-  if(a==="demo"){ const d=demoProtos(); protos=[...d,...protos]; lsSave(); render(); toast("2 Beispielprojekte angelegt"); return; }
+  if(a.startsWith("nav:")){ go({v:a.slice(4)}); return; }
+  switch(a){
+  case "menu": openMenu(); return;
+  case "cancel": closeOverlays(); pick=null; locForm=null; return;
+  case "nav": { const v=b.dataset.v; if(v!==nav.v) query=""; saveNow(); if(EDITOR.includes(nav.v)) cur=null; go(b.dataset.id?{v,id:b.dataset.id}:{v}); return; }
+  case "login": Auth.login(); return;
+  case "relogin": Auth.relogin(); return;
+  case "syncNow": syncNow(true); return;
+  case "filter": META.filter=b.dataset.v; metaSave(); softRender(); return;
+  case "konto": {
+    if(!SYNC_ON){ dialog("Mein Name",`<div class="fg1">${tf("name","Name (erscheint als Prüfer und Ersteller)",META.profil.name,{form:true})}</div><p class="sup" style="margin:12px 0 0">Die Anmeldung mit dem Microsoft-Konto wird freigeschaltet, sobald die IT die App eingerichtet hat. Bis dahin bleibt alles auf diesem Gerät.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveName">Speichern</button>`); return; }
+    dialog("Konto",`<div class="konto"><span class="avatar-big">${esc(initials(ME.name))}</span><div><b>${esc(ME.name)}</b><span>${esc(ME.mail)}</span><span>${ME.admin?"Rolle: Admin – darf alle Prüfungen bearbeiten":"Rolle: Prüfer – bearbeitet eigene Prüfungen"}</span></div></div><p class="sup" id="syncState" style="margin:16px 0 0">${esc(syncText())}</p>`,
+      `<button class="btn-text danger" data-act="logout">Abmelden</button><span style="flex:1"></span><button class="btn-text" data-act="syncNow">Jetzt abgleichen</button><button class="btn-text" data-act="cancel">Schließen</button>`); return; }
+  case "saveName": { const v=formVals().name; META.profil.name=v; metaSave(); setMe(); closeOverlays(); render(); toast("Name gespeichert");
+    if(nachName&&v){ const n=nachName; nachName=null; $("#fab").dataset.act===n&&$("#fab").click(); } return; }
+  case "logout": confirmDlg("Abmelden?","Nicht abgeglichene Änderungen bleiben auf dem Gerät und werden nach der nächsten Anmeldung hochgeladen.","Abmelden","logoutOk"); return;
+  case "logoutOk": Auth.logout(); return;
+  case "theme": dialog("Darstellung",THEMES.map(t=>`<button class="radio" role="radio" data-act="setTheme" data-v="${t}" aria-checked="${t===theme}"><span class="rb"></span>${TH_LABEL[t]}</button>`).join(""),`<button class="btn-text" data-act="cancel">Schließen</button>`); return;
+  case "setTheme": theme=b.dataset.v; applyTheme(theme); closeOverlays(); if(nav.v==="abschluss") render(); return;
+  case "export": exportBackup(); return;
+  case "import": $("#importFile").click(); return;
+  case "demo": demoLaden(); render(); toast("Beispieldaten angelegt – sie werden nicht abgeglichen"); return;
+  case "demoHide": { let n=0; for(const k of KINDS) for(const r of [...DB[k].values()]) if(r.demo){ if(k==="pruefungen") fotoDel(r.s.flatMap(fotoIds)); dbDelHard(k,r.id); n++; }
+    META.pins=META.pins.filter(id=>KINDS.some(k=>DB[k].has(id))); metaSave(); if(cur&&!DB.pruefungen.has(cur.id)) cur=null; go({v:"start"}); toast("Beispieldaten ausgeblendet"); return; }
+  case "newAny": if(nameFehlt("newAny")) return; pick={mode:"new"}; pickDialog(); return;
+  case "pickOk": { const r=pickResolve(); if(!r) return; const mode=pick.mode; pick=null; closeOverlays();
+    if(mode==="new"){ neuePruefung(r.k.id,r.s.id,r.l&&r.l.id); return; }
+    cur.kundeId=r.k.id; cur.standortId=r.s.id; cur.ladeparkId=r.l?r.l.id:null; commit(); render(); toast(`Verschoben nach ${pfadText(cur)}`); return; }
+  case "move": if(!canEdit(cur)) return; pick={mode:"move",k:cur.kundeId,s:cur.standortId,l:cur.ladeparkId||""}; pickDialog(); return;
+  case "newKunde": locDialog("kunden"); return;
+  case "newStandort": locDialog("standorte",null,nav.id); return;
+  case "newLadepark": locDialog("ladeparks",null,nav.id); return;
+  case "editLoc": locDialog(VIEW_KIND[nav.v],DB[VIEW_KIND[nav.v]].get(nav.id)); return;
+  case "saveLoc": { const F=formVals(), L=locForm; if(!F.name){ toast("Bitte einen Namen eingeben"); return; }
+    let r;
+    if(L.id){ r=DB[L.kind].get(L.id); Object.assign(r,F); saveRec(L.kind,r); }
+    else { r={id:uid(),...F}; if(L.kind==="standorte") r.kundeId=L.parentId; if(L.kind==="ladeparks") r.standortId=L.parentId; saveRec(L.kind,r,true); }
+    locForm=null; closeOverlays();
+    if(L.id) render(); else go({v:{kunden:"kunde",standorte:"standort",ladeparks:"ladepark"}[L.kind],id:r.id});
+    toast(`${KIND_NAME[L.kind]} ${L.id?"gespeichert":"angelegt"}`); return; }
+  case "pinLoc": case "pinLocCur": { const id=a==="pinLoc"?b.dataset.id:nav.id, i=META.pins.indexOf(id); if(i>=0) META.pins.splice(i,1); else META.pins.push(id); metaSave(); softRender(); toast(i<0?"Angepinnt – steht jetzt auf der Startseite":"Nicht mehr angepinnt"); return; }
+  case "delLocAsk": { const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id);
+    const kinder=kind==="kunden"?standorteVon(r.id).length:kind==="standorte"?ladeparksVon(r.id).length+pruefAt(r.id,null).length:pruefAt(r.standortId,r.id).length;
+    if(kinder){ toast(`${KIND_NAME[kind]} enthält noch Einträge – erst diese löschen oder verschieben`); return; }
+    confirmDlg(`${KIND_NAME[kind]} löschen?`,`„${r.name}“ wird gelöscht.`,"Löschen","delLoc"); return; }
+  case "delLoc": { const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id); r.deleted=true; saveRec(kind,r); closeOverlays(); zurueck(); toast(`${KIND_NAME[kind]} gelöscht`); return; }
+  case "newHere": { if(nameFehlt("newHere")) return; const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id);
+    if(kind==="standorte") neuePruefung(r.kundeId,r.id,null); else { const s=standortOf(r.standortId); neuePruefung(s.kundeId,s.id,r.id); } return; }
+  case "open": oeffne(b.dataset.id); return;
+  }
   if(!cur) return;
-  if(a==="norm"){ const n=b.dataset.n, L=cur.p.normen, i=L.indexOf(n); if(i>=0) L.splice(i,1); else L.push(n); b.setAttribute("aria-pressed",i<0); scheduleSave(); return; }
-  if(a==="openS"){ saveNow(); go({v:"saeule",si:+b.dataset.si,st:"geraet"}); return; }
-  if(a==="addS"){ const prev=cur.s[cur.s.length-1], s=newSaeule(cur.s.length+1);
+  switch(a){
+  case "newSame": saveNow(); neuePruefung(cur.kundeId,cur.standortId,cur.ladeparkId); return;
+  case "archCur": { const now=archToggle(cur.id); toast(now?"Archiviert – bleibt beim Kunden sichtbar":"Aus dem Archiv geholt"); return; }
+  case "pdf": makePDF(); return;
+  case "openS": saveNow(); go({v:"saeule",si:+b.dataset.si,st:"geraet"}); return;
+  case "sub": saveNow(); nav={...nav,st:b.dataset.v}; render(); window.scrollTo(0,0); return;
+  case "fotoShow": { const k=b.dataset.k, sl=FOTO_SLOTS.find(x=>x[0]===k), src=fotoCache.get(cur.s[nav.si].fotos[k]), ok=canEdit(cur);
+    dialog(sl[1],`<img class="dimg" src="${src}" alt="">`,`${ok?`<button class="btn-text danger" data-act="fotoDel" data-k="${k}">Löschen</button><span style="flex:1"></span><button class="btn-text" data-act="fotoAdd" data-k="${k}">Ersetzen</button>`:""}<button class="btn-text" data-act="cancel">Schließen</button>`); return; }
+  }
+  if(!canEdit(cur)) return;
+  switch(a){
+  case "norm": { const n=b.dataset.n, L=cur.p.normen, i=L.indexOf(n); if(i>=0) L.splice(i,1); else L.push(n); b.setAttribute("aria-pressed",i<0); scheduleSave(); return; }
+  case "addS": { const prev=cur.s[cur.s.length-1], s=newSaeule(cur.s.length+1);
     if(prev) ["typ","absTyp","absIn","zsMan","rcd","idn","inenn","freigabe","phasen","lps"].forEach(k=>s[k]=prev[k]);
-    cur.s.push(s); saveNow(); go({v:"saeule",si:cur.s.length-1,st:"geraet"}); toast(`${s.name} angelegt`); return; }
-  if(a==="dupS"){ const src=cur.s[nav.si], c=JSON.parse(JSON.stringify(src)); c.id=uid(); c.sn=""; c.ort=""; c.fotos={};
-    c.lp=[newLP(),newLP()]; c.name=`Ladesäule ${cur.s.length+1}`;
-    cur.s.push(c); saveNow(); go({v:"saeule",si:cur.s.length-1,st:"geraet"}); toast(`Kopie von ${src.name} – ohne Seriennummer und Messwerte`); return; }
-  if(a==="fotoAdd"){ fotoTarget={si:nav.si,k:b.dataset.k}; closeOverlays(); $("#fotoFile").click(); return; }
-  if(a==="fotoShow"){ const k=b.dataset.k, sl=FOTO_SLOTS.find(x=>x[0]===k), src=fotoCache.get(cur.s[nav.si].fotos[k]);
-    dialog(sl[1],`<img class="dimg" src="${src}" alt="">`,`<button class="btn-text danger" data-act="fotoDel" data-k="${k}">Löschen</button><span style="flex:1"></span><button class="btn-text" data-act="fotoAdd" data-k="${k}">Ersetzen</button><button class="btn-text" data-act="cancel">Schließen</button>`); return; }
-  if(a==="fotoDel"){ const s=cur.s[nav.si]; fotoDel([s.fotos[b.dataset.k]]); delete s.fotos[b.dataset.k]; saveNow(); closeOverlays(); const y=scrollY; render(); scrollTo(0,y); toast("Foto gelöscht"); return; }
-  if(a==="sub"){ saveNow(); nav={...nav,st:b.dataset.v}; render(); window.scrollTo(0,0); return; }
-  if(a==="lps"||a==="phasen"){ const s=cur.s[nav.si]; s[a]=+b.dataset.v; while(s.lp.length<2) s.lp.push(newLP()); scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
-  if(a==="chk"){ const p=b.dataset.path, v=b.dataset.v; setPath(p,getPath(p)===v?"":v); scheduleSave(); b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",getPath(p)===x.dataset.v)); refresh(); return; }
-  if(a==="sigclear"){ cur.a[b.dataset.k]=""; scheduleSave(); const c=$("#"+b.dataset.k); c.getContext("2d").clearRect(0,0,c.width,c.height); return; }
-  if(a==="delSask"){ confirmDlg("Ladesäule entfernen?",`${cur.s[nav.si].name} wird mit allen Messwerten aus diesem Protokoll entfernt.`,"Entfernen","delS"); return; }
-  if(a==="delS"){ fotoDel(fotoIds(cur.s[nav.si])); cur.s.splice(nav.si,1); if(!cur.s.length) cur.s.push(newSaeule(1)); saveNow(); go({v:"saeulen"}); toast("Ladesäule entfernt"); return; }
-  if(a==="delask"){ confirmDlg("Protokoll löschen?",`„${cur.p.projekt||"Ohne Namen"}“ wird von diesem Gerät gelöscht. Das lässt sich nicht rückgängig machen.`,"Löschen","del"); return; }
-  if(a==="del"){ fotoDel(cur.s.flatMap(fotoIds)); const id=cur.id; clearTimeout(saveTimer); protos=protos.filter(p=>p.id!==id); lsSave(); cur=null; go({v:"list"}); toast("Protokoll gelöscht"); return; }
-  if(a==="dup"){ saveNow(); const c=JSON.parse(JSON.stringify(cur)); c.id=uid(); c.created=c.updated=Date.now(); c.p.projekt=(c.p.projekt?c.p.projekt+" ":"")+"(Kopie)"; c.p.datum=today(); c.pinned=false; c.archived=false;
-    c.s.forEach(s=>{ s.id=uid(); s.lp=s.lp.map(()=>newLP()); s.fotos={}; }); c.a.sigP=c.a.sigK=""; c.a.maengel=""; cur=c; saveNow(); go({v:"projekt"}); toast("Kopie ohne Messwerte angelegt"); return; }
-  if(a==="pinCur"){ cur.pinned=!cur.pinned; saveNow(); toast(cur.pinned?"Angepinnt":"Nicht mehr angepinnt"); return; }
-  if(a==="archCur"){ cur.archived=!cur.archived; if(cur.archived) cur.pinned=false; saveNow(); const ar=cur.archived; cur=null; go({v:"list"}); toast(ar?"Archiviert":"Aus dem Archiv geholt"); return; }
-  if(a==="pdf"){ makePDF(); return; }
+    cur.s.push(s); commit(); go({v:"saeule",si:cur.s.length-1,st:"geraet"}); toast(`${s.name} angelegt`); return; }
+  case "dupAsk": { const src=cur.s[nav.si];
+    dialog("Säule vervielfältigen",`<div class="fg1">${tf("n","Anzahl Kopien",String(1),{form:true,im:"numeric",sfx:"Stück"})}</div>
+      <p class="sup" style="margin:12px 0 0">Übernommen werden Typ, Firmware, Absicherung, RCD, Freigabe, Anschluss und Ladepunkte von „${esc(src.name)}“. Seriennummer, Stellplatz, Messwerte und Fotos bleiben leer.</p>`,
+      `<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="dupS">Anlegen</button>`); return; }
+  case "dupS": { const n=Math.max(1,Math.min(50,parseInt(formVals().n,10)||0)); if(!n){ toast("Bitte eine Anzahl eingeben"); return; }
+    const src=cur.s[nav.si], start=cur.s.length;
+    for(let i=0;i<n;i++){ const c=JSON.parse(JSON.stringify(src)); Object.assign(c,{id:uid(),sn:"",ort:"",fotos:{},lp:[newLP(),newLP()],name:`Ladesäule ${cur.s.length+1}`}); cur.s.push(c); }
+    commit(); closeOverlays(); go({v:"saeulen"}); toast(`${n} Ladesäule${n>1?"n":""} angelegt (${cur.s[start].name}${n>1?` bis ${cur.s[cur.s.length-1].name}`:""})`); return; }
+  case "lps": case "phasen": { const s=cur.s[nav.si]; s[a]=+b.dataset.v; while(s.lp.length<2) s.lp.push(newLP()); scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
+  case "chk": { const p=b.dataset.path, v=b.dataset.v; setPath(p,getPath(p)===v?"":v); scheduleSave(); b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",getPath(p)===x.dataset.v)); refresh(); return; }
+  case "sigclear": { cur.a[b.dataset.k]=""; scheduleSave(); const c=$("#"+b.dataset.k); c.getContext("2d").clearRect(0,0,c.width,c.height); return; }
+  case "fotoAdd": fotoTarget={si:nav.si,k:b.dataset.k}; closeOverlays(); $("#fotoFile").click(); return;
+  case "fotoDel": { const s=cur.s[nav.si]; fotoDel([s.fotos[b.dataset.k]]); delete s.fotos[b.dataset.k]; commit(); closeOverlays(); const y=scrollY; render(); scrollTo(0,y); toast("Foto gelöscht"); return; }
+  case "delSask": confirmDlg("Ladesäule entfernen?",`${cur.s[nav.si].name} wird mit allen Messwerten aus dieser Prüfung entfernt.`,"Entfernen","delS"); return;
+  case "delS": cur.s.splice(nav.si,1); if(!cur.s.length) cur.s.push(newSaeule(1)); commit(); go({v:"saeulen"}); toast("Ladesäule entfernt"); return;
+  case "delask": confirmDlg("Prüfung löschen?",`Die Prüfung vom ${deDate(cur.p.datum)} (${pfadText(cur)}) wird gelöscht.`,"Löschen","del"); return;
+  case "del": { saveNow(); const p=DB.pruefungen.get(cur.id); closeOverlays(); zurueck(); loeschePruefung(p); return; }
+  }
 });
-$("#backBtn").addEventListener("click",()=>{ saveNow();
-  if(nav.v==="saeule"){ go({v:"saeulen"}); return; }
-  if(nav.v==="list"){ go({v:"list"}); return; }
-  const back=cur&&cur.archived; cur=null; protos.sort((a,b)=>b.updated-a.updated); go({v:"list",arch:back}); });
+$("#backBtn").addEventListener("click",zurueck);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeOverlays(); if(e.key==="Enter"&&e.target.matches(".li[role=button]")) e.target.click(); });
 window.addEventListener("scroll",()=>$("#topbar").classList.toggle("scrolled",scrollY>4),{passive:true});
 async function fotoAufnehmen(el){
@@ -742,23 +1273,28 @@ async function fotoAufnehmen(el){
   let data; try{ data=await fotoVerkleinern(f); }catch(e){ toast("Das Bild konnte nicht gelesen werden"); return; }
   const s=cur.s[t.si]; if(!s) return; s.fotos=s.fotos||{};
   if(s.fotos[t.k]) fotoDel([s.fotos[t.k]]);
-  const id=uid(), ok=await fotoPut(id,data); s.fotos[t.k]=id; saveNow();
+  const id=uid(), ok=await fotoPut(id,data); s.fotos[t.k]=id; fotoQueue(id); commit();
   if(nav.v==="saeule"&&nav.si===t.si){ const y=scrollY; render(); scrollTo(0,y); }
   if(!ok) toast("Foto nur bis zum Schließen der App gespeichert – Speicher nicht verfügbar");
 }
+function exportBackup(){
+  const daten={}; KINDS.forEach(k=>daten[k]=[...DB[k].values()].map(strip));
+  const fotos={}; live("pruefungen").forEach(p=>p.s.flatMap(fotoIds).forEach(i=>{ const d=fotoCache.get(i); if(d) fotos[i]=d; }));
+  saveFile(new Blob([JSON.stringify({app:"evse-pruefprotokoll",version:3,saved:Date.now(),daten,fotos})],{type:"application/json"}),`EVSE-Prüfprotokolle_Sicherung_${today()}.json`);
+  toast(`${live("pruefungen").length} Prüfung(en) gesichert`);
+}
 async function importBackup(el){
-  const f=el.files[0]; if(!f) return;
-  try{ const txt=await new Response(f).text(); const d=JSON.parse(txt); const list=Array.isArray(d)?d:d.protokolle; if(!Array.isArray(list)) throw 0;
-    if(d.fotos) for(const [k,v] of Object.entries(d.fotos)) if(!fotoCache.has(k)) await fotoPut(k,v);
-    let neu=0,akt=0; for(const p of list){ if(!p||!p.id||!p.p||!Array.isArray(p.s)) continue; const i=protos.findIndex(x=>x.id===p.id);
-      if(i<0){protos.push(p);neu++;} else if((p.updated||0)>(protos[i].updated||0)){protos[i]=p;akt++;} }
-    protos.sort((a,b)=>b.updated-a.updated); lsSave(); render(); toast(`${neu} neu, ${akt} aktualisiert`);
+  const f=el.files[0]; el.value=""; if(!f) return;
+  try{ const d=JSON.parse(await new Response(f).text()); let neu=0, akt=0;
+    if(d&&d.daten){ for(const k of KINDS) for(const r of (d.daten[k]||[])){ if(!r||!r.id) continue; const loc=DB[k].get(r.id);
+        if(!loc){ r._dirty=!r.demo; dbPut(k,r); neu++; } else if((r.updated||0)>(loc.updated||0)){ r._etag=loc._etag; r._itemId=loc._itemId; r._dirty=!r.demo; dbPut(k,r); akt++; } } }
+    else { const list=Array.isArray(d)?d:d.protokolle; if(!Array.isArray(list)) throw 0; neu=importLegacy(list); }
+    if(d&&d.fotos) for(const [k,v] of Object.entries(d.fotos)) if(!fotoCache.has(k)){ await fotoPut(k,v); fotoQueue(k); }
+    syncSoon(); render(); toast(`${neu} neu, ${akt} aktualisiert`);
   }catch(e){ toast("Die Datei ist keine gültige Sicherung"); }
-  el.value="";
 }
 
-
-// ================= Beispielprojekte =================
+// ================= Beispieldaten (werden nie abgeglichen) =================
 function demoLP(o={}){
   const v={rpe:"0,06",riso:"200",risov:"500 V",pevt:"ok",cp:"ok",u1:"234,0",u2:"227,3",u3:"234,5",unpe:"0,4",dreh:"rechts (123)",
     zs1:"0,44",zs2:"0,42",zs3:"0,41",r05:"ok",r1:"26,7",r5:"5,7",ria:"21",ub:"1,3",dc6:"1,8",fe:"ok",ff:"ok"};
@@ -766,26 +1302,33 @@ function demoLP(o={}){
 }
 function demoSaeule(n,sn,lp1,lp2,extra={}){
   return Object.assign({id:uid(), name:`Ladesäule ${n}`, typ:"Mennekes AMTRON Charge Control", sn, ort:`Stellplatz ${2*n-1}/${2*n}`, fw:"5.22.3",
-    absTyp:"LS B", absIn:"32", zsMan:"", inenn:"22", rcd:"A + RDC-DD 6 mA", idn:"30", freigabe:"Ladekarte", phasen:3, lps:2, lp:[lp1,lp2]}, extra);
+    absTyp:"LS B", absIn:"32", zsMan:"", inenn:"22", rcd:"A + RDC-DD 6 mA", idn:"30", freigabe:"Ladekarte", phasen:3, lps:2, lp:[lp1,lp2], fotos:{}}, extra);
 }
-function demoProtos(){
-  const now=Date.now();
-  const p1={id:uid(), demo:true, created:now, updated:now,
-    p:{projekt:"BEISPIEL – Ladepark Rathausplatz", auftraggeber:"Musterstadt (Beispiel)", auftragsnr:"2510-099", standort:"Tiefgarage, Verteiler UV-TG", datum:today(), pruefer:"Max", geraet:"Wiha MFT one", geraetSn:"MFT-000123", kal:"10.2027", adapter:"Fluke FEV300", art:"Erstprüfung", normen:["DIN VDE 0100-600","DIN VDE 0100-722"], netz:"TN-C-S", umfang:DEF_UMFANG.replace("[Name]","UV-TG")},
-    s:[
-      demoSaeule(1,"151612202MA.05006",demoLP(),demoLP({v:{u1:"234,1",u2:"232,5",u3:"229,4",zs1:"0,46",zs2:"0,43",zs3:"0,44",r1:"24,5",r5:"6,1"}})),
-      demoSaeule(2,"151812202MA.05030",demoLP({v:{u1:"237,5",u2:"231,5",u3:"234,3",zs1:"0,40",zs2:"0,46",r1:"8,7",r5:"5,9"}}),demoLP({v:{u1:"235,3",u2:"234,9",zs1:"0,40",zs2:"0,45",zs3:"0,42"}})),
-      demoSaeule(3,"151812202MA.05044",demoLP({v:{zs1:"0,51",zs2:"0,49",zs3:"0,50"}}),demoLP({v:{riso:"0,4",zs1:"0,52"},bem:"Isolationswert LP 2 zu niedrig (0,4 MΩ). Feuchtigkeit im Anschlussraum, Dichtung Kabeleinführung defekt. LP 2 außer Betrieb genommen."})),
-      demoSaeule(4,"151812202MA.05051",demoLP({v:{zs1:"0,55",zs2:"0,53",zs3:"0,54"}}),{v:{risov:"500 V",rpe:"0,07",riso:"200"},bem:"Messung LP 2 noch offen – Freigabe durch Betreiber ausstehend."}),
-    ],
-    a:{maengel:"Ladesäule 3, LP 2: Isolationswiderstand 0,4 MΩ (< 1 MΩ). Dichtung der Kabeleinführung erneuern, Anschlussraum trocknen, danach erneut messen. LP 2 bis dahin außer Betrieb.", funktion:DEF_FUNKTION, naechste:"", sigP:"", sigK:"", sigPName:"Max", sigKName:""}};
-  const p2={id:uid(), demo:true, created:now-1000, updated:now-1000,
-    p:{projekt:"BEISPIEL – Wallbox EFH Mustermann", auftraggeber:"Erika Mustermann (Beispiel)", auftragsnr:"2510-104", standort:"Garage, Hauptverteilung", datum:today(), pruefer:"Max", geraet:"Wiha MFT one", geraetSn:"MFT-000123", kal:"10.2027", adapter:"Fluke FEV300", art:"Wiederholungsprüfung", normen:["DIN VDE 0105-100","DIN VDE 0100-722"], netz:"TN-C-S", umfang:DEF_UMFANG.replace("[Name]","HV Garage")},
-    s:[{id:uid(), name:"Wallbox Garage", typ:"go-e Charger Gemini 11 kW", sn:"GE-204411", ort:"Garage links", fw:"56.1", absTyp:"LS B", absIn:"16", zsMan:"", inenn:"16", rcd:"A + RDC-DD 6 mA", idn:"30", freigabe:"App", phasen:3, lps:1,
-       lp:[demoLP({v:{riso:"185",zs1:"0,92",zs2:"0,88",zs3:"0,90",r1:"21,3",r5:"7,2",ria:"19,5",ub:"2,8",dc6:"2,4"}}), newLP()]}],
-    a:{maengel:"", funktion:DEF_FUNKTION, naechste:"", sigP:"", sigK:"", sigPName:"Max", sigKName:""}};
-  return [p1,p2];
+function demoLaden(){
+  const D=(kind,r)=>{ r.demo=true; r.id=r.id||uid(); r.created=r.updated=Date.now(); r.createdBy=r.updatedBy={name:"Beispiel",mail:""}; dbPut(kind,r); return r; };
+  const k1=D("kunden",{name:"BEISPIEL Musterfirma GmbH",adresse:"Industriestraße 1, 53359 Rheinbach",notiz:"Mehrere Standorte"});
+  const s1=D("standorte",{kundeId:k1.id,name:"Werk Rheinbach",adresse:"Industriestraße 1, 53359 Rheinbach"});
+  const s2=D("standorte",{kundeId:k1.id,name:"Verwaltung Nümbrecht",adresse:"Hauptstraße 5, 51588 Nümbrecht"});
+  const l1=D("ladeparks",{standortId:s1.id,name:"Parkplatz Nord",notiz:"Tiefgarage, Verteiler UV-TG"});
+  const l2=D("ladeparks",{standortId:s1.id,name:"Besucherparkplatz",notiz:""});
+  const base=(o)=>{ const p=newProto(); Object.assign(p.p,{pruefer:"Max",geraetSn:"MFT-000123",kal:"10.2027"},o.p||{}); return Object.assign(p,o.x); };
+  D("pruefungen",base({p:{auftragsnr:"2210-031",datum:"2022-10-12",art:"Erstprüfung",standort:"UV-TG"},x:{kundeId:k1.id,standortId:s1.id,ladeparkId:l1.id,
+    s:[demoSaeule(1,"151612202MA.05006",demoLP(),demoLP()),demoSaeule(2,"151812202MA.05030",demoLP(),demoLP())]}}));
+  D("pruefungen",base({p:{auftragsnr:"2510-099",datum:today(),art:"Wiederholungsprüfung",standort:"UV-TG",normen:["DIN VDE 0105-100","DIN VDE 0100-722"]},x:{kundeId:k1.id,standortId:s1.id,ladeparkId:l1.id,
+    s:[demoSaeule(1,"151612202MA.05006",demoLP(),demoLP({v:{zs1:"0,46",r1:"24,5"}})),
+       demoSaeule(2,"151812202MA.05030",demoLP({v:{zs1:"0,40"}}),demoLP({v:{riso:"0,4"},bem:"Isolationswert LP 2 zu niedrig (0,4 MΩ). Dichtung Kabeleinführung defekt. LP 2 außer Betrieb genommen."}))],
+    a:{maengel:"Ladesäule 2, LP 2: Isolationswiderstand 0,4 MΩ (< 1 MΩ). Dichtung der Kabeleinführung erneuern, Anschlussraum trocknen, danach erneut messen.",funktion:DEF_FUNKTION,naechste:"",sigP:"",sigK:"",sigPName:"Max",sigKName:""}}}));
+  D("pruefungen",base({p:{auftragsnr:"2510-104",art:"Erstprüfung",standort:"HV Besucherparkplatz"},x:{kundeId:k1.id,standortId:s1.id,ladeparkId:l2.id,
+    s:[demoSaeule(1,"GE-204411",demoLP(),{v:{risov:"500 V",rpe:"0,07",riso:"200"},bem:"Messung LP 2 noch offen – Freigabe durch Betreiber ausstehend."})]}}));
+  D("pruefungen",base({p:{auftragsnr:"2509-017",datum:"2026-09-03",art:"Erstprüfung",standort:"HV Keller"},x:{kundeId:k1.id,standortId:s2.id,ladeparkId:null,
+    s:[Object.assign(demoSaeule(1,"GE-118822",demoLP({v:{zs1:"0,92",zs2:"0,88",zs3:"0,90"}}),newLP()),{typ:"go-e Charger Gemini 11 kW",absIn:"16",inenn:"16",lps:1,ort:"Chefparkplatz"})]}}));
+  const k2=D("kunden",{name:"BEISPIEL Erika Mustermann",adresse:"Am Weiher 3, 51545 Waldbröl",notiz:""});
+  const s3=D("standorte",{kundeId:k2.id,name:"Einfamilienhaus",adresse:"Am Weiher 3, 51545 Waldbröl"});
+  D("pruefungen",base({p:{auftragsnr:"2510-120",art:"Erstprüfung",standort:"HV Garage"},x:{kundeId:k2.id,standortId:s3.id,ladeparkId:null,
+    s:[Object.assign(demoSaeule(1,"GE-204499",demoLP({v:{zs1:"0,92",zs2:"0,88",zs3:"0,90",r1:"21,3"}}),newLP()),{name:"Wallbox Garage",typ:"go-e Charger Gemini 11 kW",absIn:"16",inenn:"16",lps:1,ort:"Garage links",freigabe:"App"})]}}));
+  if(!META.pins.includes(s1.id)){ META.pins.push(s1.id); metaSave(); }
 }
+
 
 // ================= Unterschrift =================
 function setupSigs(){
@@ -813,10 +1356,16 @@ const pt=s=>String(s??"").replace(/[≈Ω≤≥→↔–Δ…·„“]/g,c=>PDFM
 function makePDF(){
   if(!window.jspdf){ toast("PDF-Erstellung nicht geladen"); return; }
   saveNow();
+  const fehlt=cur.s.flatMap(fotoIds).filter(id=>!fotoCache.has(id));
+  if(fehlt.length&&SYNC_ON){ fotoFetch(fehlt); toast("Fotos werden noch geladen – gleich noch einmal tippen"); return; }
   let blob; try{ blob=buildPDF(cur); }catch(e){ toast("PDF konnte nicht erstellt werden"); return; }
-  const base=(cur.p.auftragsnr||cur.p.projekt||"Protokoll").replace(/[^\wÄÖÜäöüß\-]+/g,"_");
+  const {k,s}=pfad(cur), base=[k&&k.name,s&&s.name].filter(Boolean).join("_").replace(/[^\wÄÖÜäöüß\-]+/g,"_")||"Protokoll";
   saveFile(blob,`EVSE-Prüfprotokoll_${base}_${cur.p.datum||today()}.pdf`);
-  toast("PDF erstellt – über Teilen oder „In Dateien sichern“ ablegen");
+  if(SYNC_ON&&ME.signedIn&&!cur.demo){ const id=cur.id;
+    toast("PDF erstellt – wird zusätzlich in der Share abgelegt …");
+    pdfHochladen(cur,blob).then(pfadTxt=>{ if(!pfadTxt) return; if(cur&&cur.id===id&&canEdit(cur)){ cur.pdfAblage=pfadTxt; commit(); if(nav.v==="abschluss") softRender(); } toast("PDF in der Share abgelegt: "+pfadTxt); })
+      .catch(e=>toast("PDF nicht in der Share abgelegt: "+(e.message||e)+" – bitte später erneut erstellen"));
+  } else toast("PDF erstellt – über Teilen oder „In Dateien sichern“ ablegen");
 }
 function buildPDF(P){
   const {jsPDF}=window.jspdf, d=new jsPDF({unit:"mm",format:"a4"});
@@ -829,7 +1378,7 @@ function buildPDF(P){
     d.setFillColor(...SIG); d.rect(0,24,W,1.4,"F"); y=34; };
   const foot=()=>{ d.setDrawColor(...LINE); d.line(M,284,W-M,284); d.setFont("helvetica","normal"); d.setFontSize(7); d.setTextColor(...GR);
     d.text("Elektro Irrgang | Hahner Weg 2 | 51545 Waldbröl | Tel. 02291 4878 | info@elektro-irrgang.de",M,288);
-    d.text(pt([P.p.projekt,P.p.auftragsnr&&`Auftrag ${P.p.auftragsnr}`,P.p.datum&&`Prüfdatum ${deDate(P.p.datum)}`].filter(Boolean).join(" | ")),M,292); d.text(`Seite ${page}`,W-M,292,{align:"right"}); };
+    d.text(pt([pfadText(P," | "),P.p.auftragsnr&&`Auftrag ${P.p.auftragsnr}`,P.p.datum&&`Prüfdatum ${deDate(P.p.datum)}`].filter(Boolean).join(" | ")),M,292); d.text(`Seite ${page}`,W-M,292,{align:"right"}); };
   const np=(t,s)=>{ foot(); d.addPage(); page++; head(t,s); };
   const sec=t=>{ d.setFillColor(...SUNK); d.rect(M,y-4.5,CW,7,"F"); d.setFillColor(...SIG); d.rect(M,y-4.5,1.2,7,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(9.5); d.text(pt(t),M+4,y); y+=8; };
   const kv=prs=>{ const cw=CW/2; d.setFontSize(8.5); for(let i=0;i<prs.length;i+=2){ let rh=6.2; for(let c=0;c<2&&i+c<prs.length;c++){ const [k,v]=prs[i+c],x=M+c*cw;
@@ -840,7 +1389,9 @@ function buildPDF(P){
 
   head("Prüfprotokoll Ladeeinrichtungen",`${P.p.art} | ${P.p.normen.join(" | ")}`);
   sec("Projektdaten");
-  kv([["Projekt",P.p.projekt],["Auftragsnr.",P.p.auftragsnr],["Auftraggeber",P.p.auftraggeber],["Standort",P.p.standort],["Prüfdatum",deDate(P.p.datum)],["Prüfer",P.p.pruefer],
+  const PF=pfad(P);
+  kv([["Auftraggeber",PF.k?[PF.k.name,PF.k.adresse].filter(Boolean).join(", "):P.p.auftraggeber],["Auftragsnr.",P.p.auftragsnr],["Standort",PF.s?[PF.s.name,PF.s.adresse].filter(Boolean).join(", "):"-"],["Ladepark",PF.l?PF.l.name:"-"],
+      ["Verteiler / Anlage",P.p.standort],["Bezeichnung",P.p.projekt],["Prüfdatum",deDate(P.p.datum)],["Prüfer",P.p.pruefer],
       ["Messgerät",P.p.geraet],["Seriennr.",P.p.geraetSn],["Prüfadapter",P.p.adapter],["Kal. gültig bis",P.p.kal],["Art der Prüfung",P.p.art],["Netzform",`${P.p.netz} | 230/400 V`]]);
   sec("Prüfumfang"); para(P.p.umfang);
   sec("Übersicht Ladesäulen");
@@ -920,14 +1471,19 @@ function buildPDF(P){
 // ================= Start =================
 $("#backBtn").innerHTML=icon("back"); $("#menuBtn").innerHTML=icon("more");
 if("serviceWorker" in navigator && location.protocol==="https:"){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
-protos=lsLoad(); protos.sort((a,b)=>b.updated-a.updated);
-render();
-fotoInit();
+(async()=>{
+  await dataLoad(); await Auth.init(); setMe();
+  if(SYNC_ON&&!ME.signedIn) nav={v:"login"};
+  render(); fotoInit();
+  if(SYNC_ON&&ME.signedIn){ syncNow(); setInterval(()=>{ if(document.visibilityState==="visible") syncNow(); },120000); }
+})();
 // Sofort speichern, wenn die App in den Hintergrund geht oder das iPad zugeklappt wird
-document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden"&&cur) saveNow(); });
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden"){ if(cur) saveNow(); } else syncSoon(); });
 window.addEventListener("pagehide",()=>{ if(cur) saveNow(); });
+window.addEventListener("online",()=>syncSoon()); window.addEventListener("offline",()=>setSync("offline"));
 // Browser bitten, den Speicher nicht automatisch zu leeren
 try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){}
+window.__EVSE__={DB,get cur(){return cur},syncNow,get SY(){return SY},get ME(){return ME}};
 })();
 </script>
 </body>
