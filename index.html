@@ -1445,9 +1445,11 @@ function projektView(){
 function saeulenView(){
   const res=cur.s.map(saeuleResult), ok=res.filter(r=>r==="ok").length, bad=res.filter(r=>r==="bad").length;
   return `<div class="narrow"><p class="meta">${cur.s.length} Ladesäule${cur.s.length>1?"n":""} · ${ok} bestanden${bad?` · ${bad} mit Mängeln`:""}</p><div class="list">${cur.s.map((s,si)=>
-    `<button class="li" data-act="openS" data-si="${si}"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">${esc(sName(s,si))}</span>
+    `<div class="sw" data-id="s${si}" data-si="${si}"><div class="sw-bg"><span class="l"></span><span class="r">Entfernen${icon("del")}</span></div>
+    <div class="li" role="button" tabindex="0" data-act="openS" data-si="${si}"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">${esc(sName(s,si))}</span>
       <span class="s">${esc([s.typ,s.ort].filter(Boolean).join(" · ")||"Gerätedaten fehlen")}</span>
-      <span class="lps">${Array.from({length:s.lps},(_,i)=>{const r=lpResult(s,i);return pill(r,`Ladepunkt ${i+1}: ${RES_SHORT[r]}`);}).join("")}</span></span>${icon("chev")}</button>`).join("")}</div></div>`;
+      <span class="lps">${Array.from({length:s.lps},(_,i)=>{const r=lpResult(s,i);return pill(r,`Ladepunkt ${i+1}: ${RES_SHORT[r]}`);}).join("")}</span></span>${icon("chev")}</div></div>`).join("")}</div>
+    ${canEdit(cur)&&cur.s.length>1?`<p class="hint">Nach links wischen: Ladesäule entfernen</p>`:""}</div>`;
 }
 function saeuleTabs(s){
   const st=nav.st||"geraet";
@@ -1626,7 +1628,7 @@ function zurueck(){
 
 // Wischen wie in Gmail: rechts = archivieren/zurückholen, links = löschen
 let swipe=null, swipe_block=0;
-document.addEventListener("pointerdown",e=>{ const sw=e.target.closest(".sw"); if(!sw||e.target.closest(".pin")) return;
+document.addEventListener("pointerdown",e=>{ const sw=e.target.closest(".sw"); if(!sw||e.target.closest(".pin")) return; if(sw.dataset.si!==undefined&&!canEdit(cur)) return;
   swipe={sw,li:sw.querySelector(".li"),x:e.clientX,y:e.clientY,dx:0,on:false}; });
 document.addEventListener("pointermove",e=>{ if(!swipe) return; const dx=e.clientX-swipe.x, dy=e.clientY-swipe.y;
   if(!swipe.on){ if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){ swipe=null; return; } if(Math.abs(dx)<12) return; swipe.on=true; swipe.sw.classList.add("drag"); }
@@ -1634,6 +1636,10 @@ document.addEventListener("pointermove",e=>{ if(!swipe) return; const dx=e.clien
 function swipeEnd(){ if(!swipe) return; const {sw,li,dx,on}=swipe; swipe=null; if(!on) return;
   sw.classList.remove("drag"); swipe_block=Date.now();
   const kind=sw.dataset.kind, far=Math.abs(dx)>sw.offsetWidth*0.35;
+  if(sw.dataset.si!==undefined){
+    if(far&&dx<0&&canEdit(cur)){ li.style.transform="translateX(-110%)"; setTimeout(()=>saeuleEntfernen(+sw.dataset.si),180); }
+    else{ li.style.transform=""; setTimeout(()=>sw.classList.remove("to-r","to-l"),220); }
+    return; }
   if(kind&&far){ li.style.transform=""; setTimeout(()=>sw.classList.remove("to-r","to-l"),220);
     if(dx>0){ const id=sw.dataset.id, i=META.pins.indexOf(id); if(i>=0) META.pins.splice(i,1); else META.pins.push(id); metaSave(); softRender(); toast(i<0?"Angepinnt – steht jetzt auf der Startseite":"Nicht mehr angepinnt"); }
     else locLoeschenFragen(kind,sw.dataset.id);
@@ -1671,6 +1677,14 @@ function locLoeschen(kind,id){
   if(cur&&P.some(p=>p.id===cur.id)) cur=null;
   softRender();
   toast(`${r.name} gelöscht`,"Rückgängig",()=>{ alle.forEach(([k,x])=>{ x.deleted=false; saveRec(k,x); }); softRender(); });
+}
+// Ladesäule aus der Prüfung entfernen (mit Rückgängig); Standardnamen „Ladesäule N“ werden neu durchnummeriert
+function nummeriere(){ cur.s.forEach((s,i)=>{ if(/^Ladesäule \d+$/.test(s.name||"")) s.name=`Ladesäule ${i+1}`; }); }
+function saeuleEntfernen(si){
+  if(!cur||!cur.s[si]) return;
+  const vorher=JSON.parse(JSON.stringify(cur.s)), name=cur.s[si].name;
+  cur.s.splice(si,1); if(!cur.s.length) cur.s.push(newSaeule(1)); nummeriere(); commit(); softRender();
+  toast(`${name} entfernt`,"Rückgängig",()=>{ if(!cur) return; cur.s=vorher; commit(); softRender(); });
 }
 function loeschePruefung(p){
   p.deleted=true; saveRec("pruefungen",p); if(cur&&cur.id===p.id) cur=null; softRender();
@@ -1799,7 +1813,7 @@ document.addEventListener("click",ev=>{
   case "fotoAdd": fotoTarget={si:nav.si,k:b.dataset.k}; closeOverlays(); $("#fotoFile").click(); return;
   case "fotoDel": { const s=cur.s[nav.si]; fotoDel([s.fotos[b.dataset.k]]); delete s.fotos[b.dataset.k]; commit(); closeOverlays(); const y=scrollY; render(); scrollTo(0,y); toast("Foto gelöscht"); return; }
   case "delSask": confirmDlg("Ladesäule entfernen?",`${cur.s[nav.si].name} wird mit allen Messwerten aus dieser Prüfung entfernt.`,"Entfernen","delS"); return;
-  case "delS": cur.s.splice(nav.si,1); if(!cur.s.length) cur.s.push(newSaeule(1)); commit(); go({v:"saeulen"}); toast("Ladesäule entfernt"); return;
+  case "delS": { const si=nav.si; closeOverlays(); go({v:"saeulen"}); saeuleEntfernen(si); return; }
   case "delask": confirmDlg("Prüfung löschen?",`Die Prüfung vom ${deDate(cur.p.datum)} (${pfadText(cur)}) wird gelöscht.`,"Löschen","del"); return;
   case "del": { saveNow(); const p=DB.pruefungen.get(cur.id); closeOverlays(); zurueck(); loeschePruefung(p); return; }
   }
