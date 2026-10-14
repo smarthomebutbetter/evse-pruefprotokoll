@@ -297,7 +297,10 @@ function listView(){
   <div class="card" style="margin-top:28px"><h3>Sicherung</h3>
     <p class="note" style="margin:0 0 12px">Protokolle liegen nur auf diesem iPad. Sichere sie regelmäßig als Datei, z. B. in „Dateien“ oder per Mail. „Sicherung laden“ holt sie zurück oder auf ein anderes iPad.</p>
     <div class="chips"><button class="btn" data-act="export">Alle sichern</button>
-    <label class="btn">Sicherung laden<input type="file" id="importFile" accept=".json,application/json" hidden></label></div></div>`;
+    <label class="btn">Sicherung laden<input type="file" id="importFile" accept=".json,application/json" hidden></label></div></div>
+  <div class="card" style="margin-top:16px"><h3>Vorführen</h3>
+    <p class="note" style="margin:0 0 12px">Legt zwei Beispielprojekte an: einen Ladepark mit 4 Säulen (bestanden, Mangel, offen) und eine Wallbox im Einfamilienhaus. Sie sind mit „BEISPIEL“ gekennzeichnet und lassen sich wie jedes Protokoll löschen.</p>
+    <button class="btn" data-act="demo">Beispielprojekte laden</button></div>`;
   return h;
 }
 const inp=(path,val,o={})=>`<input class="i" id="${esc(path)}" data-bind="${esc(path)}" type="${o.type||"text"}" ${o.im?`inputmode="${o.im}"`:""} value="${esc(val)}" ${o.ph?`placeholder="${esc(o.ph)}"`:""} autocomplete="off">`;
@@ -469,6 +472,7 @@ document.addEventListener("click",ev=>{
   if(a==="new"){ cur=newProto(); saveNow(); go({v:"projekt"}); return; }
   if(a==="open"){ const p=protos.find(x=>x.id===b.dataset.id); if(!p) return; cur=JSON.parse(JSON.stringify(p)); go({v:"saeulen"}); setSub("Gespeichert auf diesem iPad"); return; }
   if(a==="export"){ const blob=new Blob([JSON.stringify({app:"evse-pruefprotokoll",version:1,saved:Date.now(),protokolle:protos})],{type:"application/json"}); saveFile(blob,`EVSE-Protokolle_Sicherung_${today()}.json`); toast(`${protos.length} Protokoll(e) gesichert`); return; }
+  if(a==="demo"){ const d=demoProtos(); protos=[...d,...protos]; lsSave(); render(); toast("2 Beispielprojekte angelegt"); return; }
   if(!cur) return;
   if(a==="norm"){ const n=b.dataset.n, L=cur.p.normen, i=L.indexOf(n); if(i>=0) L.splice(i,1); else L.push(n); b.setAttribute("aria-pressed",i<0); scheduleSave(); return; }
   if(a==="openS"){ saveNow(); go({v:"saeule",si:+b.dataset.si,st:"geraet"}); return; }
@@ -498,6 +502,36 @@ async function importBackup(el){
     protos.sort((a,b)=>b.updated-a.updated); lsSave(); render(); toast(`${neu} neu, ${akt} aktualisiert`);
   }catch(e){ toast("Die Datei ist keine gültige Sicherung"); }
   el.value="";
+}
+
+
+// ================= Beispielprojekte =================
+function demoLP(o={}){
+  const v={rpe:"0,06",riso:"200",risov:"500 V",pevt:"ok",cp:"ok",u1:"234,0",u2:"227,3",u3:"234,5",unpe:"0,4",dreh:"rechts (123)",
+    zs1:"0,44",zs2:"0,42",zs3:"0,41",r05:"ok",r1:"26,7",r5:"5,7",ria:"21",ub:"1,3",dc6:"1,8",fe:"ok",ff:"ok"};
+  return {v:Object.assign(v,o.v||{}), bem:o.bem||""};
+}
+function demoSaeule(n,sn,lp1,lp2,extra={}){
+  return Object.assign({id:uid(), name:`Ladesäule ${n}`, typ:"Mennekes AMTRON Charge Control", sn, ort:`Stellplatz ${2*n-1}/${2*n}`, fw:"5.22.3",
+    absTyp:"LS B", absIn:"32", zsMan:"", inenn:"22", rcd:"A + RDC-DD 6 mA", idn:"30", freigabe:"Ladekarte", phasen:3, lps:2, lp:[lp1,lp2]}, extra);
+}
+function demoProtos(){
+  const now=Date.now();
+  const p1={id:uid(), created:now, updated:now,
+    p:{projekt:"BEISPIEL – Ladepark Rathausplatz", auftraggeber:"Musterstadt (Beispiel)", auftragsnr:"2510-099", standort:"Tiefgarage, Verteiler UV-TG", datum:today(), pruefer:"Max", geraet:"Wiha MFT one", geraetSn:"MFT-000123", kal:"10.2027", adapter:"Fluke FEV300", art:"Erstprüfung", normen:["DIN VDE 0100-600","DIN VDE 0100-722"], netz:"TN-C-S", umfang:DEF_UMFANG.replace("[Name]","UV-TG")},
+    s:[
+      demoSaeule(1,"151612202MA.05006",demoLP(),demoLP({v:{u1:"234,1",u2:"232,5",u3:"229,4",zs1:"0,46",zs2:"0,43",zs3:"0,44",r1:"24,5",r5:"6,1"}})),
+      demoSaeule(2,"151812202MA.05030",demoLP({v:{u1:"237,5",u2:"231,5",u3:"234,3",zs1:"0,40",zs2:"0,46",r1:"8,7",r5:"5,9"}}),demoLP({v:{u1:"235,3",u2:"234,9",zs1:"0,40",zs2:"0,45",zs3:"0,42"}})),
+      demoSaeule(3,"151812202MA.05044",demoLP({v:{zs1:"0,51",zs2:"0,49",zs3:"0,50"}}),demoLP({v:{riso:"0,4",zs1:"0,52"},bem:"Isolationswert LP 2 zu niedrig (0,4 MΩ). Feuchtigkeit im Anschlussraum, Dichtung Kabeleinführung defekt. LP 2 außer Betrieb genommen."})),
+      demoSaeule(4,"151812202MA.05051",demoLP({v:{zs1:"0,55",zs2:"0,53",zs3:"0,54"}}),{v:{risov:"500 V",rpe:"0,07",riso:"200"},bem:"Messung LP 2 noch offen – Freigabe durch Betreiber ausstehend."}),
+    ],
+    a:{maengel:"Ladesäule 3, LP 2: Isolationswiderstand 0,4 MΩ (< 1 MΩ). Dichtung der Kabeleinführung erneuern, Anschlussraum trocknen, danach erneut messen. LP 2 bis dahin außer Betrieb.", funktion:DEF_FUNKTION, naechste:"", sigP:"", sigK:"", sigPName:"Max", sigKName:""}};
+  const p2={id:uid(), created:now-1000, updated:now-1000,
+    p:{projekt:"BEISPIEL – Wallbox EFH Mustermann", auftraggeber:"Erika Mustermann (Beispiel)", auftragsnr:"2510-104", standort:"Garage, Hauptverteilung", datum:today(), pruefer:"Max", geraet:"Wiha MFT one", geraetSn:"MFT-000123", kal:"10.2027", adapter:"Fluke FEV300", art:"Wiederholungsprüfung", normen:["DIN VDE 0105-100","DIN VDE 0100-722"], netz:"TN-C-S", umfang:DEF_UMFANG.replace("[Name]","HV Garage")},
+    s:[{id:uid(), name:"Wallbox Garage", typ:"go-e Charger Gemini 11 kW", sn:"GE-204411", ort:"Garage links", fw:"56.1", absTyp:"LS B", absIn:"16", zsMan:"", inenn:"16", rcd:"A + RDC-DD 6 mA", idn:"30", freigabe:"App", phasen:3, lps:1,
+       lp:[demoLP({v:{riso:"185",zs1:"0,92",zs2:"0,88",zs3:"0,90",r1:"21,3",r5:"7,2",ria:"19,5",ub:"2,8",dc6:"2,4"}}), newLP()]}],
+    a:{maengel:"", funktion:DEF_FUNKTION, naechste:"", sigP:"", sigK:"", sigPName:"Max", sigKName:""}};
+  return [p1,p2];
 }
 
 // ================= Unterschrift =================
