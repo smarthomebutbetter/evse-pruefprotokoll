@@ -279,6 +279,12 @@ body.ro .seg button:disabled,body.ro .chip:disabled{opacity:.7}
 .ort-zeile div{flex:1;min-width:0}
 .ort-zeile b{display:block;font-size:15px}
 .ort-zeile span{display:block;font-size:13px;color:var(--on-sv)}
+.row2{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:12px}
+.iz{display:flex;gap:12px;padding:3px 0}
+.iz span{flex:none;width:118px;color:var(--on-sv);font-size:13px}
+.iz b{font-weight:600}
+.iz a{color:var(--primary);font-weight:600;text-decoration:none;word-break:break-word}
+.infok .iz + .by{margin-top:8px}
 .fg1{display:grid;gap:16px;--fbg:var(--sc-high);padding-top:6px}
 .dlg{max-height:calc(100vh - 48px);overflow:auto}
 .konto{display:flex;gap:16px;align-items:center}
@@ -940,6 +946,9 @@ const pruefAt=(sid,lid)=>live("pruefungen").filter(p=>p.standortId===sid&&(p.lad
 const pruefUnter=(kind,id)=>live("pruefungen").filter(p=>kind==="kunden"?p.kundeId===id:kind==="standorte"?p.standortId===id:p.ladeparkId===id).sort(byDate);
 const standorteVon=kid=>live("standorte").filter(s=>s.kundeId===kid).sort((a,b)=>a.name.localeCompare(b.name,"de"));
 const ladeparksVon=sid=>live("ladeparks").filter(l=>l.standortId===sid).sort((a,b)=>a.name.localeCompare(b.name,"de"));
+// Adresse: Straße, PLZ, Ort (ältere Einträge haben nur „adresse“ als Text)
+function adrText(r){ if(!r) return ""; const z=[r.strasse,[r.plz,r.ort].filter(Boolean).join(" ")].filter(Boolean).join(", "); return z||r.adresse||""; }
+function adrSplit(r){ if(r.strasse||r.plz||r.ort||!r.adresse) return; const m=r.adresse.match(/^(.*?),\s*(\d{5})\s+(.+)$/); if(m){ r.strasse=m[1]; r.plz=m[2]; r.ort=m[3]; } else r.strasse=r.adresse; }
 const pTitel=p=>`${deDate(p.p.datum)||"ohne Datum"} · ${p.p.art}`;
 
 // Übernahme alter Protokolle (vor der Kunden-Gliederung) und alter Sicherungen
@@ -1221,7 +1230,7 @@ const IC={
 };
 const icon=n=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 const pill=(r,t)=>`<span class="pill ${r}">${esc(t??RES_TXT[r])}</span>`;
-const DEST=[["projekt","Projekt","project"],["saeulen","Ladesäulen","ev"],["abschluss","Abschluss","done"]];
+const DEST=[["projekt","Auftrag","project"],["saeulen","Ladesäulen","ev"],["abschluss","Abschluss","done"]];
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"]];
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
@@ -1303,13 +1312,14 @@ function pItem(p,mitPfad){
 function locItem(kind,r){
   const pins=META.pins.includes(r.id), view={kunden:"kunde",standorte:"standort",ladeparks:"ladepark"}[kind];
   let sub="";
-  if(kind==="kunden"){ const n=standorteVon(r.id).length; sub=`${n} Standort${n===1?"":"e"}`; }
-  else if(kind==="standorte"){ sub=[r.adresse, (kundeOf(r.kundeId)||{}).name].filter(Boolean)[0]||""; }
+  if(kind==="kunden"){ const n=standorteVon(r.id).length; sub=[r.kdnr&&`Kd.-Nr. ${r.kdnr}`,r.ort,`${n} Standort${n===1?"":"e"}`].filter(Boolean).join(" · "); }
+  else if(kind==="standorte"){ sub=r.ort||adrText(r)||(kundeOf(r.kundeId)||{}).name||""; }
   else sub=nav.v==="standort"?(r.notiz||""):(standortOf(r.standortId)||{}).name||"";
   const last=pruefUnter(kind,r.id)[0];
-  return `<div class="li" role="button" tabindex="0" data-act="nav" data-v="${view}" data-id="${esc(r.id)}"><span class="av">${icon(KIND_ICON[kind])}</span>
+  return `<div class="sw" data-id="${esc(r.id)}" data-kind="${kind}"><div class="sw-bg"><span class="l">${icon(pins?"pinOff":"pin")}${pins?"Lösen":"Anpinnen"}</span><span class="r">Löschen${icon("del")}</span></div>
+    <div class="li" role="button" tabindex="0" data-act="nav" data-v="${view}" data-id="${esc(r.id)}"><span class="av">${icon(KIND_ICON[kind])}</span>
     <span class="lt"><span class="h">${esc(r.name)}</span><span class="s">${esc([sub,last&&`zuletzt ${deDate(last.p.datum)}`].filter(Boolean).join(" · ")||"noch keine Prüfung")}</span>${last?`<span class="st">${pill(protoResult(last))}</span>`:""}</span>
-    <button class="pin" data-act="pinLoc" data-kind="${kind}" data-id="${esc(r.id)}" aria-pressed="${pins}" aria-label="${pins?"Nicht mehr anpinnen":"Anpinnen"}">${icon(pins?"pin":"pinOff")}</button></div>`;
+    <button class="pin" data-act="pinLoc" data-kind="${kind}" data-id="${esc(r.id)}" aria-pressed="${pins}" aria-label="${pins?"Nicht mehr anpinnen":"Anpinnen"}">${icon(pins?"pin":"pinOff")}</button></div></div>`;
 }
 const searchBar=ph=>`<div class="search">${icon("search")}<input id="q" type="search" placeholder="${esc(ph)}" value="${esc(query)}" autocomplete="off" aria-label="Suchen"></div>`;
 const listOf=items=>items.length?`<div class="list">${items.join("")}</div>`:"";
@@ -1317,8 +1327,8 @@ const isDemo=r=>!!r.demo;
 
 function suche(q){
   q=q.toLowerCase(); const hit=s=>String(s||"").toLowerCase().includes(q);
-  const k=live("kunden").filter(r=>hit(r.name)||hit(r.adresse)).map(r=>locItem("kunden",r));
-  const s=live("standorte").filter(r=>hit(r.name)||hit(r.adresse)).map(r=>locItem("standorte",r));
+  const k=live("kunden").filter(r=>hit(r.name)||hit(adrText(r))||hit(r.kdnr)||hit(r.ansprech)).map(r=>locItem("kunden",r));
+  const s=live("standorte").filter(r=>hit(r.name)||hit(adrText(r))).map(r=>locItem("standorte",r));
   const l=live("ladeparks").filter(r=>hit(r.name)).map(r=>locItem("ladeparks",r));
   const p=live("pruefungen").filter(r=>hit(r.p.auftragsnr)||hit(r.p.projekt)||hit(r.p.pruefer)||r.s.some(x=>hit(x.sn)||hit(x.typ))).sort(byDate).slice(0,30).map(r=>pItem(r,true));
   const out=[k.length&&`<div class="sec-lbl">Kunden</div>${listOf(k)}`,s.length&&`<div class="sec-lbl">Standorte</div>${listOf(s)}`,l.length&&`<div class="sec-lbl">Ladeparks</div>${listOf(l)}`,p.length&&`<div class="sec-lbl">Prüfungen</div>${listOf(p)}`].filter(Boolean).join("");
@@ -1339,19 +1349,21 @@ function startListen(){
   if(pins.length) h+=`<div class="sec-lbl">Angepinnt</div>${listOf(pins)}`;
   h+=`<div class="sec-row"><div class="sec-lbl">Zuletzt bearbeitet</div>${SYNC_ON?`<div class="chips">${[["alle","Alle"],["meine","Meine"]].map(([v,t])=>`<button class="chip" data-act="filter" data-v="${v}" aria-pressed="${META.filter===v}">${icon("check")}${t}</button>`).join("")}</div>`:""}</div>`;
   h+=rec.length?listOf(rec.map(p=>pItem(p,true))):`<p class="meta">Keine Prüfungen.</p>`;
-  return h+`<p class="hint">Nach rechts wischen: archivieren · nach links: löschen</p>`;
+  return h+`<p class="hint">Wischen nach rechts: anpinnen bzw. archivieren · nach links: löschen</p>`;
 }
 function kundenListe(){
-  const q=query.toLowerCase(), ks=live("kunden").sort((a,b)=>a.name.localeCompare(b.name,"de")).filter(k=>!q||k.name.toLowerCase().includes(q)||standorteVon(k.id).some(s=>s.name.toLowerCase().includes(q)));
+  const q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q), ks=live("kunden").sort((a,b)=>a.name.localeCompare(b.name,"de")).filter(k=>!q||H(k.name)||H(k.kdnr)||H(k.ort)||standorteVon(k.id).some(s=>H(s.name)||H(s.ort)));
   return ks.length?listOf(ks.map(k=>locItem("kunden",k))):`<p class="meta">Kein Kunde gefunden.</p>`;
 }
 function kundenView(){
   if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Lege mit „Kunde“ den ersten an, zum Beispiel eine Firma mit mehreren Standorten.</p></div>`;
-  return `<div class="narrow">${searchBar("Kunde oder Standort suchen")}<div id="res">${kundenListe()}</div></div>`;
+  return `<div class="narrow">${searchBar("Kunde, Kundennr. oder Ort suchen")}<div id="res">${kundenListe()}</div></div><p class="hint">Nach rechts wischen: anpinnen · nach links: löschen</p>`;
 }
 function infoKarte(r,extra=""){
-  const z=[r.adresse,r.notiz].filter(Boolean).map(esc).join("<br>");
-  return `<div class="infok">${z?`<div>${z}</div>`:""}${extra}<div class="by">Angelegt${r.createdBy&&r.createdBy.name?` von ${esc(r.createdBy.name)}`:""} am ${new Date(r.created||Date.now()).toLocaleDateString("de-DE")}</div></div>`;
+  const zeile=(l,v,href)=>v?`<div class="iz"><span>${l}</span>${href?`<a href="${href}">${esc(v)}</a>`:`<b>${esc(v)}</b>`}</div>`:"";
+  const z=[zeile("Kundennr.",r.kdnr),zeile("Adresse",adrText(r),adrText(r)&&"https://maps.apple.com/?q="+encodeURIComponent(adrText(r))),zeile("Ansprechpartner",r.ansprech),
+    zeile("Telefon",r.tel,r.tel&&"tel:"+r.tel.replace(/[^\d+]/g,"")),zeile("E-Mail",r.mail,r.mail&&"mailto:"+r.mail),zeile("Notiz",r.notiz)].join("");
+  return `<div class="infok">${z}${extra}<div class="by">Angelegt${r.createdBy&&r.createdBy.name?` von ${esc(r.createdBy.name)}`:""} am ${new Date(r.created||Date.now()).toLocaleDateString("de-DE")}</div></div>`;
 }
 function kundeView(k){
   const ss=standorteVon(k.id);
@@ -1524,8 +1536,12 @@ let locForm=null;   // {kind, id?, parentId?}
 function locDialog(kind,rec,parentId){
   locForm={kind,id:rec&&rec.id,parentId};
   const r=rec||{};
+  if(rec) adrSplit(r);
+  const adr=tf("strasse","Straße und Hausnummer",r.strasse,{form:true})+`<div class="row2">${tf("plz","PLZ",r.plz,{form:true,im:"numeric"})}${tf("ort","Ort",r.ort,{form:true})}</div>`;
   const felder=kind==="ladeparks"?tf("name","Name",r.name,{form:true,ph:"z. B. Parkplatz Nord"})+ta("notiz","Notiz",r.notiz,{form:true})
-    :tf("name","Name",r.name,{form:true,ph:kind==="kunden"?"z. B. Musterfirma GmbH":"z. B. Werk Rheinbach"})+tf("adresse","Adresse",r.adresse,{form:true})+(kind==="kunden"?ta("notiz","Notiz",r.notiz,{form:true}):"");
+    :kind==="kunden"?tf("name","Firma / Name",r.name,{form:true,ph:"z. B. Musterfirma GmbH"})+tf("kdnr","Kundennummer",r.kdnr,{form:true})+adr
+      +tf("ansprech","Ansprechpartner",r.ansprech,{form:true})+tf("tel","Telefon",r.tel,{form:true,type:"tel"})+tf("mail","E-Mail",r.mail,{form:true,type:"email"})+ta("notiz","Notiz",r.notiz,{form:true})
+    :tf("name","Bezeichnung",r.name,{form:true,ph:"z. B. Werk Rheinbach"})+adr+tf("ansprech","Ansprechpartner vor Ort",r.ansprech,{form:true})+tf("tel","Telefon vor Ort",r.tel,{form:true,type:"tel"})+ta("notiz","Notiz (z. B. Zufahrt, Schlüssel)",r.notiz,{form:true});
   dialog(`${KIND_NAME[kind]} ${rec?"bearbeiten":"anlegen"}`,`<div class="fg1">${felder}</div>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveLoc">${rec?"Speichern":"Anlegen"}</button>`);
 }
 // Auswahl Kunde › Standort › Ladepark (für neue Prüfung oder Verschieben)
@@ -1590,8 +1606,13 @@ document.addEventListener("pointermove",e=>{ if(!swipe) return; const dx=e.clien
   swipe.dx=dx; swipe.li.style.transform=`translateX(${dx}px)`; swipe.sw.classList.toggle("to-r",dx>0); swipe.sw.classList.toggle("to-l",dx<0); });
 function swipeEnd(){ if(!swipe) return; const {sw,li,dx,on}=swipe; swipe=null; if(!on) return;
   sw.classList.remove("drag"); swipe_block=Date.now();
+  const kind=sw.dataset.kind, far=Math.abs(dx)>sw.offsetWidth*0.35;
+  if(kind&&far){ li.style.transform=""; setTimeout(()=>sw.classList.remove("to-r","to-l"),220);
+    if(dx>0){ const id=sw.dataset.id, i=META.pins.indexOf(id); if(i>=0) META.pins.splice(i,1); else META.pins.push(id); metaSave(); softRender(); toast(i<0?"Angepinnt – steht jetzt auf der Startseite":"Nicht mehr angepinnt"); }
+    else locLoeschenFragen(kind,sw.dataset.id);
+    return; }
   const p=DB.pruefungen.get(sw.dataset.id);
-  if(Math.abs(dx)>sw.offsetWidth*0.35&&!(dx<0&&!canEdit(p))){ li.style.transform=`translateX(${dx>0?"":"-"}110%)`; setTimeout(()=>swipeAction(sw.dataset.id,dx>0?"arch":"del"),180); }
+  if(far&&!(dx<0&&!canEdit(p))){ li.style.transform=`translateX(${dx>0?"":"-"}110%)`; setTimeout(()=>swipeAction(sw.dataset.id,dx>0?"arch":"del"),180); }
   else{ li.style.transform=""; setTimeout(()=>sw.classList.remove("to-r","to-l"),220); if(dx<0&&Math.abs(dx)>sw.offsetWidth*0.35) toast("Löschen darf nur der Ersteller oder ein Admin"); } }
 document.addEventListener("pointerup",swipeEnd); document.addEventListener("pointercancel",swipeEnd);
 document.addEventListener("click",e=>{ if(Date.now()-swipe_block<400&&e.target.closest(".sw")){ e.stopPropagation(); e.preventDefault(); } },true);
@@ -1600,6 +1621,29 @@ function swipeAction(id,what){
   const p=DB.pruefungen.get(id); if(!p) return;
   if(what==="arch"){ const now=archToggle(id); softRender(); toast(now?"Archiviert":"Zurückgeholt","Rückgängig",()=>{ archToggle(id); softRender(); }); return; }
   loeschePruefung(p);
+}
+// Kunde/Standort/Ladepark löschen – mit allem, was darunter hängt
+function unterbau(kind,id){
+  const S=kind==="kunden"?standorteVon(id):kind==="standorte"?[standortOf(id)]:[];
+  const L=kind==="ladeparks"?[ladeparkOf(id)]:S.flatMap(s=>ladeparksVon(s.id));
+  const P=kind==="ladeparks"?pruefUnter("ladeparks",id):kind==="standorte"?pruefUnter("standorte",id):pruefUnter("kunden",id);
+  return {S:kind==="standorte"?[]:S, L:kind==="ladeparks"?[]:L, P};
+}
+let delZiel=null;
+function locLoeschenFragen(kind,id){
+  const r=DB[kind].get(id); if(!r) return; const {S,L,P}=unterbau(kind,id);
+  const fremd=P.filter(p=>!canEdit(p)).length+S.filter(x=>!canEdit(x)).length+L.filter(x=>!canEdit(x)).length;
+  if(!canEdit(r)||fremd){ toast("Enthält Einträge anderer Mitarbeiter – löschen darf nur ein Admin"); return; }
+  const teile=[S.length&&`${S.length} Standort${S.length>1?"en":""}`,L.length&&`${L.length} Ladepark${L.length>1?"s":""}`,P.length&&`${P.length} Prüfung${P.length>1?"en":""}`].filter(Boolean);
+  delZiel={kind,id};
+  confirmDlg(`${KIND_NAME[kind]} löschen?`,`„${r.name}“${teile.length?" mit "+teile.join(", ").replace(/, ([^,]*)$/," und $1"):""} wird gelöscht.${SYNC_ON?" Bereits abgelegte PDFs in der Share bleiben erhalten.":""}`,"Löschen","delLoc");
+}
+function locLoeschen(kind,id){
+  const r=DB[kind].get(id), {S,L,P}=unterbau(kind,id), alle=[[kind,r],...S.map(x=>["standorte",x]),...L.map(x=>["ladeparks",x]),...P.map(x=>["pruefungen",x])];
+  alle.forEach(([k,x])=>{ x.deleted=true; saveRec(k,x); });
+  if(cur&&P.some(p=>p.id===cur.id)) cur=null;
+  softRender();
+  toast(`${r.name} gelöscht`,"Rückgängig",()=>{ alle.forEach(([k,x])=>{ x.deleted=false; saveRec(k,x); }); softRender(); });
 }
 function loeschePruefung(p){
   p.deleted=true; saveRec("pruefungen",p); if(cur&&cur.id===p.id) cur=null; softRender();
@@ -1680,17 +1724,14 @@ document.addEventListener("click",ev=>{
   case "editLoc": locDialog(VIEW_KIND[nav.v],DB[VIEW_KIND[nav.v]].get(nav.id)); return;
   case "saveLoc": { const F=formVals(), L=locForm; if(!F.name){ toast("Bitte einen Namen eingeben"); return; }
     let r;
-    if(L.id){ r=DB[L.kind].get(L.id); Object.assign(r,F); saveRec(L.kind,r); }
+    if(L.id){ r=DB[L.kind].get(L.id); Object.assign(r,F); if(F.strasse!==undefined) delete r.adresse; saveRec(L.kind,r); }
     else { r={id:uid(),...F}; if(L.kind==="standorte") r.kundeId=L.parentId; if(L.kind==="ladeparks") r.standortId=L.parentId; saveRec(L.kind,r,true); }
     locForm=null; closeOverlays();
     if(L.id) render(); else go({v:{kunden:"kunde",standorte:"standort",ladeparks:"ladepark"}[L.kind],id:r.id});
     toast(`${KIND_NAME[L.kind]} ${L.id?"gespeichert":"angelegt"}`); return; }
   case "pinLoc": case "pinLocCur": { const id=a==="pinLoc"?b.dataset.id:nav.id, i=META.pins.indexOf(id); if(i>=0) META.pins.splice(i,1); else META.pins.push(id); metaSave(); softRender(); toast(i<0?"Angepinnt – steht jetzt auf der Startseite":"Nicht mehr angepinnt"); return; }
-  case "delLocAsk": { const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id);
-    const kinder=kind==="kunden"?standorteVon(r.id).length:kind==="standorte"?ladeparksVon(r.id).length+pruefAt(r.id,null).length:pruefAt(r.standortId,r.id).length;
-    if(kinder){ toast(`${KIND_NAME[kind]} enthält noch Einträge – erst diese löschen oder verschieben`); return; }
-    confirmDlg(`${KIND_NAME[kind]} löschen?`,`„${r.name}“ wird gelöscht.`,"Löschen","delLoc"); return; }
-  case "delLoc": { const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id); r.deleted=true; saveRec(kind,r); closeOverlays(); zurueck(); toast(`${KIND_NAME[kind]} gelöscht`); return; }
+  case "delLocAsk": locLoeschenFragen(VIEW_KIND[nav.v],nav.id); return;
+  case "delLoc": { const t=delZiel; delZiel=null; closeOverlays(); if(!t) return; if(VIEW_KIND[nav.v]&&nav.id===t.id) zurueck(); locLoeschen(t.kind,t.id); return; }
   case "newHere": { if(nameFehlt("newHere")) return; const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id);
     if(kind==="standorte") neuePruefung(r.kundeId,r.id,null); else { const s=standortOf(r.standortId); neuePruefung(s.kundeId,s.id,r.id); } return; }
   case "open": oeffne(b.dataset.id); return;
@@ -1771,9 +1812,9 @@ function demoSaeule(n,sn,lp1,lp2,extra={}){
 }
 function demoLaden(){
   const D=(kind,r)=>{ r.demo=true; r.id=r.id||uid(); r.created=r.updated=Date.now(); r.createdBy=r.updatedBy={name:"Beispiel",mail:""}; dbPut(kind,r); return r; };
-  const k1=D("kunden",{name:"BEISPIEL Musterfirma GmbH",adresse:"Industriestraße 1, 53359 Rheinbach",notiz:"Mehrere Standorte"});
-  const s1=D("standorte",{kundeId:k1.id,name:"Werk Rheinbach",adresse:"Industriestraße 1, 53359 Rheinbach"});
-  const s2=D("standorte",{kundeId:k1.id,name:"Verwaltung Nümbrecht",adresse:"Hauptstraße 5, 51588 Nümbrecht"});
+  const k1=D("kunden",{name:"BEISPIEL Musterfirma GmbH",kdnr:"10234",strasse:"Industriestraße 1",plz:"53359",ort:"Rheinbach",ansprech:"Frau Beispiel (Facility Management)",tel:"02226 0000-0",mail:"facility@example.com",notiz:"Mehrere Standorte"});
+  const s1=D("standorte",{kundeId:k1.id,name:"Werk Rheinbach",strasse:"Industriestraße 1",plz:"53359",ort:"Rheinbach",ansprech:"Herr Pförtner",tel:"02226 0000-10",notiz:"Anmeldung an der Pforte, Schlüssel Tiefgarage dort"});
+  const s2=D("standorte",{kundeId:k1.id,name:"Verwaltung Nümbrecht",strasse:"Hauptstraße 5",plz:"51588",ort:"Nümbrecht"});
   const l1=D("ladeparks",{standortId:s1.id,name:"Parkplatz Nord",notiz:"Tiefgarage, Verteiler UV-TG"});
   const l2=D("ladeparks",{standortId:s1.id,name:"Besucherparkplatz",notiz:""});
   const base=(o)=>{ const p=newProto(); Object.assign(p.p,{pruefer:"Max",geraetSn:"MFT-000123",kal:"10.2027"},o.p||{}); return Object.assign(p,o.x); };
@@ -1787,8 +1828,8 @@ function demoLaden(){
     s:[demoSaeule(1,"GE-204411",demoLP(),{v:{risov:"500 V",rpe:"0,07",riso:"200"},bem:"Messung LP 2 noch offen – Freigabe durch Betreiber ausstehend."})]}}));
   D("pruefungen",base({p:{auftragsnr:"2509-017",datum:"2026-09-03",art:"Erstprüfung",standort:"HV Keller"},x:{kundeId:k1.id,standortId:s2.id,ladeparkId:null,
     s:[Object.assign(demoSaeule(1,"GE-118822",demoLP({v:{zs1:"0,92",zs2:"0,88",zs3:"0,90"}}),newLP()),{typ:"go-e Charger Gemini 11 kW",absIn:"16",inenn:"16",lps:1,ort:"Chefparkplatz"})]}}));
-  const k2=D("kunden",{name:"BEISPIEL Erika Mustermann",adresse:"Am Weiher 3, 51545 Waldbröl",notiz:""});
-  const s3=D("standorte",{kundeId:k2.id,name:"Einfamilienhaus",adresse:"Am Weiher 3, 51545 Waldbröl"});
+  const k2=D("kunden",{name:"BEISPIEL Erika Mustermann",kdnr:"20871",strasse:"Am Weiher 3",plz:"51545",ort:"Waldbröl",tel:"02291 000000"});
+  const s3=D("standorte",{kundeId:k2.id,name:"Einfamilienhaus",strasse:"Am Weiher 3",plz:"51545",ort:"Waldbröl"});
   D("pruefungen",base({p:{auftragsnr:"2510-120",art:"Erstprüfung",standort:"HV Garage"},x:{kundeId:k2.id,standortId:s3.id,ladeparkId:null,
     s:[Object.assign(demoSaeule(1,"GE-204499",demoLP({v:{zs1:"0,92",zs2:"0,88",zs3:"0,90",r1:"21,3"}}),newLP()),{name:"Wallbox Garage",typ:"go-e Charger Gemini 11 kW",absIn:"16",inenn:"16",lps:1,ort:"Garage links",freigabe:"App"})]}}));
   if(!META.pins.includes(s1.id)){ META.pins.push(s1.id); metaSave(); }
@@ -1853,9 +1894,10 @@ function buildPDF(P){
   const badge=(x,yy,r)=>{ const col=r==="ok"?OKC:r==="bad"?BADC:GR; d.setFillColor(...col); const t=RES_TXT[r].toUpperCase(); d.setFontSize(7.5); d.setFont("helvetica","bold"); const w=d.getTextWidth(t)+5; d.roundedRect(x-w,yy-3.6,w,5,1.2,1.2,"F"); d.setTextColor(255); d.text(t,x-w+2.5,yy); };
 
   head("Prüfprotokoll Ladeeinrichtungen",`${P.p.art} | ${P.p.normen.join(" | ")}`);
-  sec("Projektdaten");
+  sec("Auftragsdaten");
   const PF=pfad(P);
-  kv([["Auftraggeber",PF.k?[PF.k.name,PF.k.adresse].filter(Boolean).join(", "):P.p.auftraggeber],["Auftragsnr.",P.p.auftragsnr],["Standort",PF.s?[PF.s.name,PF.s.adresse].filter(Boolean).join(", "):"-"],["Ladepark",PF.l?PF.l.name:"-"],
+  kv([["Auftraggeber",PF.k?[PF.k.name,adrText(PF.k)].filter(Boolean).join(", "):P.p.auftraggeber],["Auftragsnr.",P.p.auftragsnr],["Kundennr.",PF.k&&PF.k.kdnr],["Ansprechpartner",PF.k&&PF.k.ansprech],
+      ["Standort",PF.s?[PF.s.name,adrText(PF.s)].filter(Boolean).join(", "):"-"],["Ladepark",PF.l?PF.l.name:"-"],
       ["Verteiler / Anlage",P.p.standort],["Bezeichnung",P.p.projekt],["Prüfdatum",deDate(P.p.datum)],["Prüfer",P.p.pruefer],
       ["Messgerät",P.p.geraet],["Seriennr.",P.p.geraetSn],["Prüfadapter",P.p.adapter],["Kal. gültig bis",P.p.kal],["Art der Prüfung",P.p.art],["Netzform",`${P.p.netz} | 230/400 V`]]);
   sec("Prüfumfang"); para(P.p.umfang);
