@@ -95,11 +95,12 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .hl{font-size:24px;font-weight:700;margin:8px 0 16px;letter-spacing:-.01em}
 .meta{margin:0 0 12px;color:var(--on-sv);font-size:14px}
 .cols{display:grid;gap:16px;align-items:start}
-/* iPad quer / Desktop: zwei Spalten, Karten rücken lückenlos nach (wie Google Keep) */
+/* Breite Bildschirme: eine Kachel pro Bereich über die volle Breite, Inhalt darin nebeneinander */
 @media (min-width:1000px){
-  .cols{display:block;column-count:2;column-gap:16px}
-  .cols > *{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;display:block;width:100%;margin:0 0 16px}
-  .cols > .wide{column-span:all;-webkit-column-span:all}
+  .fg{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
+  .mgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:40px}
+  .mgrid > .mrow:nth-child(2){border-top:0}
+  .card{padding:20px 24px}
 }
 .card{background:var(--sc-low);border-radius:20px;padding:16px;min-width:0;--fbg:var(--sc-low)}
 .card h3{font-size:16px;font-weight:700;margin:0 0 16px}
@@ -181,7 +182,7 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .gh h3{margin:0}
 .gh p{margin:2px 0 0;font-size:13px;color:var(--on-sv)}
 .mrow{display:flex;align-items:center;gap:12px;min-height:72px;padding:8px 0;border-top:1px solid var(--outline-v)}
-.gh + .mrow{border-top:0}
+.gh + .mrow,.mgrid > .mrow:first-child,details.how + .mgrid > .mrow:first-child{border-top:0}
 .mrow .txt{flex:1;min-width:0}
 .mrow .l{font-size:15px;font-weight:600;line-height:1.3}
 .mrow .s{font-size:13px;color:var(--on-sv);margin-top:2px;font-variant-numeric:tabular-nums}
@@ -1060,16 +1061,16 @@ function saeuleView(){
     const gr=groupResult(g,s,li); nr++;
     h+=`<section class="card step"><div class="gh"><span class="stepno">${nr}</span><div><h3>${esc(g.t)}</h3><p>${esc(g.sub)}</p></div><span class="pill ${gr}" data-gres="${g.id}">${RES_SHORT[gr]}</span></div>`;
     if(g.how) h+=`<details class="how"><summary>So wird gemessen</summary><ol>${g.how.map(x=>`<li>${x}</li>`).join("")}</ol></details>`;
-    let optOpen=false;
+    let optOpen=false; h+=`<div class="mgrid">`;
     for(const r of rows){
-      if(r.opt&&!optOpen){ optOpen=true; const hasVal=rows.some(x=>x.opt&&lp.v[x.k]); h+=`<details class="optrows"${hasVal?" open":""}><summary>Zusätzliche Messungen (optional)</summary>`; }
+      if(r.opt&&!optOpen){ optOpen=true; const hasVal=rows.some(x=>x.opt&&lp.v[x.k]); h+=`</div><details class="optrows"${hasVal?" open":""}><summary>Zusätzliche Messungen (optional)</summary><div class="mgrid">`; }
       const val=lp.v[r.k]??"", e=evalRow(r,val,s), path=`${lb}v.${r.k}`;
       const txt=`<div class="txt"><div class="l">${esc(r.l)}</div><div class="s"><span data-soll="${r.k}">${esc(sollOf(r,s))}</span>${r.d?` · ${esc(r.d)}`:""}</div></div>`;
       if(r.type==="chk") h+=`<div class="mrow">${txt}<div class="ctl wide">${seg("chk",val,[["ok","i.O."],["nok","n.i.O."]],"ev").replace(/data-act="chk"/g,`data-act="chk" data-path="${path}"`)}</div></div>`;
       else if(r.type==="sel") h+=`<div class="mrow" data-dot="${path}" data-state="${e}">${txt}<div class="ctl wide"><div class="tf"><select id="${path}" data-bind="${path}" aria-label="${esc(r.l)}">${["",...r.opts].map(o=>`<option value="${esc(o)}" ${o===val?"selected":""}>${o?esc(o):"–"}</option>`).join("")}</select><span class="arr">${icon("drop")}</span></div></div></div>`;
       else h+=`<div class="mrow" data-dot="${path}" data-state="${e}">${txt}<div class="ctl"><div class="tf"><input id="${path}" data-bind="${path}" inputmode="decimal" value="${esc(val)}" placeholder=" " autocomplete="off" aria-label="${esc(r.l)} in ${esc(r.u)}"><span class="sfx">${esc(r.u)}</span></div></div></div>`;
     }
-    if(optOpen) h+=`</details>`;
+    h+=`</div>`; if(optOpen) h+=`</details>`;
     h+=`</section>`;
   }
   h+=`<section class="card">${ta(`${lb}bem`,`Bemerkung Ladepunkt ${li+1}`,lp.bem,{ph:"z. B. Abdeckung beschädigt, Kabelhalterung lose"})}</section></div>`;
