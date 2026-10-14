@@ -365,6 +365,16 @@ details.optrows .mrow:first-of-type{border-top:0}
 .iz b{font-weight:600}
 .iz a{color:var(--primary);font-weight:600;text-decoration:none;word-break:break-word}
 .infok .iz + .by{margin-top:8px}
+.kath{padding-bottom:10px}
+.kath + .kath{margin-top:12px}
+.kath-k{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px}
+.kath-k b{font-size:15px}
+.kath-k span{display:flex;gap:4px}
+.icon-btn.sm{width:36px;height:36px}.icon-btn.sm .ic{width:20px;height:20px}
+.kath-t{white-space:pre-wrap;margin:4px 0 10px}
+.kath-f{margin:8px 0 8px}
+.kath-f .foto{aspect-ratio:4/3}
+
 .fg1{display:grid;gap:16px;--fbg:var(--sc-high);padding-top:6px}
 .dlg{max-height:calc(100vh - 48px);overflow:auto}
 .konto{display:flex;gap:16px;align-items:center}
@@ -997,15 +1007,15 @@ const SYNC_ON=!!(CONFIG.tenantId&&CONFIG.clientId&&CONFIG.shareUrl);
 
 // ================= Speicher (IndexedDB) =================
 const TH_KEY="evse_theme", OLD_KEY="evse_protos_v1";
-const KINDS=["kunden","standorte","ladeparks","pruefungen"];
-const DB={kunden:new Map(),standorte:new Map(),ladeparks:new Map(),pruefungen:new Map()};
+const KINDS=["kunden","standorte","ladeparks","pruefungen","katalog"];
+const DB={kunden:new Map(),standorte:new Map(),ladeparks:new Map(),pruefungen:new Map(),katalog:new Map()};
 let META={profil:{name:""},pins:[],archiv:[],filter:"alle",sync:{}};   // nur auf diesem Gerät, wird nicht abgeglichen
 let cur=null, nav={v:"start"}, saveTimer=null, dirtyCur=false, dataDB=null, query="";
 let ME={name:"",mail:"",admin:false,signedIn:false};
 
 function idbReq(rq){ return new Promise((res,rej)=>{ rq.onsuccess=()=>res(rq.result); rq.onerror=()=>rej(rq.error); }); }
-function dataOpen(){ return new Promise((res,rej)=>{ if(!window.indexedDB) return rej(0); const r=indexedDB.open("evse_daten",1);
-  r.onupgradeneeded=()=>{ const db=r.result; KINDS.forEach(k=>db.createObjectStore(k,{keyPath:"id"})); db.createObjectStore("meta"); };
+function dataOpen(){ return new Promise((res,rej)=>{ if(!window.indexedDB) return rej(0); const r=indexedDB.open("evse_daten",2);
+  r.onupgradeneeded=()=>{ const db=r.result; KINDS.forEach(k=>{ if(!db.objectStoreNames.contains(k)) db.createObjectStore(k,{keyPath:"id"}); }); if(!db.objectStoreNames.contains("meta")) db.createObjectStore("meta"); };
   r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
 let warned=false;
 function dbPut(kind,rec){ DB[kind].set(rec.id,rec); if(!dataDB) return;
@@ -1020,6 +1030,7 @@ async function dataLoad(){
   }catch(e){ dataDB=null; toast("Gerätespeicher nicht verfügbar – Daten nur bis zum Schließen"); }
   if(!META.migriert){ let old=null; try{ old=JSON.parse(localStorage.getItem(OLD_KEY)||"null"); }catch(e){}
     if(Array.isArray(old)&&old.length) importLegacy(old); META.migriert=true; metaSave(); }
+  if(!META.katSeed){ katSeed(); META.katSeed=1; metaSave(); }
 }
 const live=k=>[...DB[k].values()].filter(r=>!r.deleted);
 const who=()=>({name:ME.name||META.profil.name||"",mail:ME.mail||""});
@@ -1219,7 +1230,7 @@ async function fotoFetch(ids){
   try{ await syncRoot(); const fid=await folderId(`${CONFIG.dataFolder}/fotos`);
     for(const id of ids){ try{ const meta=await gj(`/drives/${SY.drive}/items/${fid}:/${id}.jpg`); const d=await blobToDataUrl(await (await readItem(meta)).blob()); await fotoPut(id,d); got++; }catch(e){} }
   }catch(e){} finally{ ids.forEach(id=>SY.fotoBusy.delete(id)); }
-  if(got&&nav.v==="saeule"){ const y=scrollY; render(); scrollTo(0,y); }
+  if(got&&(nav.v==="saeule"||nav.v==="katmodell")){ const y=scrollY; render(); scrollTo(0,y); }
 }
 // Lesbare Ablage: Kunde/Standort/[Ladepark]/Datum Prüfart Auftragsnr.pdf
 const fsName=s=>String(s||"").replace(/[\\/:*?"<>|#%\u0000-\u001f]/g,"-").replace(/\s+/g," ").trim().replace(/[. ]+$/,"").slice(0,80)||"Unbenannt";
@@ -1278,11 +1289,11 @@ function fotoPut(id,data){ fotoCache.set(id,data); if(!fotoDB) return Promise.re
 function fotoDel(ids){ ids=ids.filter(Boolean); ids.forEach(i=>fotoCache.delete(i)); if(!fotoDB||!ids.length) return; try{ const t=fotoDB.transaction("f","readwrite"); ids.forEach(i=>t.objectStore("f").delete(i)); }catch(e){} }
 async function fotoInit(){
   try{ fotoDB=await idbOpen(); const all=await idbAll(fotoDB);
-    const used=new Set(live("pruefungen").flatMap(p=>p.s.flatMap(fotoIds))); if(cur) cur.s.flatMap(fotoIds).forEach(i=>used.add(i));
+    const used=new Set([...live("pruefungen").flatMap(p=>p.s.flatMap(fotoIds)),...live("katalog").flatMap(katFotoIds)]); if(cur) cur.s.flatMap(fotoIds).forEach(i=>used.add(i));
     (META.sync.fotoQueue||[]).forEach(i=>used.add(i));
     const orphan=[]; for(const [k,v] of all){ if(used.has(k)) fotoCache.set(k,v); else orphan.push(k); } fotoDel(orphan);
   }catch(e){ fotoDB=null; }
-  if(nav.v==="saeule"){ const y=scrollY; render(); scrollTo(0,y); }
+  if(nav.v==="saeule"||nav.v==="katmodell"){ const y=scrollY; render(); scrollTo(0,y); }
 }
 function fotoVerkleinern(file){ return new Promise((res,rej)=>{ const url=URL.createObjectURL(file), img=new Image();
   img.onload=()=>{ const f=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight)), c=document.createElement("canvas");
@@ -1343,15 +1354,17 @@ const IC={
   info:"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z",
   shield:"M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z",
   paragraph:"M9 4v4c-2.2 0-4-1.8-4-4s1.8-4 4-4h10v2h-2v18h-2V2h-2v18h-2V10c-2.2 0-4-1.8-4-4",
+  book:"M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z",
   person:"M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
 };
 const icon=n=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 const pill=(r,t)=>`<span class="pill ${r}">${esc(t??RES_TXT[r])}</span>`;
 const DEST=[["projekt","Auftrag","project"],["saeulen","Ladesäulen","ev"],["abschluss","Abschluss","done"]];
+const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
-const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["mehr","Mehr","mehr"]];
+const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.30 · 14.10.2026";
+const APP_VERSION="1.31 · 14.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -1370,8 +1383,9 @@ function render(){
   document.body.classList.toggle("is-list",nav.v==="start"||login);
   document.body.classList.toggle("has-nav",!login);
   document.body.classList.toggle("ro",E&&!canEdit(cur));
-  $("#backBtn").hidden=top||login; $("#navbar").hidden=login; $("#tabs").hidden=nav.v!=="saeule"; $("#avBtn").hidden=login||nav.v!=="start"; $("#menuBtn").hidden=top||!!MEHR_SUB[nav.v]||login;
-  const dests=E?DEST:TOPDEST, active=E?(nav.v==="saeule"?"saeulen":nav.v):(top?nav.v:MEHR_SUB[nav.v]?"mehr":"kunden");
+  $("#backBtn").hidden=(top&&!(nav.v==="katalog"&&!WIDE.matches))||login; $("#navbar").hidden=login; $("#tabs").hidden=nav.v!=="saeule"; $("#avBtn").hidden=login||nav.v!=="start"; $("#menuBtn").hidden=top||!!MEHR_SUB[nav.v]||login;
+  const wide=WIDE.matches, katV=nav.v==="katalog"||nav.v==="katmodell";
+  const dests=E?DEST:TOPDEST.filter(d=>d[0]!=="katalog"||wide), active=E?(nav.v==="saeule"?"saeulen":nav.v):katV?(wide?"katalog":"mehr"):(top?nav.v:MEHR_SUB[nav.v]?"mehr":"kunden");
   const lh=$(".logo.l-hell").src, ld=$(".logo.l-dunkel").src;
   $("#navbar").innerHTML=`<div class="nav-head"><button class="icon-btn nav-tog" data-act="railToggle" aria-label="${railOpen?"Seitenleiste einklappen":"Seitenleiste ausklappen"}" aria-expanded="${railOpen}">${icon(railOpen?"menuOpen":"menu")}</button><img class="nav-logo l-hell" src="${lh}" alt="Elektro Irrgang"><img class="nav-logo l-dunkel" src="${ld}" alt=""></div>`+dests.map(([k,t,i])=>`<button class="nav-item${!E&&k==="mehr"?" nav-end":""}" ${E?`data-go="${k}"`:`data-act="nav" data-v="${k}"`} ${k===active?'aria-current="page"':""}><span class="ind">${icon(i)}</span><span>${t}</span></button>`).join("");
   let title="", sub="", fab=null, body="";
@@ -1380,6 +1394,9 @@ function render(){
   else if(nav.v==="kunden"){ title="Kunden"; body=kundenView(); fab=["newKunde","Kunde","add"]; }
   else if(nav.v==="pruefungen"){ title="Prüfungen"; body=pruefungenView(); fab=["newAny","Neue Prüfung","add"]; }
   else if(nav.v==="faellig"){ title="Fällig"; body=faelligView(); }
+  else if(nav.v==="katalog"){ title="Katalog"; body=katalogView(); fab=["katNeu","Modell","add"]; }
+  else if(nav.v==="katmodell"){ const r=DB.katalog.get(nav.id); if(!r||r.deleted){ nav={v:"katalog"}; return render(); }
+    title=katName(r); sub=r.hersteller; body=katModellView(r); fab=["katHNeu","Hinweis","add"]; fotoFetch(katFotoIds(r)); }
   else if(nav.v==="mehr"){ title="Mehr"; body=mehrView(); }
   else if(nav.v==="archiv"){ title="Archiv"; body=archivView(); }
   else if(nav.v==="impressum"){ title="Impressum"; body=impressumView(); }
@@ -1461,7 +1478,8 @@ function suche(q){
   const s=live("standorte").filter(r=>hit(r.name)||hit(adrText(r))).map(r=>locItem("standorte",r));
   const l=live("ladeparks").filter(r=>hit(r.name)).map(r=>locItem("ladeparks",r));
   const p=live("pruefungen").filter(r=>hit(r.p.auftragsnr)||hit(r.p.projekt)||hit(r.p.pruefer)||r.s.some(x=>hit(x.sn)||hit(x.typ))).sort(byDate).slice(0,30).map(r=>pItem(r,true));
-  const out=[k.length&&`<div class="sec-lbl">Kunden</div>${listOf(k)}`,s.length&&`<div class="sec-lbl">Standorte</div>${listOf(s)}`,l.length&&`<div class="sec-lbl">Ladeparks</div>${listOf(l)}`,p.length&&`<div class="sec-lbl">Prüfungen</div>${listOf(p)}`].filter(Boolean).join("");
+  const kt=live("katalog").filter(r=>hit(r.hersteller)||hit(r.modell)||hit(r.artnr)).slice(0,10).map(katItem);
+  const out=[k.length&&`<div class="sec-lbl">Kunden</div>${listOf(k)}`,kt.length&&`<div class="sec-lbl">Katalog</div>${listOf(kt)}`,s.length&&`<div class="sec-lbl">Standorte</div>${listOf(s)}`,l.length&&`<div class="sec-lbl">Ladeparks</div>${listOf(l)}`,p.length&&`<div class="sec-lbl">Prüfungen</div>${listOf(p)}`].filter(Boolean).join("");
   return out||`<p class="meta" style="text-align:center;margin-top:24px">Nichts gefunden für „${esc(q)}“.</p>`;
 }
 function startView(){
@@ -1554,6 +1572,7 @@ function mehrView(){
     <div class="sec-lbl">Konto und Darstellung</div><div class="list">
       ${row("konto","person",SYNC_ON?"Konto":"Mein Name",esc(ME.name||META.profil.name||"noch nicht eingetragen"))}
       ${row("theme","theme","Darstellung",TH_LABEL[theme])}</div>
+    ${WIDE.matches?"":`<div class="sec-lbl">Wissen</div><div class="list">${row("nav:katalog","book","Wallbox-Katalog",`${live("katalog").length} Modelle · Hinweise und Fotos`)}</div>`}
     <div class="sec-lbl">Daten</div><div class="list">
       ${row("nav:archiv","archive","Archiv",nArch?`${nArch} Prüfung${nArch>1?"en":""}`:"leer")}
       ${SYNC_ON?row("syncNow","sync","Jetzt abgleichen",esc(syncText())):""}
@@ -1771,6 +1790,111 @@ function abschlussView(){
   </div>`;
 }
 
+// ================= Wallbox-Katalog =================
+// Hersteller › Modell (› Version) mit Steckbrief, eigenen Hinweisen und Fotos. Liegt wie alles andere auf dem Gerät
+// und wird bei aktiver Microsoft-Anbindung im Firmenordner abgeglichen (_App-Daten/katalog).
+const KAT_HINWEIS=["PE-Anschluss","Anschlussraum / Klemmen","Typschild","Einrichtung / Konfiguration","Fehlerstromschutz","Sonstiges"];
+const KAT_SEED=[["Mennekes",["AMTRON Compact 2.0s","AMTRON Charge Control","AMTRON Professional+","AMTRON 4You 500","AMTRON 4Business 700"]],
+  ["Schneider Electric",["EVlink Home","EVlink Pro AC","EVlink Wallbox Plus"]],["Huawei",["AC Smart Charger"]]];
+const katSlug=t=>String(t).toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+function katSeed(){   // feste IDs, damit mehrere Geräte dieselben Vorlagen nicht doppelt anlegen
+  for(const [h,ms] of KAT_SEED) for(const m of ms){ const id="kat-"+katSlug(h+" "+m); if(DB.katalog.has(id)) continue;
+    saveRec("katalog",{id,hersteller:h,modell:m,version:"",art:"Wallbox",leistung:"",phasen:"",lps:"",anschluss:"",dc6:"",artnr:"",quelle:"",notiz:"",hinweise:[],vorlage:true},true); }
+}
+const katName=r=>[r.modell,r.version].filter(Boolean).join(" ");
+const katFotoIds=r=>(r.hinweise||[]).flatMap(h=>h.fotos||[]);
+const katNorm=t=>String(t||"").toLowerCase().replace(/\s+/g," ").trim();
+const katHOk=h=>canEdit({createdBy:h.by});
+function katVerbaut(r){   // Prüfungen mit Säulen dieses Modells (Verknüpfung oder passender Typ-Text)
+  const m=katNorm(r.modell); if(!m) return [];
+  return live("pruefungen").filter(p=>p.s.some(s=>s.katId===r.id||katNorm(s.typ).includes(m))).sort(byDate);
+}
+function katItem(r){
+  const kurz=[r.leistung&&`${r.leistung} kW`,r.phasen&&`${r.phasen}-phasig`,r.lps&&`${r.lps} Ladepunkt${r.lps==="1"?"":"e"}`].filter(Boolean).join(" · ");
+  const nh=(r.hinweise||[]).length, nv=katVerbaut(r).length;
+  return `<div class="li" role="button" tabindex="0" data-act="nav" data-v="katmodell" data-id="${esc(r.id)}"><span class="av">${icon("ev")}</span>
+    <span class="lt"><span class="h">${esc(katName(r))}</span><span class="s">${esc(nav.v==="katalog"?(kurz||r.art||""):[r.hersteller,kurz].filter(Boolean).join(" · "))}</span>
+    <span class="st">${!r.quelle?pill("wip","Angaben prüfen"):""}${nh?pill("open",`${nh} Hinweis${nh>1?"e":""}`):""}${nv?pill("ok",`${nv}× geprüft`):""}</span></span>${icon("chev")}</div>`;
+}
+function katalogListe(){
+  const q=katNorm(query), H=v=>katNorm(v).includes(q);
+  const L=live("katalog").filter(r=>!q||H(r.hersteller)||H(r.modell)||H(r.version)||H(r.artnr)||H(`${r.hersteller} ${r.modell}`));
+  if(!L.length) return `<p class="meta" style="text-align:center;margin-top:24px">${q?`Nichts gefunden für „${esc(query)}“.`:"Noch keine Modelle."}</p>`;
+  const grp={}; L.forEach(r=>(grp[r.hersteller||"Ohne Hersteller"]=grp[r.hersteller||"Ohne Hersteller"]||[]).push(r));
+  return Object.keys(grp).sort((a,b)=>a.localeCompare(b,"de")).map(h=>`<div class="sec-lbl">${esc(h)}</div>${listOf(grp[h].sort((a,b)=>katName(a).localeCompare(katName(b),"de")).map(katItem))}`).join("");
+}
+function katalogView(){
+  return `<div class="narrow">${searchBar("Hersteller, Modell oder Artikelnr. suchen")}<div id="res">${katalogListe()}</div>
+    <p class="hint">Steckbrief aus dem Datenblatt, dazu eigene Hinweise und Fotos von der Baustelle – zum Beispiel wo der PE angeschlossen wird.</p></div>`;
+}
+const DC6_TXT={ja:"integriert (RDC-DD) – RCD Typ A zulässig",nein:"nicht integriert – RCD Typ B nötig"};
+function katModellView(r){
+  const z=(l,v)=>v?`<div class="iz"><span>${l}</span><b>${esc(v)}</b></div>`:"";
+  const stb=[z("Hersteller",r.hersteller),z("Modell",r.modell),z("Version",r.version),z("Bauart",r.art),z("Ladeleistung",r.leistung&&`${r.leistung} kW`),
+    z("Anschluss",r.phasen&&`${r.phasen}-phasig`),z("Ladepunkte",r.lps),z("Anschlussklemmen",r.anschluss),z("DC-Fehlerstrom­erkennung 6 mA",DC6_TXT[r.dc6]),
+    z("Artikelnummer",r.artnr),z("Notiz",r.notiz)].join("");
+  let h=`<div class="narrow">`;
+  if(!r.quelle) h+=`<div class="robanner warn">${icon("warn")}<span>Angaben noch nicht geprüft – bitte aus dem Datenblatt oder vor Ort ergänzen und die Quelle eintragen.</span><button class="btn-text" data-act="katEdit">Ergänzen</button></div>`;
+  h+=`<div class="sec-row"><div class="sec-lbl">Steckbrief</div><button class="btn-text" data-act="katEdit">${icon("edit")}Bearbeiten</button></div>`;
+  h+=`<div class="infok">${stb||`<span class="meta">Noch keine Angaben.</span>`}<div class="by">${r.quelle?`Quelle: ${esc(r.quelle)} · `:""}zuletzt geändert${r.updatedBy&&r.updatedBy.name?` von ${esc(r.updatedBy.name)}`:""} am ${new Date(r.updated||Date.now()).toLocaleDateString("de-DE")}</div></div>`;
+  h+=`<div class="sec-row"><div class="sec-lbl">Hinweise</div><button class="btn-text" data-act="katHNeu">${icon("add")}Hinweis</button></div>`;
+  const hs=[...(r.hinweise||[])].sort((a,b)=>KAT_HINWEIS.indexOf(a.titel)-KAT_HINWEIS.indexOf(b.titel));
+  h+=hs.length?hs.map(x=>{ const ok=katHOk(x), fs=x.fotos||[];
+    return `<div class="infok kath"><div class="kath-k"><b>${esc(x.titel)}</b>${ok?`<span><button class="icon-btn sm" data-act="katHEdit" data-h="${x.id}" aria-label="Bearbeiten">${icon("edit")}</button><button class="icon-btn sm" data-act="katHDelAsk" data-h="${x.id}" aria-label="Löschen">${icon("del")}</button></span>`:""}</div>
+      ${x.text?`<p class="kath-t">${esc(x.text)}</p>`:""}
+      <div class="fotos kath-f">${fs.map(id=>{ const src=fotoCache.get(id); return src?`<button class="foto" data-act="katFotoShow" data-h="${x.id}" data-fid="${id}" aria-label="Foto ansehen"><img src="${src}" alt=""></button>`:`<div class="foto leer">${icon("sync")}<span class="fh">wird geladen …</span></div>`; }).join("")}
+        ${fs.length<4?`<button class="foto leer" data-act="katFotoAdd" data-h="${x.id}">${icon("cam")}<span class="fl">Foto</span></button>`:""}</div>
+      <div class="by">${x.by&&x.by.name?`${esc(x.by.name)} · `:""}${new Date(x.at||Date.now()).toLocaleDateString("de-DE")}</div></div>`; }).join("")
+    :`<p class="meta">Noch keine Hinweise. Zum Beispiel: Wo wird der PE angeschlossen, wie kommt man an die Klemmen, was muss eingerichtet werden?</p>`;
+  const ps=katVerbaut(r).slice(0,20);
+  h+=`<div class="sec-lbl">Bei uns geprüft</div>`+(ps.length?listOf(ps.map(p=>pItem(p,true))):`<p class="meta">Noch keine Prüfung mit diesem Modell.</p>`);
+  return h+`</div>`;
+}
+let katForm=null, katHForm=null, katHDel=null;
+function katDialog(rec){
+  katForm={id:rec&&rec.id}; const r=rec||{art:"Wallbox"};
+  const hs=[...new Set(live("katalog").map(x=>x.hersteller).filter(Boolean))];
+  dialog(rec?"Steckbrief bearbeiten":"Modell anlegen",`<div class="fg1">
+    ${tf("hersteller","Hersteller",r.hersteller||"",{form:true,list:"dl-herst"})}${datalist("dl-herst",hs)}
+    <div class="row2">${tf("modell","Modell",r.modell||"",{form:true,ph:"z. B. AMTRON Charge Control"})}${tf("version","Version (optional)",r.version||"",{form:true,ph:"z. B. 2.0, 11 kW"})}</div>
+    <div class="row2">${sf("art","Bauart",r.art||"Wallbox",["Wallbox","Ladesäule"],{form:true})}${tf("leistung","Ladeleistung",r.leistung||"",{form:true,im:"decimal",sfx:"kW"})}</div>
+    <div class="row2">${sf("phasen","Anschluss",r.phasen||"",[["","–"],["1","1-phasig"],["3","3-phasig"]],{form:true})}${sf("lps","Ladepunkte",r.lps||"",[["","–"],["1","1"],["2","2"]],{form:true})}</div>
+    ${tf("anschluss","Anschlussklemmen",r.anschluss||"",{form:true,ph:"z. B. max. 5×10 mm²"})}
+    ${sf("dc6","DC-Fehlerstromerkennung 6 mA",r.dc6||"",[["","unbekannt"],["ja","ja, integriert (RDC-DD)"],["nein","nein"]],{form:true})}
+    ${tf("artnr","Artikelnummer (optional)",r.artnr||"",{form:true})}
+    ${tf("quelle","Quelle der Angaben",r.quelle||"",{form:true,ph:"z. B. Datenblatt 03/2024 oder vor Ort geprüft"})}
+    ${ta("notiz","Notiz",r.notiz||"",{form:true})}</div>`,
+    `<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="katSave">${rec?"Speichern":"Anlegen"}</button>`);
+}
+function katSave(){
+  const F=formVals(); if(!F.hersteller||!F.modell){ toast("Bitte Hersteller und Modell eingeben"); return; }
+  F.leistung=F.leistung.replace(/\s*kW$/i,"");
+  if(katForm.id){ const r=DB.katalog.get(katForm.id); Object.assign(r,F); if(F.quelle) delete r.vorlage; saveRec("katalog",r); closeOverlays(); render(); toast("Steckbrief gespeichert"); }
+  else { const r=saveRec("katalog",{id:uid(),...F,hinweise:[]},true); closeOverlays(); go({v:"katmodell",id:r.id}); }
+}
+function katHDialog(r,hw){
+  if(!r) return; if(hw&&!katHOk(hw)){ toast("Nur der Verfasser kann diesen Hinweis ändern"); return; }
+  katHForm={id:r.id,hid:hw&&hw.id}; const x=hw||{titel:KAT_HINWEIS[0],text:""};
+  dialog(hw?"Hinweis bearbeiten":"Hinweis hinzufügen",`<div class="fg1">${sf("titel","Thema",x.titel,KAT_HINWEIS,{form:true})}
+    ${ta("text","Hinweis",x.text,{form:true,ph:"z. B. PE-Schiene unten links hinter der Abdeckung, Torx T20"})}</div>
+    <p class="sup" style="margin:12px 0 0">Fotos fügst du danach direkt am Hinweis hinzu.</p>`,
+    `<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="katHSave">${hw?"Speichern":"Hinzufügen"}</button>`);
+}
+function katHSave(){
+  const F=formVals(), r=DB.katalog.get(katHForm.id); if(!r) return; if(!F.text&&!katHForm.hid&&!F.titel) return;
+  r.hinweise=r.hinweise||[];
+  if(katHForm.hid){ const x=r.hinweise.find(h=>h.id===katHForm.hid); Object.assign(x,{titel:F.titel,text:F.text}); }
+  else r.hinweise.push({id:uid(),titel:F.titel,text:F.text,fotos:[],by:who(),at:Date.now()});
+  saveRec("katalog",r); closeOverlays(); render();
+}
+async function katFotoAufnehmen(file,t){
+  let data; try{ data=await fotoVerkleinern(file); }catch(e){ toast("Das Bild konnte nicht gelesen werden"); return; }
+  const r=DB.katalog.get(t.kat), h=r&&(r.hinweise||[]).find(x=>x.id===t.h); if(!h) return;
+  const id=uid(), ok=await fotoPut(id,data); h.fotos=[...(h.fotos||[]),id]; saveRec("katalog",r); fotoQueue(id);
+  if(nav.v==="katmodell"){ const y=scrollY; render(); scrollTo(0,y); }
+  if(!ok) toast("Foto nur bis zum Schließen der App gespeichert – Speicher nicht verfügbar");
+}
+
 // --- Menü und Dialoge
 function closeOverlays(){ ["#menu","#dlg","#scrim"].forEach(s=>$(s).hidden=true); $("#scrim").classList.remove("dim"); $("#menuBtn").setAttribute("aria-expanded","false"); }
 function openMenu(){
@@ -1780,6 +1904,10 @@ function openMenu(){
     if(SYNC_ON) it.push(["syncNow","Jetzt abgleichen","sync"]);
     it.push(["export","Alle sichern","backup"],["import","Sicherung laden","upload"]);
     it.push(live("kunden").some(isDemo)?["demoHide","Beispieldaten ausblenden","bulb"]:["demo","Beispieldaten laden","bulb"]);
+  } else if(nav.v==="katmodell"){
+    const r=DB.katalog.get(nav.id);
+    it.push(["katEdit","Steckbrief bearbeiten","edit"],["katHNeu","Hinweis hinzufügen","add"]);
+    if(canEdit(r)) it.push(["katDelAsk","Modell löschen","del","danger"]);
   } else if(kind){
     const r=DB[kind].get(nav.id), ok=canEdit(r), pinned=META.pins.includes(r.id);
     if(ok) it.push(["editLoc",`${KIND_NAME[kind]} bearbeiten`,"edit"]);
@@ -1869,6 +1997,8 @@ function zurueck(){
   if(nav.v==="standort"){ const s=standortOf(nav.id); go(s?{v:"kunde",id:s.kundeId}:{v:"kunden"}); return; }
   if(nav.v==="kunde"){ go({v:"kunden"}); return; }
   if(MEHR_SUB[nav.v]){ go({v:"mehr"}); return; }
+  if(nav.v==="katmodell"){ go({v:"katalog"}); return; }
+  if(nav.v==="katalog"){ go({v:"mehr"}); return; }
   go({v:"start"});
 }
 
@@ -1941,7 +2071,7 @@ function loeschePruefung(p){
 const getPath=p=>p.split(".").reduce((o,k)=>o==null?o:o[k],cur);
 function setPath(p,v){ const ks=p.split("."); let o=cur; for(let i=0;i<ks.length-1;i++) o=o[ks[i]]; o[ks[ks.length-1]]=v; }
 document.addEventListener("input",ev=>{
-  if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="kunden"?kundenListe():nav.v==="pruefungen"?pruefungenListe():(query?suche(query):startListen()); return; }
+  if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="katalog"?katalogListe():nav.v==="kunden"?kundenListe():nav.v==="pruefungen"?pruefungenListe():(query?suche(query):startListen()); return; }
   const el=ev.target.closest("[data-bind]"); if(!el||!cur) return;
   const path=el.dataset.bind, alt=path==="p.adapter"?cur.p.adapter:null; setPath(path,el.value); scheduleSave();
   if(path==="p.datum"&&cur.a.fristJ){ const d=new Date((el.value||today())+"T12:00:00"); d.setFullYear(d.getFullYear()+(+cur.a.fristJ)); cur.a.naechste=d.toISOString().slice(0,10); }
@@ -2032,6 +2162,20 @@ document.addEventListener("click",ev=>{
   case "newHere": { if(nameFehlt("newHere")) return; const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id);
     if(kind==="standorte") neuePruefung(r.kundeId,r.id,null); else { const s=standortOf(r.standortId); neuePruefung(s.kundeId,s.id,r.id); } return; }
   case "open": oeffne(b.dataset.id); return;
+  case "katNeu": katDialog(null); return;
+  case "katEdit": katDialog(DB.katalog.get(nav.id)); return;
+  case "katSave": katSave(); return;
+  case "katDelAsk": confirmDlg("Modell löschen?",`„${katName(DB.katalog.get(nav.id))}“ mit allen Hinweisen und Fotos aus dem Katalog entfernen?`,"Löschen","katDel"); return;
+  case "katDel": { const r=DB.katalog.get(nav.id); closeOverlays(); if(!r||!canEdit(r)) return; fotoDel(katFotoIds(r)); r.deleted=true; r.hinweise=[]; saveRec("katalog",r); go({v:"katalog"}); toast("Modell gelöscht"); return; }
+  case "katHNeu": katHDialog(DB.katalog.get(nav.id),null); return;
+  case "katHEdit": { const r=DB.katalog.get(nav.id); katHDialog(r,(r.hinweise||[]).find(h=>h.id===b.dataset.h)); return; }
+  case "katHSave": katHSave(); return;
+  case "katHDelAsk": katHDel=b.dataset.h; confirmDlg("Hinweis löschen?","Den Hinweis mit seinen Fotos löschen?","Löschen","katHDel"); return;
+  case "katHDel": { const r=DB.katalog.get(nav.id), i=(r.hinweise||[]).findIndex(h=>h.id===katHDel); closeOverlays(); if(i<0) return; fotoDel(r.hinweise[i].fotos||[]); r.hinweise.splice(i,1); saveRec("katalog",r); render(); toast("Hinweis gelöscht"); return; }
+  case "katFotoAdd": fotoTarget={kat:nav.id,h:b.dataset.h}; closeOverlays(); $("#fotoFile").click(); return;
+  case "katFotoShow": { const r=DB.katalog.get(nav.id), h=(r.hinweise||[]).find(x=>x.id===b.dataset.h), id=b.dataset.fid, src=fotoCache.get(id); if(!h||!src) return;
+    dialog(h.titel,`<img class="dimg" src="${src}" alt="">`,`${katHOk(h)?`<button class="btn-text danger" data-act="katFotoDel" data-h="${h.id}" data-fid="${id}">Löschen</button><span style="flex:1"></span>`:""}<button class="btn-text" data-act="cancel">Schließen</button>`); return; }
+  case "katFotoDel": { const r=DB.katalog.get(nav.id), h=(r.hinweise||[]).find(x=>x.id===b.dataset.h); closeOverlays(); if(!h) return; h.fotos=(h.fotos||[]).filter(x=>x!==b.dataset.fid); fotoDel([b.dataset.fid]); saveRec("katalog",r); render(); return; }
   }
   if(!cur) return;
   switch(a){
@@ -2089,7 +2233,9 @@ $("#backBtn").addEventListener("click",zurueck);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeOverlays(); if(e.key==="Enter"&&e.target.matches(".li[role=button]")) e.target.click(); });
 window.addEventListener("scroll",()=>$("#topbar").classList.toggle("scrolled",scrollY>4),{passive:true});
 async function fotoAufnehmen(el){
-  const f=el.files[0], t=fotoTarget; el.value=""; if(!f||!cur||!t) return;
+  const f=el.files[0], t=fotoTarget; el.value="";
+  if(f&&t&&t.kat) return katFotoAufnehmen(f,t);
+  if(!f||!cur||!t) return;
   let data; try{ data=await fotoVerkleinern(f); }catch(e){ toast("Das Bild konnte nicht gelesen werden"); return; }
   const s=cur.s[t.si]; if(!s) return; s.fotos=s.fotos||{};
   if(s.fotos[t.k]) fotoDel([s.fotos[t.k]]);
@@ -2099,7 +2245,7 @@ async function fotoAufnehmen(el){
 }
 function exportBackup(){
   const daten={}; KINDS.forEach(k=>daten[k]=[...DB[k].values()].map(strip));
-  const fotos={}; live("pruefungen").forEach(p=>p.s.flatMap(fotoIds).forEach(i=>{ const d=fotoCache.get(i); if(d) fotos[i]=d; }));
+  const fotos={}; [...live("pruefungen").flatMap(p=>p.s.flatMap(fotoIds)),...live("katalog").flatMap(katFotoIds)].forEach(i=>{ const d=fotoCache.get(i); if(d) fotos[i]=d; });
   saveFile(new Blob([JSON.stringify({app:"evse-pruefprotokoll",version:3,saved:Date.now(),daten,fotos})],{type:"application/json"}),`EVSE-Prüfprotokolle_Sicherung_${today()}.json`);
   toast(`${live("pruefungen").length} Prüfung(en) gesichert`);
 }
