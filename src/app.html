@@ -211,6 +211,17 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .banner span{font-size:14px;opacity:.85}
 .sig + .sig{margin-top:20px}
 .sig .bar{display:flex;align-items:center;justify-content:space-between;margin:12px 0 6px 4px;font-size:12px;font-weight:600;color:var(--on-sv)}
+button.pad{width:100%;height:120px;border:0;padding:0;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--outline-v);display:grid;place-items:center;color:#5a5f68;font-size:14px;font-weight:600;cursor:pointer}
+button.pad span{display:flex;align-items:center;gap:8px}
+button.pad img{max-width:90%;max-height:100px;display:block}
+.sigfull{position:fixed;inset:0;z-index:80;background:var(--surface);display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.sf-head{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--outline-v)}
+.sf-head b{flex:1;text-align:center;font-size:17px}
+.btn-filled.sm{height:40px;padding:0 18px;font-size:14px}
+.sf-body{flex:1;position:relative;margin:16px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1px var(--outline-v);overflow:hidden}
+.sf-body canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.sf-line{position:absolute;left:8%;right:8%;bottom:30%;border-bottom:1.5px dashed #b5bac3;pointer-events:none}
+.sf-body p{position:absolute;left:0;right:0;bottom:16px;text-align:center;color:#7a808a;font-size:13px;margin:0;pointer-events:none}
 canvas.pad{width:100%;height:168px;border-radius:12px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--outline-v);touch-action:none;display:block}
 .btn-text{white-space:nowrap;height:40px;border:0;border-radius:20px;background:transparent;color:var(--primary);font-size:14px;font-weight:700;padding:0 12px}
 .btn-text:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
@@ -690,7 +701,9 @@ async function pushFotos(){
   const fid=await folderId(`${CONFIG.dataFolder}/fotos`);
   for(const id of [...q]){
     const d=fotoCache.get(id);
-    if(d){ const r=await g(`/drives/${SY.drive}/items/${fid}:/${id}.jpg:/content`,{method:"PUT",headers:{"Content-Type":"image/jpeg"},body:dataUrlToBlob(d)}); if(!r.ok) throw new Error(`Foto hochladen fehlgeschlagen (${r.status})`); }
+    if(d){ const r=await g(`/drives/${SY.drive}/items/${fid}:/${id}.jpg:/content`,{method:"PUT",headers:{"Content-Type":"image/jpeg"},body:dataUrlToBlob(d)}); if(!r.ok) throw new Error(`Foto hochladen fehlgeschlagen (${r.status})`);
+      const web=(await r.json()).webUrl;
+      if(web) for(const p of DB.pruefungen.values()) if(p.s.some(x=>fotoIds(x).includes(id))&&canEdit(p)){ p.fotoWeb=Object.assign(p.fotoWeb||{},{[id]:web}); saveRec("pruefungen",p); if(cur&&cur.id===p.id) cur.fotoWeb=p.fotoWeb; } }
     META.sync.fotoQueue=(META.sync.fotoQueue||[]).filter(x=>x!==id); metaSave();
   }
 }
@@ -870,12 +883,11 @@ function render(){
   const f=$("#fab"); f.hidden=!fab; document.body.classList.toggle("has-fab",!!fab);
   if(fab){ f.dataset.act=fab[0]; f.innerHTML=`${icon(fab[2])}<span>${fab[1]}</span>`; }
   $("#avTxt").textContent=initials(ME.name||META.profil.name); $("#avBtn").dataset.sync=SY.state;
-  if(nav.v==="abschluss") setupSigs();
   if(E&&!canEdit(cur)) applyRO();
 }
 function applyRO(){
   $("#app").querySelectorAll("input,select,textarea").forEach(e=>e.disabled=true);
-  $("#app").querySelectorAll('[data-act="frist"],[data-act="kAbw"],[data-act="pick"],[data-act="leistung"],[data-act="abs"],[data-act="rcdTyp"],[data-act="rdc"],[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
+  $("#app").querySelectorAll('[data-act="sigOpen"],[data-act="frist"],[data-act="kAbw"],[data-act="pick"],[data-act="leistung"],[data-act="abs"],[data-act="rcdTyp"],[data-act="rdc"],[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
 }
 
 // Felder: M3 Outlined Text Field
@@ -1112,11 +1124,11 @@ function abschlussView(){
         <p class="sup">${a.naechste?`Empfohlen bis <b>${deDate(a.naechste)}</b> · `:""}Gewerblich (DGUV V3) Richtwert 4 Jahre; die Frist legt der Betreiber fest.</p></div>
     </div></section>
     <section class="card"><h3>Unterschriften</h3>
-      <div class="sig">${tf("a.sigPName","Name Prüfer",a.sigPName||cur.p.pruefer)}<div class="bar"><span>Unterschrift Prüfer</span><button class="btn-text" data-act="sigclear" data-k="sigP">Löschen</button></div><canvas class="pad" id="sigP" aria-label="Unterschriftsfeld Prüfer"></canvas></div>
+      <div class="sig">${tf("a.sigPName","Name Prüfer",a.sigPName||cur.p.pruefer)}<div class="bar"><span>Unterschrift Prüfer</span><button class="btn-text" data-act="sigclear" data-k="sigP">Löschen</button></div><button class="pad" data-act="sigOpen" data-k="sigP" aria-label="Unterschrift Prüfer">${a.sigP?`<img src="${a.sigP}" alt="">`:`<span>${icon("edit")}Zum Unterschreiben tippen</span>`}</button></div>
       <div class="sig"><div class="bar" style="margin-top:4px"><span>Auftraggeber</span></div>
         <div class="chips" style="margin-bottom:12px"><button type="button" class="chip" data-act="kAbw" aria-pressed="${!!a.kAbwesend}">${icon("check")}Bei der Prüfung nicht anwesend</button></div>
         ${a.kAbwesend?`<p class="sup" style="margin:0">Im Protokoll steht: „Auftraggeber bei der Prüfung nicht anwesend“.</p>`
-        :`${tf("a.sigKName","Name Auftraggeber",a.sigKName)}<div class="bar"><span>Unterschrift Auftraggeber</span><button class="btn-text" data-act="sigclear" data-k="sigK">Löschen</button></div><canvas class="pad" id="sigK" aria-label="Unterschriftsfeld Auftraggeber"></canvas>`}</div>
+        :`${tf("a.sigKName","Name Auftraggeber",a.sigKName)}<div class="bar"><span>Unterschrift Auftraggeber</span><button class="btn-text" data-act="sigclear" data-k="sigK">Löschen</button></div><button class="pad" data-act="sigOpen" data-k="sigK" aria-label="Unterschrift Auftraggeber">${a.sigK?`<img src="${a.sigK}" alt="">`:`<span>${icon("edit")}Zum Unterschreiben tippen</span>`}</button>`}</div>
     </section>
   </div>`;
 }
@@ -1413,7 +1425,8 @@ document.addEventListener("click",ev=>{
     commit(); closeOverlays(); go({v:"saeulen"}); toast(`${n} Ladesäule${n>1?"n":""} angelegt (${cur.s[start].name}${n>1?` bis ${cur.s[cur.s.length-1].name}`:""})`); return; }
   case "lps": case "phasen": { const s=cur.s[nav.si]; s[a]=+b.dataset.v; while(s.lp.length<2) s.lp.push(newLP()); scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "chk": { const p=b.dataset.path, v=b.dataset.v; setPath(p,getPath(p)===v?"":v); scheduleSave(); b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",getPath(p)===x.dataset.v)); refresh(); return; }
-  case "sigclear": { cur.a[b.dataset.k]=""; scheduleSave(); const c=$("#"+b.dataset.k); c.getContext("2d").clearRect(0,0,c.width,c.height); return; }
+  case "sigclear": { cur.a[b.dataset.k]=""; scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
+  case "sigOpen": sigOpen(b.dataset.k); return;
   case "fotoAdd": fotoTarget={si:nav.si,k:b.dataset.k}; closeOverlays(); $("#fotoFile").click(); return;
   case "fotoDel": { const s=cur.s[nav.si]; fotoDel([s.fotos[b.dataset.k]]); delete s.fotos[b.dataset.k]; commit(); closeOverlays(); const y=scrollY; render(); scrollTo(0,y); toast("Foto gelöscht"); return; }
   case "delSask": confirmDlg("Ladesäule entfernen?",`${cur.s[nav.si].name} wird mit allen Messwerten aus dieser Prüfung entfernt.`,"Entfernen","delS"); return;
@@ -1502,14 +1515,44 @@ function setupSigs(){
     c.addEventListener("pointerup",end); c.addEventListener("pointercancel",end);
   });
 }
+// Unterschrift im Vollbild: große Fläche, Abbrechen / Löschen / Übernehmen
+function sigOpen(k){
+  const nm=(k==="sigP"?(cur.a.sigPName||cur.p.pruefer):cur.a.sigKName)||"";
+  const el=document.createElement("div"); el.className="sigfull";
+  el.innerHTML=`<div class="sf-head"><button class="btn-text" data-sf="cancel">Abbrechen</button><b>${k==="sigP"?"Unterschrift Prüfer":"Unterschrift Auftraggeber"}</b><button class="btn-text" data-sf="clear">Löschen</button><button class="btn-filled sm" data-sf="ok">Übernehmen</button></div>
+    <div class="sf-body"><canvas></canvas><div class="sf-line"></div><p>${esc(nm)}${nm?" · ":""}mit dem Finger oder Stift unterschreiben</p></div>`;
+  document.body.appendChild(el); document.body.style.overflow="hidden";
+  const c=el.querySelector("canvas"), dpr=window.devicePixelRatio||1, rc=c.getBoundingClientRect();
+  c.width=Math.round(rc.width*dpr); c.height=Math.round(rc.height*dpr);
+  const x=c.getContext("2d"); x.lineWidth=2.8*dpr; x.lineCap="round"; x.lineJoin="round"; x.strokeStyle="#14202c"; x.fillStyle="#14202c";
+  let ink=false;
+  if(cur.a[k]){ const img=new Image(); img.onload=()=>{ const r=Math.min(c.width*0.8/img.width,c.height*0.6/img.height); x.drawImage(img,(c.width-img.width*r)/2,(c.height-img.height*r)/2,img.width*r,img.height*r); ink=true; }; img.src=cur.a[k]; }
+  let on=false,last=null; const pos=e=>{ const r=c.getBoundingClientRect(); return [(e.clientX-r.left)*dpr,(e.clientY-r.top)*dpr]; };
+  c.addEventListener("pointerdown",e=>{ on=true; last=pos(e); c.setPointerCapture(e.pointerId); x.beginPath(); x.arc(last[0],last[1],x.lineWidth/2,0,7); x.fill(); ink=true; e.preventDefault(); });
+  c.addEventListener("pointermove",e=>{ if(!on) return; const p=pos(e); x.beginPath(); x.moveTo(last[0],last[1]); x.lineTo(p[0],p[1]); x.stroke(); last=p; ink=true; });
+  const end=()=>{ on=false; }; c.addEventListener("pointerup",end); c.addEventListener("pointercancel",end);
+  const close=()=>{ el.remove(); document.body.style.overflow=""; };
+  el.addEventListener("click",e=>{ const a=e.target.closest("[data-sf]"); if(!a) return;
+    if(a.dataset.sf==="cancel") close();
+    else if(a.dataset.sf==="clear"){ x.clearRect(0,0,c.width,c.height); ink=false; }
+    else { cur.a[k]=ink?sigExport(sigTrim(c)):""; scheduleSave(); close(); const y=scrollY; render(); scrollTo(0,y); }
+  });
+}
+// leeren Rand um die Unterschrift abschneiden, damit sie im PDF groß genug erscheint
+function sigTrim(c){
+  const x=c.getContext("2d"), d=x.getImageData(0,0,c.width,c.height).data; let x0=c.width,y0=c.height,x1=0,y1=0;
+  for(let yy=0;yy<c.height;yy+=2) for(let xx=0;xx<c.width;xx+=2){ if(d[(yy*c.width+xx)*4+3]>0){ if(xx<x0)x0=xx; if(xx>x1)x1=xx; if(yy<y0)y0=yy; if(yy>y1)y1=yy; } }
+  if(x1<=x0||y1<=y0) return c; const pad=20, w=x1-x0+2*pad, h=y1-y0+2*pad, o=document.createElement("canvas"); o.width=w; o.height=h;
+  o.getContext("2d").drawImage(c,x0-pad,y0-pad,w,h,0,0,w,h); return o;
+}
 function sigExport(c){ const o=document.createElement("canvas"); o.width=Math.min(c.width,900); o.height=Math.round(c.height*o.width/c.width);
   const x=o.getContext("2d"); x.drawImage(c,0,0,o.width,o.height); const d=x.getImageData(0,0,o.width,o.height);
   for(let i=0;i<d.data.length;i+=4){ if(d.data[i+3]>0){ d.data[i]=20; d.data[i+1]=28; d.data[i+2]=40; } } x.putImageData(d,0,0); return o.toDataURL("image/png"); }
 
 // ================= PDF =================
 const LOGO_PDF="<!--LOGO_HELL-->";
-const PDFMAP={"≈":"ca.","Ω":"Ohm","≤":"<=","≥":">=","→":"->","↔":"<->","–":"-","Δ":"d","…":"...","·":"|","„":"\"","“":"\""};
-const pt=s=>String(s??"").replace(/[≈Ω≤≥→↔–Δ…·„“]/g,c=>PDFMAP[c]);
+const PDFMAP={"²":"2","³":"3","≈":"ca.","Ω":"Ohm","≤":"<=","≥":">=","→":"->","↔":"<->","–":"-","Δ":"d","…":"...","·":"|","„":"\"","“":"\""};
+const pt=s=>String(s??"").replace(/[²³≈Ω≤≥→↔–Δ…·„“]/g,c=>PDFMAP[c]);
 function makePDF(){
   if(!window.jspdf){ toast("PDF-Erstellung nicht geladen"); return; }
   saveNow();
@@ -1538,9 +1581,9 @@ function buildPDF(P){
     d.text(pt([pfadText(P," | "),P.p.auftragsnr&&`Auftrag ${P.p.auftragsnr}`,P.p.datum&&`Prüfdatum ${deDate(P.p.datum)}`].filter(Boolean).join(" | ")),M,292); d.text(`Seite ${page}`,W-M,292,{align:"right"}); };
   const np=(t,s)=>{ foot(); d.addPage(); page++; head(t,s); };
   const sec=t=>{ d.setFillColor(...SUNK); d.rect(M,y-4.5,CW,7,"F"); d.setFillColor(...SIG); d.rect(M,y-4.5,1.2,7,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(9.5); d.text(pt(t),M+4,y); y+=8; };
-  const kv=prs=>{ const cw=CW/2; d.setFontSize(8.5); for(let i=0;i<prs.length;i+=2){ let rh=6.2; for(let c=0;c<2&&i+c<prs.length;c++){ const [k,v]=prs[i+c],x=M+c*cw;
-      d.setFont("helvetica","normal"); d.setTextColor(...GR); d.text(pt(k),x,y); d.setFont("helvetica","bold"); d.setTextColor(20); const l=d.splitTextToSize(pt(v||"-"),cw-34); d.text(l,x+32,y); rh=Math.max(rh,l.length*4+1.5); }
-      d.setDrawColor(...LINE); d.line(M,y+1.6,M+CW,y+1.6); y+=rh+1.2; } y+=2; };
+  const kv=prs=>{ const cw=CW/2, LH=3.7; d.setFontSize(8.5); for(let i=0;i<prs.length;i+=2){ let n=1; for(let c=0;c<2&&i+c<prs.length;c++){ const [k,v]=prs[i+c],x=M+c*cw;
+      d.setFont("helvetica","normal"); d.setTextColor(...GR); d.text(pt(k),x,y); d.setFont("helvetica","bold"); d.setTextColor(20); const l=d.splitTextToSize(pt(v||"-"),cw-35); d.text(l,x+32,y,{lineHeightFactor:1.15}); n=Math.max(n,l.length); }
+      const extra=(n-1)*LH; d.setDrawColor(...LINE); d.line(M,y+extra+1.9,M+CW,y+extra+1.9); y+=extra+6.1; } y+=2; };
   const para=t=>{ d.setFont("helvetica","normal"); d.setFontSize(8.5); d.setTextColor(30); const l=d.splitTextToSize(pt(t||"-"),CW); d.text(l,M,y); y+=l.length*4+4; };
   const badge=(x,yy,r)=>{ const col=r==="ok"?OKC:r==="bad"?BADC:GR; d.setFillColor(...col); const t=RES_TXT[r].toUpperCase(); d.setFontSize(7.5); d.setFont("helvetica","bold"); const w=d.getTextWidth(t)+5; d.roundedRect(x-w,yy-3.6,w,5,1.2,1.2,"F"); d.setTextColor(255); d.text(t,x-w+2.5,yy); };
 
@@ -1566,28 +1609,28 @@ function buildPDF(P){
     np(s.name,[s.typ,s.ort].filter(Boolean).join(" | ")||"Ladesäule");
     const z=zsInfo(s); sec("Gerätedaten");
     kv([["Hersteller / Typ",s.typ],["Seriennummer",s.sn],["Stellplatz",s.ort],["Firmware",s.fw],["Absicherung",s.absTyp==="manuell"?"Sicherung, Zs lt. Tabelle":[`${s.absTyp}${s.absIn} A, ${polLS(s)}`,s.lsIcn&&`${s.lsIcn} kA`,s.lsTyp].filter(Boolean).join(", ")],["Zs zulässig",isNaN(z.zul)?"-":`${fmt(z.zul,2)} Ohm`],
-        ["RCD",[`Typ ${rcdInfo(s).t}, ${s.idn} mA`,s.rcdIn&&`${s.rcdIn} A`,polRCD(s),s.rcdHT].filter(Boolean).join(", ")],["Im Verteiler",s.bmk],["DC 6 mA",rcdInfo(s).dc?"in der Wallbox (RDC-DD)":rcdInfo(s).t==="A-EV"?"im RCD (Typ A-EV)":rcdInfo(s).t==="B"?"RCD Typ B":"-"],["Zuleitung",[s.leitung,s.laenge&&`ca. ${s.laenge} m`].filter(Boolean).join(", ")],["Ladeleistung je LP",s.inenn?`${s.inenn} A${num(s.inenn)?` (${fmt(Math.round(num(s.inenn)*230*(s.phasen===3?3:1)/100)/10,1)} kW)`:""}`:"-"],["Freigabe",s.freigabe],["Anschluss",s.phasen===3?"3-phasig":"1-phasig"]]);
+        ["RCD",[`Typ ${rcdInfo(s).t}, ${s.idn} mA`,s.rcdIn&&`${s.rcdIn} A`,polRCD(s),s.rcdHT].filter(Boolean).join(", ")],["Im Verteiler",s.bmk],["DC 6 mA",rcdInfo(s).dc?"in der Wallbox (RDC-DD)":rcdInfo(s).t==="A-EV"?"im RCD (Typ A-EV)":rcdInfo(s).t==="B"?"RCD Typ B":"-"],["Zuleitung",[s.leitung,s.laenge&&`ca. ${s.laenge} m`].filter(Boolean).join(", ")],["Ladeleistung",s.inenn?`${s.inenn} A${num(s.inenn)?` (${fmt(Math.round(num(s.inenn)*230*(s.phasen===3?3:1)/100)/10,1)} kW)`:""}`:"-"],["Freigabe",s.freigabe],["Anschluss",s.phasen===3?"3-phasig":"1-phasig"]]);
     // Drei kleine Fotos nebeneinander (Klick im PDF -> Großansicht im Anhang)
     const F=FOTO_SLOTS.map(([k,l,h])=>({l,h,id:(s.fotos||{})[k],data:fotoCache.get((s.fotos||{})[k])}));
     const hasF=F.some(f=>f.data);
     if(hasF){
-      const nF=F.length, tw=(CW-6*(nF-1))/nF, th=30, ty=y-2, link={page:d.getNumberOfPages(),s,rects:[],ty:ty+th+8};
+      const nF=F.length, tw=(CW-6*(nF-1))/nF, th=26, ty=y-2, link={page:d.getNumberOfPages(),s,rects:[],ty:ty+th+8};
       F.forEach((f,i)=>{ const x=M+i*(tw+6);
         d.setFillColor(...SUNK); d.roundedRect(x,ty,tw,th,1.5,1.5,"F");
-        if(f.data){ fit(f.data,f.id,x+1,ty+1,tw-2,th-2,true); link.rects.push([x,ty,tw,th]); }
+        if(f.data){ fit(f.data,f.id,x+1,ty+1,tw-2,th-2,true); link.rects.push([x,ty,tw,th]); const u=(P.fotoWeb||{})[f.id]; if(u) d.link(x,ty,tw,th,{url:u}); }
         else { d.setFont("helvetica","normal"); d.setFontSize(7.5); d.setTextColor(...GR); d.text("kein Foto",x+tw/2,ty+th/2+1,{align:"center"}); }
         d.setFont("helvetica","bold"); d.setFontSize(7.5); d.setTextColor(...NAVY); d.text(pt(f.l),x,ty+th+4); });
-      fotoLinks.push(link); y=ty+th+13;
+      fotoLinks.push(link); y=ty+th+11;
     }
     // Zeilenhöhe so wählen, dass die Tabelle die Seite füllt
     const groups=GROUPS.map(g=>({g,rows:g.rows.filter(r=>rowVisible(r,s)&&!(r.opt&&s.lp.slice(0,s.lps).every(lp=>!lp.v[r.k])))})).filter(x=>x.rows.length);
     const nR=groups.reduce((n,x)=>n+x.rows.length,0);
-    d.setFontSize(8.5); let resH=4;
-    for(let li=0;li<s.lps;li++){ resH+=8; if(s.lp[li].bem) resH+=d.splitTextToSize(pt("Bemerkung: "+s.lp[li].bem),CW-4).length*4.2+1.5; }
-    const avail=278-y-8-resH, rh=Math.max(4.6,Math.min(8,avail/(nR+groups.length*1.15))), gh=rh*1.15, fs=Math.min(9,8+(rh-5)*0.45), off=rh*0.68;
-    const cP=M+2,cS=M+70,c1=M+118,c2=M+152;
+    d.setFontSize(8.5); let resH=12;
+    for(let li=0;li<s.lps;li++){ if(s.lp[li].bem) resH+=d.splitTextToSize(pt(`Bemerkung Ladepunkt ${li+1}: `+s.lp[li].bem),CW-4).length*4.2+1.5; }
+    const avail=278-y-8-resH, rh=Math.max(4.3,Math.min(8,avail/(nR+groups.length*1.15))), gh=rh*1.15, fs=Math.min(9,8+(rh-5)*0.45), off=rh*0.68;
+    const cP=M+2,cS=M+68,c1=M+112,c2=M+148;
     d.setFillColor(...NAVY); d.rect(M,y-4.6,CW,8,"F"); d.setTextColor(255); d.setFont("helvetica","bold"); d.setFontSize(8.5);
-    d.text("Prüfung",cP,y+0.6); d.text("Sollwert",cS,y+0.6); d.text("LP 1 (links)",c1,y+0.6); if(s.lps===2) d.text("LP 2 (rechts)",c2,y+0.6); y+=8;
+    d.text("Prüfung",cP,y+0.6); d.text("Sollwert",cS,y+0.6); d.text(s.lps===2?"Ladepunkt 1 (links)":"Ladepunkt 1",c1,y+0.6); if(s.lps===2) d.text("Ladepunkt 2 (rechts)",c2,y+0.6); y+=8;
     for(const {g,rows} of groups){
       d.setFillColor(...SUNK); d.rect(M,y-off,CW,gh,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(fs-0.5); d.text(pt(`${g.t} (${g.ps||g.sub})`),cP,y+(gh-rh)/2); y+=gh;
       rows.forEach((r,ri)=>{
@@ -1600,11 +1643,14 @@ function buildPDF(P){
       });
     }
     y+=4;
-    for(let li=0;li<s.lps;li++){ const lp=s.lp[li];
-      if(y+8+(lp.bem?d.splitTextToSize(pt("Bemerkung: "+lp.bem),CW-4).length*4.2+1.5:0)>280){ np(`${s.name} (Fortsetzung)`,""); }
-      d.setDrawColor(...LINE); d.line(M,y-3.5,M+CW,y-3.5);
-      d.setFont("helvetica","bold"); d.setFontSize(9); d.setTextColor(...NAVY); d.text(`Ergebnis LP ${li+1}${s.lps===2?(li?" (rechts)":" (links)"):""}`,M+2,y+1.5); badge(M+CW-1,y+1.5,lpResult(s,li)); y+=8;
-      if(lp.bem){ d.setFont("helvetica","normal"); d.setFontSize(8.5); d.setTextColor(30); const l=d.splitTextToSize(pt("Bemerkung: "+lp.bem),CW-4); d.text(l,M+2,y-1.5); y+=l.length*4.2+1.5; } }
+    if(y+10>280) np(`${s.name} (Fortsetzung)`,"");
+    d.setDrawColor(...LINE); d.line(M,y-3.5,M+CW,y-3.5);
+    for(let li=0;li<s.lps;li++){ const x0=li?M+CW/2+4:M+2, xr=li||s.lps===1?M+CW-1:M+CW/2-4;
+      d.setFont("helvetica","bold"); d.setFontSize(9); d.setTextColor(...NAVY); d.text(`Ergebnis Ladepunkt ${li+1}`,x0,y+1.5); badge(xr,y+1.5,lpResult(s,li)); }
+    y+=8;
+    for(let li=0;li<s.lps;li++){ const lp=s.lp[li]; if(!lp.bem) continue;
+      const l=d.splitTextToSize(pt(`Bemerkung Ladepunkt ${li+1}: `+lp.bem),CW-4); if(y+l.length*4.2>282) np(`${s.name} (Fortsetzung)`,"");
+      d.setFont("helvetica","normal"); d.setFontSize(8.5); d.setTextColor(30); d.text(l,M+2,y-1.5); y+=l.length*4.2+1.5; }
 
   });
 
