@@ -829,7 +829,7 @@ function buildPDF(P){
     d.setFillColor(...SIG); d.rect(0,24,W,1.4,"F"); y=34; };
   const foot=()=>{ d.setDrawColor(...LINE); d.line(M,284,W-M,284); d.setFont("helvetica","normal"); d.setFontSize(7); d.setTextColor(...GR);
     d.text("Elektro Irrgang | Hahner Weg 2 | 51545 Waldbröl | Tel. 02291 4878 | info@elektro-irrgang.de",M,288);
-    d.text(pt(`${P.p.projekt||""} | Auftrag ${P.p.auftragsnr||"-"} | Prüfdatum ${deDate(P.p.datum)}`),M,292); d.text(`Seite ${page}`,W-M,292,{align:"right"}); };
+    d.text(pt([P.p.projekt,P.p.auftragsnr&&`Auftrag ${P.p.auftragsnr}`,P.p.datum&&`Prüfdatum ${deDate(P.p.datum)}`].filter(Boolean).join(" | ")),M,292); d.text(`Seite ${page}`,W-M,292,{align:"right"}); };
   const np=(t,s)=>{ foot(); d.addPage(); page++; head(t,s); };
   const sec=t=>{ d.setFillColor(...SUNK); d.rect(M,y-4.5,CW,7,"F"); d.setFillColor(...SIG); d.rect(M,y-4.5,1.2,7,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(9.5); d.text(pt(t),M+4,y); y+=8; };
   const kv=prs=>{ const cw=CW/2; d.setFontSize(8.5); for(let i=0;i<prs.length;i+=2){ let rh=6.2; for(let c=0;c<2&&i+c<prs.length;c++){ const [k,v]=prs[i+c],x=M+c*cw;
@@ -923,6 +923,11 @@ if("serviceWorker" in navigator && location.protocol==="https:"){ navigator.serv
 protos=lsLoad(); protos.sort((a,b)=>b.updated-a.updated);
 render();
 fotoInit();
+// Sofort speichern, wenn die App in den Hintergrund geht oder das iPad zugeklappt wird
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden"&&cur) saveNow(); });
+window.addEventListener("pagehide",()=>{ if(cur) saveNow(); });
+// Browser bitten, den Speicher nicht automatisch zu leeren
+try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){}
 })();
 </script>
 </body>
