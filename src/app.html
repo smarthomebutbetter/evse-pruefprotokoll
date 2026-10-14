@@ -1556,6 +1556,7 @@ function sigExport(c){ const o=document.createElement("canvas"); o.width=Math.mi
 
 // ================= PDF =================
 const LOGO_PDF="<!--LOGO_HELL-->";
+const EHW_PDF="<!--EHANDWERK-->";   // Zeichen des Elektrohandwerks (Innungsbetrieb)
 const PDFMAP={"²":"2","³":"3","≈":"ca.","Ω":"Ohm","≤":"<=","≥":">=","→":"->","↔":"<->","–":"-","Δ":"d","…":"...","·":"|","„":"\"","“":"\""};
 const pt=s=>String(s??"").replace(/[²³≈Ω≤≥→↔–Δ…·„“]/g,c=>PDFMAP[c]);
 function makePDF(){
@@ -1580,8 +1581,10 @@ function buildPDF(P){
   let y=0,page=1;
   const head=(t,s)=>{ d.setFillColor(255,255,255); d.rect(0,0,W,26,"F");
     try{ d.addImage(LOGO_PDF,"PNG",M,6,57,10); }catch(e){}
-    d.setTextColor(34,34,34); d.setFont("helvetica","bold"); d.setFontSize(13); d.text(pt(t),W-M,11,{align:"right"});
-    d.setFont("helvetica","normal"); d.setFontSize(8); d.setTextColor(...GR); d.text(pt(s),W-M,17,{align:"right"});
+    const eh=14.8, ew=eh*525/462; try{ d.addImage(EHW_PDF,"JPEG",W-M-ew,4.6,ew,eh,"ehw"); }catch(e){}
+    const tx=W-M-ew-5;
+    d.setTextColor(34,34,34); d.setFont("helvetica","bold"); d.setFontSize(13); d.text(pt(t),tx,11,{align:"right"});
+    d.setFont("helvetica","normal"); d.setFontSize(8); d.setTextColor(...GR); d.text(pt(s).slice(0,90),tx,17,{align:"right"});
     d.setFillColor(...SIG); d.rect(0,24,W,1.4,"F"); y=34; };
   const foot=()=>{ d.setDrawColor(...LINE); d.line(M,284,W-M,284); d.setFont("helvetica","normal"); d.setFontSize(7); d.setTextColor(...GR);
     d.text("Elektro Irrgang | Hahner Weg 2 | 51545 Waldbröl | Tel. 02291 4878 | info@elektro-irrgang.de",M,288);
