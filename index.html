@@ -190,7 +190,7 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .mrow .tf input,.mrow .tf select{height:48px;padding:12px;font-variant-numeric:tabular-nums}
 .mrow .tf input{text-align:right;padding-right:42px}
 .mrow .tf .sfx{right:12px;font-size:14px}
-.mrow[data-state="ok"] .tf input,.mrow[data-state="ok"] .tf select{box-shadow:inset 0 0 0 2px var(--ok)}
+.mrow[data-state="ok"] .tf input,.mrow[data-state="ok"] .tf select{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ok) 70%,var(--outline))}
 .mrow[data-state="ok"] .sfx{color:var(--ok)}
 .mrow[data-state="bad"] .tf input,.mrow[data-state="bad"] .tf select{box-shadow:inset 0 0 0 2px var(--err)}
 .mrow[data-state="bad"] .sfx,.mrow[data-state="bad"] .s{color:var(--err)}
@@ -291,6 +291,18 @@ body.ro .seg button:disabled,body.ro .chip:disabled{opacity:.7}
 .ort-zeile div{flex:1;min-width:0}
 .ort-zeile b{display:block;font-size:15px}
 .ort-zeile span{display:block;font-size:13px;color:var(--on-sv)}
+.step .gh{align-items:center}
+.stepno{width:32px;height:32px;border-radius:50%;background:var(--pc);color:var(--on-pc);display:grid;place-items:center;font-weight:800;font-size:15px;flex:none}
+.step .gh > div{flex:1;min-width:0}
+details.how{margin:6px 0 4px;font-size:14px;color:var(--on-sv)}
+details.how summary,details.optrows summary{cursor:pointer;color:var(--primary);font-weight:700;font-size:14px;padding:6px 0;list-style:none}
+details.how summary::-webkit-details-marker,details.optrows summary::-webkit-details-marker{display:none}
+details.how summary::before,details.optrows summary::before{content:"▸ ";display:inline-block;transition:transform .15s}
+details[open].how summary::before,details[open].optrows summary::before{transform:rotate(90deg)}
+details.how ol{margin:4px 0 8px;padding-left:20px;line-height:1.45}
+details.how li{margin:4px 0}
+details.optrows{border-top:1px solid var(--outline-v);margin-top:4px;padding-top:4px}
+details.optrows .mrow:first-of-type{border-top:0}
 .row2{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:12px}
 .iz{display:flex;gap:12px;padding:3px 0}
 .iz span{flex:none;width:118px;color:var(--on-sv);font-size:13px}
@@ -805,12 +817,19 @@ const ao="|";function so(e){const{skus:t,libraryName:r,libraryVersion:n,extensio
 "use strict";
 // ================= Prüfpunkte =================
 const GROUPS = [
-  {id:"frei", t:"Spannungsfrei", sub:"Helfer: LS aus", rows:[
+  {id:"frei", ps:"Helfer: LS aus", t:"Spannungsfrei", sub:"Helfer schaltet den LS der Ladesäule aus", how:[
+    "Spannungsfreiheit feststellen, FEV300 in die Ladedose stecken.",
+    "Schutzleiter: MFT auf R<sub>LO</sub>, Prüfspitze an eine blanke Gehäuseschraube, zweite Leitung an die PE-Buchse des FEV300.",
+    "Isolation: Erstprüfung an der Zuleitung vor dem Anklemmen, Wiederholungsprüfung im Verteiler – L1+L2+L3+N gebrückt gegen PE. Mit Überspannungsschutz 250 V, sonst 500 V."], rows:[
     {k:"rpe", l:"Schutzleiter", d:"Gehäuseschraube ↔ PE-Buchse FEV300", u:"Ω", soll:"≤ 0,3 Ω", t:v=>v<=0.3},
     {k:"riso", l:"Isolation", d:"L1+L2+L3+N gebrückt gegen PE", u:"MΩ", soll:"≥ 1 MΩ", t:v=>v>=1},
     {k:"risov", l:"Prüfspannung Isolation", type:"sel", opts:["500 V","250 V"], soll:"250 V bei Überspannungsschutz"},
   ]},
-  {id:"spann", t:"Unter Spannung", sub:"FEV300 auf CP = C", rows:[
+  {id:"spann", ps:"FEV300 auf CP = C", t:"Unter Spannung", sub:"Helfer schaltet den LS wieder ein, FEV300 auf CP = C", how:[
+    "PE-Vortest: Finger auf die Touch-Fläche des FEV300 – keine Warnanzeige.",
+    "CP-Schalter A → B → C: Die Wallbox schaltet in C zu (LED/Schütz).",
+    "Spannungen und Drehfeld an den Buchsen des FEV300 messen.",
+    "Schleifenimpedanz Zs je Außenleiter gegen PE im Modus „std. RCD“ – der RCD löst dabei nicht aus."], rows:[
     {k:"pevt", l:"PE-Vortest (Touch)", type:"chk", soll:"keine Warnanzeige"},
     {k:"cp", l:"CP A → B → C", type:"chk", soll:"Box schaltet zu, LEDs an"},
     {k:"u1", l:"Spannung L1 – N", u:"V", soll:"207 – 253 V", t:v=>v>=207&&v<=253},
@@ -822,15 +841,20 @@ const GROUPS = [
     {k:"zs2", l:"Zs L2 – PE", u:"Ω", zs:true, p3:true},
     {k:"zs3", l:"Zs L3 – PE", u:"Ω", zs:true, p3:true},
   ]},
-  {id:"rcd", t:"RCD / DC-Fehlerstrom", sub:"CP = C", rows:[
-    {k:"r05", l:"½ × IΔn", type:"chk", soll:"keine Auslösung"},
-    {k:"r1", l:"1 × IΔn Auslösezeit", u:"ms", soll:"≤ 300 ms", t:v=>v<=300},
-    {k:"r5", l:"5 × IΔn Auslösezeit", u:"ms", soll:"≤ 40 ms", t:v=>v<=40},
-    {k:"ria", l:"Auslösestrom IΔ", u:"mA", ria:true},
+  {id:"rcd", ps:"CP = C", t:"RCD / DC-Fehlerstrom", sub:"CP = C, Helfer schaltet den RCD nach jeder Auslösung wieder ein", how:[
+    "MFT auf RCD, Mode „current“ (Rampe), RCD-Typ einstellen. Eine Messung zeigt Auslösestrom IΔ, Berührungsspannung UB und Auslösezeit t.",
+    "6 mA DC: nur bei DC-Erkennung in der Wallbox bzw. RCD Typ A-EV – die Ladung muss abbrechen.",
+    "Die Einzelmessungen bei ½ × und 5 × IΔn sind optional (z. B. AUTO-Modus des MFT)."], rows:[
+    {k:"ria", l:"Auslösestrom IΔ", d:"Rampe", u:"mA", ria:true},
     {k:"ub", l:"Berührungsspannung UB", u:"V", soll:"≤ 50 V", t:v=>v<=50},
-    {k:"dc6", l:"6 mA DC (EVSE)", d:"Box muss abschalten", u:"s", soll:"≤ 10 s", t:v=>v<=10, dc:true},
+    {k:"r1", l:"Auslösezeit t", d:"bei der Rampe mit angezeigt", u:"ms", soll:"≤ 300 ms", t:v=>v<=300},
+    {k:"dc6", l:"6 mA DC (EVSE)", d:"Ladung bricht ab", u:"s", soll:"≤ 10 s", t:v=>v<=10, dc:true},
+    {k:"r05", l:"½ × IΔn", type:"chk", soll:"keine Auslösung", opt:true},
+    {k:"r5", l:"5 × IΔn Auslösezeit", u:"ms", soll:"≤ 40 ms", t:v=>v<=40, opt:true},
   ]},
-  {id:"fkt", t:"Funktion / Fehlersimulation", sub:"am FEV300", rows:[
+  {id:"fkt", ps:"am FEV300", t:"Funktion / Fehlersimulation", sub:"am FEV300, Wallbox lädt (CP = C)", how:[
+    "Taste E (CP-Fehler gegen PE) drücken: Die Wallbox muss die Ladung abbrechen.",
+    "Taste F (PE-Unterbrechung): Die Ladung muss ebenfalls abbrechen."], rows:[
     {k:"fe", l:"Taste E (CP – PE)", type:"chk", soll:"Ladung bricht ab"},
     {k:"ff", l:"Taste F (PE unterbrochen)", type:"chk", soll:"Ladung bricht ab"},
   ]},
@@ -881,7 +905,7 @@ function setRcd(s,t,dc){ s.rcdTyp=t; s.rdc=dc; s.rcd=`${t}${dc?" + RDC-DD 6 mA":
 const polLS=s=>s.phasen===3?"3-polig":"1-polig", polRCD=s=>s.phasen===3?"4-polig":"2-polig";
 function rowVisible(r,s){ if(r.p3&&s.phasen===1) return false; if(r.dc){ const i=rcdInfo(s); if(!i.dc&&i.t!=="A-EV") return false; } return true; }
 function evalRow(r,val,s){
-  if(val==null||val==="") return "open";
+  if(val==null||val==="") return r.opt?"skip":"open";
   if(r.type==="chk") return val==="ok"?"ok":val==="nok"?"bad":"open";
   if(r.type==="sel") return r.t?(r.t(val)?"ok":"bad"):"ok";
   const v=num(val); if(isNaN(v)) return "open";
@@ -1300,7 +1324,7 @@ function render(){
 }
 function applyRO(){
   $("#app").querySelectorAll("input,select,textarea").forEach(e=>e.disabled=true);
-  $("#app").querySelectorAll('[data-act="abs"],[data-act="rcdTyp"],[data-act="rdc"],[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
+  $("#app").querySelectorAll('[data-act="leistung"],[data-act="abs"],[data-act="rcdTyp"],[data-act="rdc"],[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
 }
 
 // Felder: M3 Outlined Text Field
@@ -1474,7 +1498,9 @@ function saeuleView(){
       <section class="card"><h3>Schutzeinrichtungen</h3><div class="fg">
         <div class="full"><div class="lbl">Leitungsschutz · ${polLS(s)}</div>${seg("abs",s.absTyp,[["LS B","LS B"],["LS C","LS C"],["manuell","Sicherung"]])}</div>
         ${s.absTyp==="manuell"?tf(b+"zsMan","Zs zulässig (aus Tabelle)",s.zsMan,{im:"decimal",sfx:"Ω"}):tf(b+"absIn","Nennstrom",s.absIn,{im:"decimal",sfx:"A"})}
-        ${tf(b+"inenn","Strom je Ladepunkt",s.inenn,{im:"decimal",sfx:"A"})}
+        <div class="full"><div class="lbl">Ladeleistung je Ladepunkt (Typenschild)</div>${seg("leistung",["16","32"].includes(String(s.inenn))&&!s.inennAnders?s.inenn:(s.inenn||s.inennAnders?"x":""),
+          s.phasen===3?[["16","11 kW · 16 A"],["32","22 kW · 32 A"],["x","Andere"]]:[["16","3,7 kW · 16 A"],["32","7,4 kW · 32 A"],["x","Andere"]])}</div>
+        ${(s.inennAnders||(s.inenn&&!["16","32"].includes(String(s.inenn))))?tf(b+"inenn","Strom je Ladepunkt",s.inenn,{im:"decimal",sfx:"A"}):""}
         <p class="calc full" id="calc">${esc(z.calc)}</p>
         <div class="full"><div class="lbl">Fehlerstromschutz (RCD) · ${polRCD(s)}</div>${seg("rcdTyp",ri.t,RCD_TYPEN.map(t=>[t,"Typ "+t]))}</div>
         ${tf(b+"idn","Bemessungsfehlerstrom IΔn",s.idn,{im:"numeric",sfx:"mA",full:true})}
@@ -1493,20 +1519,25 @@ function saeuleView(){
   }
   const li=+st.slice(2), lp=s.lp[li], lb=`${b}lp.${li}.`;
   let h=`<div class="cols">`;
+  let nr=0;
   for(const g of GROUPS){
     const rows=g.rows.filter(r=>rowVisible(r,s)); if(!rows.length) continue;
-    const gr=groupResult(g,s,li);
-    h+=`<section class="card"><div class="gh"><div><h3>${esc(g.t)}</h3><p>${esc(g.sub)}</p></div><span class="pill ${gr}" data-gres="${g.id}">${RES_SHORT[gr]}</span></div>`;
+    const gr=groupResult(g,s,li); nr++;
+    h+=`<section class="card step"><div class="gh"><span class="stepno">${nr}</span><div><h3>${esc(g.t)}</h3><p>${esc(g.sub)}</p></div><span class="pill ${gr}" data-gres="${g.id}">${RES_SHORT[gr]}</span></div>`;
+    if(g.how) h+=`<details class="how"><summary>So wird gemessen</summary><ol>${g.how.map(x=>`<li>${x}</li>`).join("")}</ol></details>`;
+    let optOpen=false;
     for(const r of rows){
+      if(r.opt&&!optOpen){ optOpen=true; const hasVal=rows.some(x=>x.opt&&lp.v[x.k]); h+=`<details class="optrows"${hasVal?" open":""}><summary>Zusätzliche Messungen (optional)</summary>`; }
       const val=lp.v[r.k]??"", e=evalRow(r,val,s), path=`${lb}v.${r.k}`;
       const txt=`<div class="txt"><div class="l">${esc(r.l)}</div><div class="s"><span data-soll="${r.k}">${esc(sollOf(r,s))}</span>${r.d?` · ${esc(r.d)}`:""}</div></div>`;
       if(r.type==="chk") h+=`<div class="mrow">${txt}<div class="ctl wide">${seg("chk",val,[["ok","i.O."],["nok","n.i.O."]],"ev").replace(/data-act="chk"/g,`data-act="chk" data-path="${path}"`)}</div></div>`;
       else if(r.type==="sel") h+=`<div class="mrow" data-dot="${path}" data-state="${e}">${txt}<div class="ctl wide"><div class="tf"><select id="${path}" data-bind="${path}" aria-label="${esc(r.l)}">${["",...r.opts].map(o=>`<option value="${esc(o)}" ${o===val?"selected":""}>${o?esc(o):"–"}</option>`).join("")}</select><span class="arr">${icon("drop")}</span></div></div></div>`;
       else h+=`<div class="mrow" data-dot="${path}" data-state="${e}">${txt}<div class="ctl"><div class="tf"><input id="${path}" data-bind="${path}" inputmode="decimal" value="${esc(val)}" placeholder=" " autocomplete="off" aria-label="${esc(r.l)} in ${esc(r.u)}"><span class="sfx">${esc(r.u)}</span></div></div></div>`;
     }
+    if(optOpen) h+=`</details>`;
     h+=`</section>`;
   }
-  h+=`<section class="card">${ta(`${lb}bem`,`Bemerkung Ladepunkt ${li+1}`,lp.bem,{ph:"z. B. Freigabe per Ladekarte nötig"})}</section></div>`;
+  h+=`<section class="card">${ta(`${lb}bem`,`Bemerkung Ladepunkt ${li+1}`,lp.bem,{ph:"z. B. Abdeckung beschädigt, Kabelhalterung lose"})}</section></div>`;
   return h;
 }
 function abschlussView(){
@@ -1789,6 +1820,7 @@ document.addEventListener("click",ev=>{
   }
   if(!canEdit(cur)) return;
   switch(a){
+  case "leistung": { const s=cur.s[nav.si], v=b.dataset.v; if(v==="x"){ s.inennAnders=true; } else { s.inenn=v; delete s.inennAnders; if(!s.absIn) s.absIn=v; } scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "abs": { const s=cur.s[nav.si]; s.absTyp=b.dataset.v; scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "rcdTyp": case "rdc": { const s=cur.s[nav.si], i=rcdInfo(s); if(a==="rcdTyp") setRcd(s,b.dataset.v,i.dc); else setRcd(s,i.t,b.dataset.v==="1"); scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "freigabe": { const s=cur.s[nav.si], v=b.dataset.v; let L=freigabeListe(s);
@@ -1855,7 +1887,7 @@ function demoLP(o={}){
 }
 function demoSaeule(n,sn,lp1,lp2,extra={}){
   return Object.assign({id:uid(), name:`Ladesäule ${n}`, typ:"Mennekes AMTRON Charge Control", sn, ort:`Stellplatz ${2*n-1}/${2*n}`, fw:"5.22.3",
-    absTyp:"LS B", absIn:"32", zsMan:"", inenn:"22", rcd:"A + RDC-DD 6 mA", idn:"30", freigabe:"Ladekarte", phasen:3, lps:2, lp:[lp1,lp2], fotos:{}}, extra);
+    absTyp:"LS B", absIn:"32", zsMan:"", inenn:"32", rcd:"A + RDC-DD 6 mA", idn:"30", freigabe:"Ladekarte", phasen:3, lps:2, lp:[lp1,lp2], fotos:{}}, extra);
 }
 function demoLaden(){
   const D=(kind,r)=>{ r.demo=true; r.id=r.id||uid(); r.created=r.updated=Date.now(); r.createdBy=r.updatedBy={name:"Beispiel",mail:""}; dbPut(kind,r); return r; };
@@ -1962,7 +1994,7 @@ function buildPDF(P){
     np(s.name,[s.typ,s.ort].filter(Boolean).join(" | ")||"Ladesäule");
     const z=zsInfo(s); sec("Gerätedaten");
     kv([["Hersteller / Typ",s.typ],["Seriennummer",s.sn],["Stellplatz",s.ort],["Firmware",s.fw],["Absicherung",s.absTyp==="manuell"?"Sicherung, Zs lt. Tabelle":`${s.absTyp}${s.absIn} A, ${polLS(s)}`],["Zs zulässig",isNaN(z.zul)?"-":`${fmt(z.zul,2)} Ohm`],
-        ["RCD",`Typ ${rcdInfo(s).t}, ${s.idn} mA, ${polRCD(s)}`],["DC 6 mA",rcdInfo(s).dc?"in der Wallbox (RDC-DD)":rcdInfo(s).t==="A-EV"?"im RCD (Typ A-EV)":rcdInfo(s).t==="B"?"RCD Typ B":"-"],["Zuleitung",[s.leitung,s.laenge&&`ca. ${s.laenge} m`].filter(Boolean).join(", ")],["Nennstrom je LP",s.inenn?`${s.inenn} A`:"-"],["Freigabe",s.freigabe],["Anschluss",s.phasen===3?"3-phasig":"1-phasig"]]);
+        ["RCD",`Typ ${rcdInfo(s).t}, ${s.idn} mA, ${polRCD(s)}`],["DC 6 mA",rcdInfo(s).dc?"in der Wallbox (RDC-DD)":rcdInfo(s).t==="A-EV"?"im RCD (Typ A-EV)":rcdInfo(s).t==="B"?"RCD Typ B":"-"],["Zuleitung",[s.leitung,s.laenge&&`ca. ${s.laenge} m`].filter(Boolean).join(", ")],["Ladeleistung je LP",s.inenn?`${s.inenn} A${num(s.inenn)?` (${fmt(Math.round(num(s.inenn)*230*(s.phasen===3?3:1)/100)/10,1)} kW)`:""}`:"-"],["Freigabe",s.freigabe],["Anschluss",s.phasen===3?"3-phasig":"1-phasig"]]);
     // Drei kleine Fotos nebeneinander (Klick im PDF -> Großansicht im Anhang)
     const F=FOTO_SLOTS.map(([k,l,h])=>({l,h,id:(s.fotos||{})[k],data:fotoCache.get((s.fotos||{})[k])}));
     const hasF=F.some(f=>f.data);
@@ -1976,7 +2008,7 @@ function buildPDF(P){
       fotoLinks.push(link); y=ty+th+13;
     }
     // Zeilenhöhe so wählen, dass die Tabelle die Seite füllt
-    const groups=GROUPS.map(g=>({g,rows:g.rows.filter(r=>rowVisible(r,s))})).filter(x=>x.rows.length);
+    const groups=GROUPS.map(g=>({g,rows:g.rows.filter(r=>rowVisible(r,s)&&!(r.opt&&s.lp.slice(0,s.lps).every(lp=>!lp.v[r.k])))})).filter(x=>x.rows.length);
     const nR=groups.reduce((n,x)=>n+x.rows.length,0);
     d.setFontSize(8.5); let resH=4;
     for(let li=0;li<s.lps;li++){ resH+=8; if(s.lp[li].bem) resH+=d.splitTextToSize(pt("Bemerkung: "+s.lp[li].bem),CW-4).length*4.2+1.5; }
@@ -1985,7 +2017,7 @@ function buildPDF(P){
     d.setFillColor(...NAVY); d.rect(M,y-4.6,CW,8,"F"); d.setTextColor(255); d.setFont("helvetica","bold"); d.setFontSize(8.5);
     d.text("Prüfung",cP,y+0.6); d.text("Sollwert",cS,y+0.6); d.text("LP 1 (links)",c1,y+0.6); if(s.lps===2) d.text("LP 2 (rechts)",c2,y+0.6); y+=8;
     for(const {g,rows} of groups){
-      d.setFillColor(...SUNK); d.rect(M,y-off,CW,gh,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(fs-0.5); d.text(pt(`${g.t} (${g.sub})`),cP,y+(gh-rh)/2); y+=gh;
+      d.setFillColor(...SUNK); d.rect(M,y-off,CW,gh,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(fs-0.5); d.text(pt(`${g.t} (${g.ps||g.sub})`),cP,y+(gh-rh)/2); y+=gh;
       rows.forEach((r,ri)=>{
         if(ri%2){ d.setFillColor(250,251,252); d.rect(M,y-off,CW,rh,"F"); }
         d.setFont("helvetica","normal"); d.setFontSize(fs); d.setTextColor(20); d.text(pt(r.l),cP,y); d.setTextColor(...GR); d.text(pt(sollOf(r,s)).slice(0,32),cS,y);
