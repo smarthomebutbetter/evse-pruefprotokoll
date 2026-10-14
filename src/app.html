@@ -365,6 +365,16 @@ details.optrows .mrow:first-of-type{border-top:0}
 .iz b{font-weight:600}
 .iz a{color:var(--primary);font-weight:600;text-decoration:none;word-break:break-word}
 .infok .iz + .by{margin-top:8px}
+.av-img{overflow:hidden;background:var(--sc-high)}.av-img img{width:100%;height:100%;object-fit:cover}
+.kat-kopf{display:grid;grid-template-columns:140px 1fr;gap:16px;align-items:start}
+.kat-bild .foto{aspect-ratio:1;width:100%}.kat-bild .foto img{object-fit:contain;background:#fff}
+@media (max-width:520px){.kat-kopf{grid-template-columns:1fr}.kat-bild{max-width:200px}}
+.kat-gepr{margin:20px 0 0}
+.kat-gepr summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:20px;background:var(--sc-low);font-size:14px;font-weight:600;cursor:pointer}
+.kat-gepr summary::-webkit-details-marker{display:none}
+.kat-gepr summary span{flex:1}.kat-gepr summary .ic{width:20px;height:20px}
+.kat-gepr summary .ic:last-child{transition:transform .2s}.kat-gepr[open] summary .ic:last-child{transform:rotate(180deg)}
+.kat-gepr .list{margin-top:8px}
 .kath{padding-bottom:10px}
 .kath + .kath{margin-top:12px}
 .kath-k{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px}
@@ -410,6 +420,7 @@ details.optrows .mrow:first-of-type{border-top:0}
 <div class="snackbar" id="toast" role="status" hidden></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 <input type="file" id="fotoFile" accept="image/*" hidden>
+<input type="file" id="dateiFile" accept="application/pdf,image/*,.pdf" hidden>
 
 <script><!--JSPDF--></script>
 <script><!--MSAL--></script>
@@ -1337,7 +1348,7 @@ function katSeed(){   // feste IDs, damit mehrere Geräte dieselben Vorlagen nic
     saveRec("katalog",{id,hersteller:h,modell:m,version:"",art:"Wallbox",leistung:"",phasen:"",lps:"",anschluss:"",dc6:"",artnr:"",quelle:"",notiz:"",hinweise:[],vorlage:true},true); }
 }
 const katName=r=>[r.modell,r.version].filter(Boolean).join(" ");
-const katFotoIds=r=>(r.hinweise||[]).flatMap(h=>h.fotos||[]);
+const katFotoIds=r=>[r.bild,...(r.hinweise||[]).flatMap(h=>h.fotos||[])].filter(Boolean);
 const katNorm=t=>String(t||"").toLowerCase().replace(/\s+/g," ").trim();
 const katHOk=h=>canEdit({createdBy:h.by});
 function katVerbaut(r){   // Prüfungen mit Säulen dieses Modells (Verknüpfung oder passender Typ-Text)
@@ -1347,9 +1358,10 @@ function katVerbaut(r){   // Prüfungen mit Säulen dieses Modells (Verknüpfung
 function katItem(r){
   const kurz=[r.leistung&&`${r.leistung} kW`,r.phasen&&`${r.phasen}-phasig`,r.lps&&`${r.lps} Ladepunkt${r.lps==="1"?"":"e"}`].filter(Boolean).join(" · ");
   const nh=(r.hinweise||[]).length, nv=katVerbaut(r).length;
-  return `<div class="li" role="button" tabindex="0" data-act="nav" data-v="katmodell" data-id="${esc(r.id)}"><span class="av">${icon("ev")}</span>
+  const bsrc=r.bild&&fotoCache.get(r.bild);
+  return `<div class="li" role="button" tabindex="0" data-act="nav" data-v="katmodell" data-id="${esc(r.id)}"><span class="av${bsrc?" av-img":""}">${bsrc?`<img src="${bsrc}" alt="">`:icon("ev")}</span>
     <span class="lt"><span class="h">${esc(katName(r))}</span><span class="s">${esc(nav.v==="katalog"?(kurz||r.art||""):[r.hersteller,kurz].filter(Boolean).join(" · "))}</span>
-    <span class="st">${!r.quelle?pill("wip","Angaben prüfen"):""}${nh?pill("open",`${nh} Hinweis${nh>1?"e":""}`):""}${nv?pill("ok",`${nv}× geprüft`):""}</span></span>${icon("chev")}</div>`;
+    <span class="st">${!r.quelle?pill("wip","Angaben prüfen"):""}${nh?pill("open",`${nh} Hinweis${nh>1?"e":""}`):""}${(r.anhaenge||[]).length?pill("open",`${r.anhaenge.length} Anhang${r.anhaenge.length>1?"e":""}`):""}</span></span>${icon("chev")}</div>`;
 }
 function katalogListe(){
   const q=katNorm(query), H=v=>katNorm(v).includes(q);
@@ -1370,8 +1382,17 @@ function katModellView(r){
     z("Artikelnummer",r.artnr),z("Notiz",r.notiz)].join("");
   let h=`<div class="narrow">`;
   if(!r.quelle) h+=`<div class="robanner warn">${icon("warn")}<span>Angaben noch nicht geprüft – bitte aus dem Datenblatt oder vor Ort ergänzen und die Quelle eintragen.</span><button class="btn-text" data-act="katEdit">Ergänzen</button></div>`;
+  const bsrc=r.bild&&fotoCache.get(r.bild);
   h+=`<div class="sec-row"><div class="sec-lbl">Steckbrief</div><button class="btn-text" data-act="katEdit">${icon("edit")}Bearbeiten</button></div>`;
-  h+=`<div class="infok">${stb||`<span class="meta">Noch keine Angaben.</span>`}<div class="by">${r.quelle?`Quelle: ${esc(r.quelle)} · `:""}zuletzt geändert${r.updatedBy&&r.updatedBy.name?` von ${esc(r.updatedBy.name)}`:""} am ${new Date(r.updated||Date.now()).toLocaleDateString("de-DE")}</div></div>`;
+  h+=`<div class="infok kat-kopf"><div class="kat-bild">${bsrc?`<button class="foto" data-act="katBildShow" aria-label="Produktbild ansehen"><img src="${bsrc}" alt=""></button>`
+      :r.bild?`<div class="foto leer">${icon("sync")}<span class="fh">wird geladen …</span></div>`:`<button class="foto leer" data-act="katBildAdd">${icon("cam")}<span class="fl">Produktbild</span><span class="fh">Foto oder Bild vom Hersteller</span></button>`}</div>
+    <div class="kat-daten">${stb||`<span class="meta">Noch keine Angaben.</span>`}<div class="by">${r.quelle?`Quelle: ${esc(r.quelle)} · `:""}zuletzt geändert${r.updatedBy&&r.updatedBy.name?` von ${esc(r.updatedBy.name)}`:""} am ${new Date(r.updated||Date.now()).toLocaleDateString("de-DE")}</div></div></div>`;
+  const an=r.anhaenge||[];
+  h+=`<div class="sec-row"><div class="sec-lbl">Anleitungen und Datenblätter</div><button class="btn-text" data-act="katDateiAdd">${icon("add")}Anhang</button></div>`;
+  h+=an.length?listOf(an.map(d=>`<div class="li" role="button" tabindex="0" data-act="katDateiOpen" data-d="${d.id}"><span class="av">${icon("doc")}</span>
+      <span class="lt"><span class="h">${esc(d.name)}</span><span class="s">${esc(groesse(d.size))}${d.by&&d.by.name?` · ${esc(d.by.name)}`:""} · ${new Date(d.at||Date.now()).toLocaleDateString("de-DE")}${DATEI_DA.has(d.id)?"":" · nicht auf diesem Gerät"}</span></span>
+      ${canEdit({createdBy:d.by})?`<button class="icon-btn sm" data-act="katDateiDelAsk" data-d="${d.id}" aria-label="Anhang entfernen">${icon("del")}</button>`:icon("chev")}</div>`))
+    :`<p class="meta">Noch keine Anhänge. Die PDF des Herstellers einmal hier anhängen – danach ist sie auf diesem Gerät auch ohne Internet da.</p>`;
   h+=`<div class="sec-row"><div class="sec-lbl">Hinweise</div><button class="btn-text" data-act="katHNeu">${icon("add")}Hinweis</button></div>`;
   const hs=[...(r.hinweise||[])].sort((a,b)=>KAT_HINWEIS.indexOf(a.titel)-KAT_HINWEIS.indexOf(b.titel));
   h+=hs.length?hs.map(x=>{ const ok=katHOk(x), fs=x.fotos||[];
@@ -1381,11 +1402,32 @@ function katModellView(r){
         ${fs.length<4?`<button class="foto leer" data-act="katFotoAdd" data-h="${x.id}">${icon("cam")}<span class="fl">Foto</span></button>`:""}</div>
       <div class="by">${x.by&&x.by.name?`${esc(x.by.name)} · `:""}${new Date(x.at||Date.now()).toLocaleDateString("de-DE")}</div></div>`; }).join("")
     :`<p class="meta">Noch keine Hinweise. Zum Beispiel: Wo wird der PE angeschlossen, wie kommt man an die Klemmen, was muss eingerichtet werden?</p>`;
-  const ps=katVerbaut(r).slice(0,20);
-  h+=`<div class="sec-lbl">Bei uns geprüft</div>`+(ps.length?listOf(ps.map(p=>pItem(p,true))):`<p class="meta">Noch keine Prüfung mit diesem Modell.</p>`);
+  const ps=katVerbaut(r);
+  if(ps.length) h+=`<details class="kat-gepr"><summary>${icon("doc")}<span>Bei uns geprüft: ${ps.length}× · zuletzt ${esc(deDate(ps[0].p.datum))}</span>${icon("drop")}</summary>${listOf(ps.slice(0,30).map(p=>pItem(p,true)))}${ps.length>30?`<p class="meta">… und ${ps.length-30} weitere</p>`:""}</details>`;
   return h+`</div>`;
 }
-let katForm=null, katHForm=null, katHDel=null;
+// Anhänge (PDF/Bilder) als Blob in eigener Datenbank – nicht im Speicher gehalten, nur bei Bedarf geöffnet
+let dateiDB=null; const DATEI_DA=new Set();
+function dateiOpen(){ return new Promise((res,rej)=>{ if(!window.indexedDB) return rej(0); const r=indexedDB.open("evse_dateien",1); r.onupgradeneeded=()=>r.result.createObjectStore("d"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+async function dateiInit(){ try{ dateiDB=await dateiOpen(); (await idbReq(dateiDB.transaction("d").objectStore("d").getAllKeys())).forEach(k=>DATEI_DA.add(k)); }catch(e){ dateiDB=null; } }
+function dateiPut(id,o){ return new Promise(res=>{ if(!dateiDB) return res(false); try{ const t=dateiDB.transaction("d","readwrite"); t.objectStore("d").put(o,id); t.oncomplete=()=>{ DATEI_DA.add(id); res(true); }; t.onerror=t.onabort=()=>res(false); }catch(e){ res(false); } }); }
+async function dateiGet(id){ if(!dateiDB) return null; try{ return await idbReq(dateiDB.transaction("d").objectStore("d").get(id)); }catch(e){ return null; } }
+function dateiDel(ids){ ids.filter(Boolean).forEach(i=>DATEI_DA.delete(i)); if(!dateiDB) return; try{ const t=dateiDB.transaction("d","readwrite"); ids.forEach(i=>t.objectStore("d").delete(i)); }catch(e){} }
+const groesse=b=>!b?"":b<1048576?`${Math.max(1,Math.round(b/1024))} KB`:`${(b/1048576).toFixed(1).replace(".",",")} MB`;
+async function katDateiAufnehmen(el){
+  const f=el.files[0]; el.value=""; const r=DB.katalog.get(nav.id); if(!f||!r) return;
+  if(f.size>40*1048576){ toast("Datei ist größer als 40 MB"); return; }
+  const id=uid(), ok=await dateiPut(id,{name:f.name,type:f.type,blob:f});
+  if(!ok){ toast("Anhang konnte auf dem Gerät nicht gespeichert werden"); return; }
+  r.anhaenge=[...(r.anhaenge||[]),{id,name:f.name,type:f.type,size:f.size,by:who(),at:Date.now()}]; saveRec("katalog",r); render();
+  toast(SYNC_ON?"Angehängt – vorerst nur auf diesem Gerät":"Angehängt");
+}
+async function katDateiOeffnen(id){
+  const o=await dateiGet(id); if(!o||!o.blob){ toast("Anhang liegt nicht auf diesem Gerät"); return; }
+  const url=URL.createObjectURL(o.blob), w=window.open(url,"_blank"); if(!w) saveFile(o.blob,o.name); else setTimeout(()=>URL.revokeObjectURL(url),120000);
+}
+
+let katForm=null, katHForm=null, katHDel=null, katDDel=null;
 function katDialog(rec){
   katForm={id:rec&&rec.id}; const r=rec||{art:"Wallbox"};
   const hs=[...new Set(live("katalog").map(x=>x.hersteller).filter(Boolean))];
@@ -1424,8 +1466,10 @@ function katHSave(){
 }
 async function katFotoAufnehmen(file,t){
   let data; try{ data=await fotoVerkleinern(file); }catch(e){ toast("Das Bild konnte nicht gelesen werden"); return; }
-  const r=DB.katalog.get(t.kat), h=r&&(r.hinweise||[]).find(x=>x.id===t.h); if(!h) return;
-  const id=uid(), ok=await fotoPut(id,data); h.fotos=[...(h.fotos||[]),id]; saveRec("katalog",r); fotoQueue(id);
+  const r=DB.katalog.get(t.kat); if(!r) return; const id=uid();
+  if(t.bild){ if(r.bild) fotoDel([r.bild]); const ok0=await fotoPut(id,data); r.bild=id; saveRec("katalog",r); fotoQueue(id); render(); if(!ok0) toast("Bild nur bis zum Schließen der App gespeichert"); return; }
+  const h=(r.hinweise||[]).find(x=>x.id===t.h); if(!h) return;
+  const ok=await fotoPut(id,data); h.fotos=[...(h.fotos||[]),id]; saveRec("katalog",r); fotoQueue(id);
   if(nav.v==="katmodell"){ const y=scrollY; render(); scrollTo(0,y); }
   if(!ok) toast("Foto nur bis zum Schließen der App gespeichert – Speicher nicht verfügbar");
 }
@@ -1621,6 +1665,7 @@ document.addEventListener("change",ev=>{
   const el=ev.target;
   if(el.id==="importFile"){ importBackup(el); return; }
   if(el.id==="fotoFile"){ fotoAufnehmen(el); return; }
+  if(el.id==="dateiFile"){ katDateiAufnehmen(el); return; }
   if(el.matches("#dlg select[data-f]")&&pick){ Object.assign(pick,formVals()); if(el.dataset.f==="k"){ pick.s=""; pick.l=""; } if(el.dataset.f==="s") pick.l=""; pickDialog(); return; }
   if(!el.matches("select[data-bind]")||!cur) return;
   if(/^s\.\d+\.(absTyp|rcd)$/.test(el.dataset.bind)){ const y=scrollY; render(); scrollTo(0,y); } else refresh();
@@ -1701,12 +1746,19 @@ document.addEventListener("click",ev=>{
   case "katEdit": katDialog(DB.katalog.get(nav.id)); return;
   case "katSave": katSave(); return;
   case "katDelAsk": confirmDlg("Modell löschen?",`„${katName(DB.katalog.get(nav.id))}“ mit allen Hinweisen und Fotos aus dem Katalog entfernen?`,"Löschen","katDel"); return;
-  case "katDel": { const r=DB.katalog.get(nav.id); closeOverlays(); if(!r||!canEdit(r)) return; fotoDel(katFotoIds(r)); r.deleted=true; r.hinweise=[]; saveRec("katalog",r); go({v:"katalog"}); toast("Modell gelöscht"); return; }
+  case "katDel": { const r=DB.katalog.get(nav.id); closeOverlays(); if(!r||!canEdit(r)) return; fotoDel(katFotoIds(r)); dateiDel((r.anhaenge||[]).map(x=>x.id)); r.deleted=true; r.hinweise=[]; r.anhaenge=[]; delete r.bild; saveRec("katalog",r); go({v:"katalog"}); toast("Modell gelöscht"); return; }
   case "katHNeu": katHDialog(DB.katalog.get(nav.id),null); return;
   case "katHEdit": { const r=DB.katalog.get(nav.id); katHDialog(r,(r.hinweise||[]).find(h=>h.id===b.dataset.h)); return; }
   case "katHSave": katHSave(); return;
   case "katHDelAsk": katHDel=b.dataset.h; confirmDlg("Hinweis löschen?","Den Hinweis mit seinen Fotos löschen?","Löschen","katHDel"); return;
   case "katHDel": { const r=DB.katalog.get(nav.id), i=(r.hinweise||[]).findIndex(h=>h.id===katHDel); closeOverlays(); if(i<0) return; fotoDel(r.hinweise[i].fotos||[]); r.hinweise.splice(i,1); saveRec("katalog",r); render(); toast("Hinweis gelöscht"); return; }
+  case "katBildAdd": fotoTarget={kat:nav.id,bild:true}; closeOverlays(); $("#fotoFile").click(); return;
+  case "katBildShow": { const r=DB.katalog.get(nav.id); dialog("Produktbild",`<img class="dimg" src="${fotoCache.get(r.bild)}" alt="">`,`<button class="btn-text danger" data-act="katBildDel">Entfernen</button><span style="flex:1"></span><button class="btn-text" data-act="katBildAdd">Ersetzen</button><button class="btn-text" data-act="cancel">Schließen</button>`); return; }
+  case "katBildDel": { const r=DB.katalog.get(nav.id); closeOverlays(); fotoDel([r.bild]); delete r.bild; saveRec("katalog",r); render(); return; }
+  case "katDateiAdd": $("#dateiFile").click(); return;
+  case "katDateiOpen": katDateiOeffnen(b.dataset.d); return;
+  case "katDateiDelAsk": { ev.stopPropagation(); katDDel=b.dataset.d; const d=(DB.katalog.get(nav.id).anhaenge||[]).find(x=>x.id===katDDel); confirmDlg("Anhang entfernen?",`„${d?d.name:""}“ aus dem Katalog entfernen?`,"Entfernen","katDateiDel"); return; }
+  case "katDateiDel": { const r=DB.katalog.get(nav.id); closeOverlays(); r.anhaenge=(r.anhaenge||[]).filter(x=>x.id!==katDDel); dateiDel([katDDel]); saveRec("katalog",r); render(); return; }
   case "katFotoAdd": fotoTarget={kat:nav.id,h:b.dataset.h}; closeOverlays(); $("#fotoFile").click(); return;
   case "katFotoShow": { const r=DB.katalog.get(nav.id), h=(r.hinweise||[]).find(x=>x.id===b.dataset.h), id=b.dataset.fid, src=fotoCache.get(id); if(!h||!src) return;
     dialog(h.titel,`<img class="dimg" src="${src}" alt="">`,`${katHOk(h)?`<button class="btn-text danger" data-act="katFotoDel" data-h="${h.id}" data-fid="${id}">Löschen</button><span style="flex:1"></span>`:""}<button class="btn-text" data-act="cancel">Schließen</button>`); return; }
@@ -1778,10 +1830,11 @@ async function fotoAufnehmen(el){
   if(nav.v==="saeule"&&nav.si===t.si){ const y=scrollY; render(); scrollTo(0,y); }
   if(!ok) toast("Foto nur bis zum Schließen der App gespeichert – Speicher nicht verfügbar");
 }
-function exportBackup(){
+async function exportBackup(){
   const daten={}; KINDS.forEach(k=>daten[k]=[...DB[k].values()].map(strip));
   const fotos={}; [...live("pruefungen").flatMap(p=>p.s.flatMap(fotoIds)),...live("katalog").flatMap(katFotoIds)].forEach(i=>{ const d=fotoCache.get(i); if(d) fotos[i]=d; });
-  saveFile(new Blob([JSON.stringify({app:"evse-pruefprotokoll",version:3,saved:Date.now(),daten,fotos})],{type:"application/json"}),`EVSE-Prüfprotokolle_Sicherung_${today()}.json`);
+  const dateien={}; for(const d of live("katalog").flatMap(r=>r.anhaenge||[])){ const o=await dateiGet(d.id); if(o&&o.blob) dateien[d.id]={name:o.name,type:o.type,data:await blobToDataUrl(o.blob)}; }
+  saveFile(new Blob([JSON.stringify({app:"evse-pruefprotokoll",version:3,saved:Date.now(),daten,fotos,dateien})],{type:"application/json"}),`EVSE-Prüfprotokolle_Sicherung_${today()}.json`);
   toast(`${live("pruefungen").length} Prüfung(en) gesichert`);
 }
 async function importBackup(el){
@@ -1791,6 +1844,7 @@ async function importBackup(el){
         if(!loc){ r._dirty=!r.demo; dbPut(k,r); neu++; } else if((r.updated||0)>(loc.updated||0)){ r._etag=loc._etag; r._itemId=loc._itemId; r._dirty=!r.demo; dbPut(k,r); akt++; } } }
     else { const list=Array.isArray(d)?d:d.protokolle; if(!Array.isArray(list)) throw 0; neu=importLegacy(list); }
     if(d&&d.fotos) for(const [k,v] of Object.entries(d.fotos)) if(!fotoCache.has(k)){ await fotoPut(k,v); fotoQueue(k); }
+    if(d&&d.dateien) for(const [k,v] of Object.entries(d.dateien)) if(!DATEI_DA.has(k)&&v&&v.data) await dateiPut(k,{name:v.name,type:v.type,blob:dataUrlToBlob(v.data)});
     syncSoon(); render(); toast(`${neu} neu, ${akt} aktualisiert`);
   }catch(e){ toast("Die Datei ist keine gültige Sicherung"); }
 }
@@ -2017,7 +2071,7 @@ if("serviceWorker" in navigator && location.protocol==="https:"){ navigator.serv
 (async()=>{
   await dataLoad(); await Auth.init(); setMe();
   if(SYNC_ON&&!ME.signedIn) nav={v:"login"};
-  render(); fotoInit();
+  render(); fotoInit(); dateiInit().then(()=>{ if(nav.v==="katmodell") render(); });
   if(SYNC_ON&&ME.signedIn){ syncNow(); setInterval(()=>{ if(document.visibilityState==="visible") syncNow(); },120000); }
 })();
 // Sofort speichern, wenn die App in den Hintergrund geht oder das iPad zugeklappt wird
