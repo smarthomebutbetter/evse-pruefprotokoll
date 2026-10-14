@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Ladeprüfung">
+<meta name="apple-mobile-web-app-title" content="EVSE Mobility">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#FCFCFD">
 <link rel="apple-touch-icon" href="<!--ICON-->">
 <link rel="icon" href="<!--ICON-->">
-<title>Ladeprüfung · Elektro Irrgang</title>
+<title>EVSE Mobility · Elektro Irrgang</title>
 <style>
 /* Material 3 mit Elektro-Irrgang-Farben (Rot #E11D2F, neutrale Grautöne), Schrift Manrope */
 @font-face{font-family:"Manrope";font-weight:400;font-display:swap;src:url(data:font/woff2;base64,<!--F400-->) format("woff2")}
@@ -1068,27 +1068,26 @@ function mehrView(){
       ${row("nav:impressum","doc","Impressum","")}
       ${row("nav:datenschutz","shield","Datenschutz","")}
       ${row("nav:about","info","Über die App",`Version ${APP_VERSION}`)}</div>
-    <p class="hint">Ladeprüfung · Version ${APP_VERSION}</p></div>`;
+    <p class="hint">EVSE Mobility · Version ${APP_VERSION}</p></div>`;
 }
-const FIRMA={name:"Elektro Irrgang",inhaber:"[Inhaber / Geschäftsführer]",rechtsform:"[Rechtsform, z. B. Inh. … e. K. / GmbH]",strasse:"Hahner Weg 2",ort:"51545 Waldbröl",tel:"02291 4878",mail:"info@elektro-irrgang.de",
-  ust:"[USt-IdNr. gemäß § 27a UStG]",register:"[Handelsregister / Registergericht, falls eingetragen]",hwk:"[Handwerkskammer, z. B. Handwerkskammer zu Köln]",innung:"[Innung, z. B. Elektro-Innung …]",beruf:"[Berufsbezeichnung, z. B. Elektrotechnikermeister (verliehen in Deutschland)]"};
+const FIRMA={name:"Elektro Irrgang",inhaber:"Joachim Irrgang",strasse:"Hahner Weg 2",ort:"51545 Waldbröl",tel:"+49 2291 4878",telHref:"+4922914878",fax:"+49 2291 800718",mail:"info@elektro-irrgang.de",
+  ust:"DE169864585",register:"Registergericht: Waldbröl",hwk:"Handwerkskammer zu Köln, Heumarkt 12, 50667 Köln",beruf:"Elektromeister (verliehen in Deutschland)"};
 function rechtsSeite(html){ return `<div class="narrow"><section class="card doc">${html}</section></div>`; }
 function impressumView(){
   const F=FIRMA;
   return rechtsSeite(`<h3>Angaben gemäß § 5 Digitale-Dienste-Gesetz (DDG)</h3>
-    <p><b>${F.name}</b><br>${F.rechtsform}<br>${F.strasse}<br>${F.ort}</p>
-    <p><b>Vertreten durch:</b> ${F.inhaber}</p>
-    <p><b>Kontakt</b><br>Telefon: <a href="tel:022914878">${F.tel}</a><br>E-Mail: <a href="mailto:${F.mail}">${F.mail}</a></p>
-    <p><b>Umsatzsteuer-ID:</b> ${F.ust}<br><b>Register:</b> ${F.register}</p>
-    <p><b>Berufsrechtliche Angaben</b><br>Berufsbezeichnung: ${F.beruf}<br>Zuständige Kammer: ${F.hwk}<br>Mitglied der ${F.innung}<br>Es gilt die Handwerksordnung (HwO), abrufbar unter gesetze-im-internet.de.</p>
+    <p><b>${F.name}</b><br>Inhaber ${F.inhaber}<br>${F.strasse}<br>${F.ort}</p>
+    <p><b>Kontakt</b><br>Telefon: <a href="tel:${F.telHref}">${F.tel}</a><br>Telefax: ${F.fax}<br>E-Mail: <a href="mailto:${F.mail}">${F.mail}</a></p>
+    <p><b>Umsatzsteuer-Identifikationsnummer</b> gemäß § 27a UStG: ${F.ust}<br>${F.register}</p>
+    <p><b>Berufsrechtliche Angaben</b><br>Berufsbezeichnung: ${F.beruf}<br>Zuständige Kammer: ${F.hwk}<br>Es gilt die Handwerksordnung (HwO), abrufbar unter gesetze-im-internet.de.</p>
     <p><b>Verantwortlich für den Inhalt:</b> ${F.inhaber}, Anschrift wie oben.</p>
     <p class="note-doc">Diese App ist ein internes Werkzeug von ${F.name} zur Dokumentation von Prüfungen an Ladeeinrichtungen.</p>
-    <p class="warnline">${icon("warn")}Vorlage: Die Angaben in eckigen Klammern bitte vor der Weitergabe ergänzen.</p>`);
+    <p class="note-doc">Angaben übernommen aus dem Impressum von elektro-irrgang.de.</p>`);
 }
 function datenschutzView(){
   const F=FIRMA;
-  return rechtsSeite(`<h3>Datenschutzhinweise zur App „Ladeprüfung“</h3>
-    <p><b>Verantwortlicher</b><br>${F.name}, ${F.strasse}, ${F.ort} · ${F.tel} · ${F.mail}</p>
+  return rechtsSeite(`<h3>Datenschutzhinweise zur App „EVSE Mobility“</h3>
+    <p><b>Verantwortlicher</b><br>${F.name}, Inhaber ${F.inhaber}, ${F.strasse}, ${F.ort} · ${F.tel} · ${F.mail}</p>
     <p><b>Was die App speichert</b><br>Kunden- und Standortdaten, Daten der Ladeeinrichtungen, Messwerte, Fotos und Unterschriften. Diese Daten werden <b>nur auf dem jeweiligen Gerät</b> im Speicher des Browsers abgelegt. Sie werden nicht an Server von ${F.name} oder an Dritte übertragen. Weitergegeben werden Daten nur, wenn ein Mitarbeiter aktiv ein PDF oder eine Sicherungsdatei erstellt und versendet.</p>
     ${SYNC_ON?`<p><b>Microsoft 365</b><br>Mitarbeiter melden sich mit ihrem Firmenkonto an. Prüfungen, Fotos und PDFs werden im Microsoft-365-Speicher (OneDrive/SharePoint) von ${F.name} abgelegt und dort von Microsoft als Auftragsverarbeiter verarbeitet.</p>`:`<p><b>Microsoft 365 (geplant)</b><br>Wird die Anmeldung mit dem Firmenkonto aktiviert, werden die Daten zusätzlich im Microsoft-365-Speicher von ${F.name} abgelegt. Dieser Abschnitt wird dann angepasst.</p>`}
     <p><b>Zweck und Rechtsgrundlage</b><br>Dokumentation der Prüfung elektrischer Anlagen und Ladeeinrichtungen im Rahmen des Auftrags (Art. 6 Abs. 1 lit. b DSGVO) sowie zur Erfüllung von Nachweispflichten (Art. 6 Abs. 1 lit. c DSGVO).</p>
@@ -1101,7 +1100,7 @@ function datenschutzView(){
 function aboutView(){
   const ic=(document.querySelector('link[rel="apple-touch-icon"]')||{}).href||"";
   return `<div class="narrow"><section class="card about">
-    <img class="app-ic" src="${ic}" alt=""><h2>Ladeprüfung</h2><p class="ver">Version ${APP_VERSION}</p>
+    <img class="app-ic" src="${ic}" alt=""><h2>EVSE Mobility</h2><p class="ver">Version ${APP_VERSION}</p><p class="note-doc" style="margin-top:-8px">EVSE = Electric Vehicle Supply Equipment – Ladeeinrichtung für Elektrofahrzeuge</p>
     <p>Prüfprotokolle für Wallboxen und Ladesäulen nach DIN VDE 0100-600, 0105-100 und 0100-722 – mit geführtem Prüfablauf, Fotos, Unterschrift und PDF.</p>
     <div class="logos"><img class="lg-firma l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><img class="lg-e" src="${EHW_PDF}" alt="Zeichen des Elektrohandwerks"></div>
     <p class="note-doc">${FIRMA.name} · ${FIRMA.strasse} · ${FIRMA.ort}</p>
@@ -1109,7 +1108,7 @@ function aboutView(){
   </section></div>`;
 }
 function loginView(){
-  return `<div class="login"><img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><h2>Ladeprüfung</h2>
+  return `<div class="login"><img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><h2>EVSE Mobility</h2>
     <p>Melde dich mit deinem Microsoft-Mitarbeiterkonto an. Danach siehst du alle Prüfungen der Firma, deine eigenen kannst du bearbeiten.</p>
     <button class="btn-filled" data-act="login">${icon("person")}Mit Microsoft anmelden</button>
     <p class="hint">${navigator.onLine?"":"Für die Anmeldung wird Internet benötigt."}</p></div>`;
