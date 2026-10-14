@@ -949,6 +949,8 @@ const ladeparksVon=sid=>live("ladeparks").filter(l=>l.standortId===sid).sort((a,
 // Adresse: Straße, PLZ, Ort (ältere Einträge haben nur „adresse“ als Text)
 function adrText(r){ if(!r) return ""; const z=[r.strasse,[r.plz,r.ort].filter(Boolean).join(" ")].filter(Boolean).join(", "); return z||r.adresse||""; }
 function adrSplit(r){ if(r.strasse||r.plz||r.ort||!r.adresse) return; const m=r.adresse.match(/^(.*?),\s*(\d{5})\s+(.+)$/); if(m){ r.strasse=m[1]; r.plz=m[2]; r.ort=m[3]; } else r.strasse=r.adresse; }
+const FREIGABEN=["Ladekarte","App","Frei (ohne Freigabe)"];
+const freigabeListe=s=>String(s.freigabe||"").split(/\s*[,/+]\s*|\s+und\s+/).map(x=>x.trim()).filter(Boolean).map(x=>/^frei/i.test(x)?FREIGABEN[2]:/karte|rfid/i.test(x)?"Ladekarte":/app/i.test(x)?"App":x);
 const pTitel=p=>`${deDate(p.p.datum)||"ohne Datum"} · ${p.p.art}`;
 
 // Übernahme alter Protokolle (vor der Kunden-Gliederung) und alter Sicherungen
@@ -1281,7 +1283,7 @@ function render(){
 }
 function applyRO(){
   $("#app").querySelectorAll("input,select,textarea").forEach(e=>e.disabled=true);
-  $("#app").querySelectorAll('[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
+  $("#app").querySelectorAll('[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
 }
 
 // Felder: M3 Outlined Text Field
@@ -1406,7 +1408,7 @@ function projektView(){
       ${tf("p.pruefer","Prüfer",p.pruefer)}
       ${tf("p.projekt","Bezeichnung (optional)",p.projekt,{full:true,ph:"z. B. Erweiterung Ladesäule 5 und 6"})}
     </div></section>
-    <section class="card"><h3>Messmittel</h3><div class="fg">
+    <section class="card"><h3>Messgeräte</h3><div class="fg">
       ${tf("p.geraet","Messgerät",p.geraet)}
       ${tf("p.geraetSn","Seriennummer",p.geraetSn)}
       ${tf("p.kal","Kalibrierung gültig bis",p.kal,{ph:"MM.JJJJ"})}
@@ -1426,11 +1428,11 @@ function saeulenView(){
   return `<div class="narrow"><p class="meta">${cur.s.length} Ladesäule${cur.s.length>1?"n":""} · ${ok} bestanden${bad?` · ${bad} mit Mängeln`:""}</p><div class="list">${cur.s.map((s,si)=>
     `<button class="li" data-act="openS" data-si="${si}"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">${esc(sName(s,si))}</span>
       <span class="s">${esc([s.typ,s.ort].filter(Boolean).join(" · ")||"Gerätedaten fehlen")}</span>
-      <span class="lps">${Array.from({length:s.lps},(_,i)=>{const r=lpResult(s,i);return pill(r,`LP ${i+1} ${RES_SHORT[r]}`);}).join("")}</span></span>${icon("chev")}</button>`).join("")}</div></div>`;
+      <span class="lps">${Array.from({length:s.lps},(_,i)=>{const r=lpResult(s,i);return pill(r,`Ladepunkt ${i+1}: ${RES_SHORT[r]}`);}).join("")}</span></span>${icon("chev")}</button>`).join("")}</div></div>`;
 }
 function saeuleTabs(s){
   const st=nav.st||"geraet";
-  const t=[["geraet","Gerät",null],...Array.from({length:s.lps},(_,i)=>[`lp${i}`,`LP ${i+1}`,lpResult(s,i)])];
+  const t=[["geraet","Gerät",null],...Array.from({length:s.lps},(_,i)=>[`lp${i}`,`Ladepunkt ${i+1}`,lpResult(s,i)])];
   return t.map(([k,l,r])=>`<button class="tab" role="tab" data-act="sub" data-v="${k}" aria-selected="${st===k}"><span class="tl">${l}${r?`<i class="sd ${r}" data-lpres="${k}"></i>`:""}</span></button>`).join("");
 }
 function saeuleView(){
@@ -1440,12 +1442,12 @@ function saeuleView(){
     return `<div class="cols">
       <section class="card"><h3>Gerät</h3><div class="fg">
         ${tf(b+"name","Bezeichnung",s.name)}
-        ${tf(b+"ort","Stellplatz",s.ort)}
+        ${tf(b+"ort","Stellplatz / Position",s.ort,{ph:"z. B. Stellplatz 12–13 oder Reihe B"})}
         ${tf(b+"typ","Hersteller / Typ",s.typ)}
         ${tf(b+"sn","Seriennummer",s.sn)}
-        ${tf(b+"fw","Firmware",s.fw)}
-        ${tf(b+"freigabe","Freigabe",s.freigabe,{ph:"Ladekarte / App / frei"})}
-        <div><div class="lbl">Ladepunkte</div>${seg("lps",s.lps,[[1,"1 LP"],[2,"2 LP"]])}</div>
+        ${tf(b+"fw","Firmware (optional)",s.fw)}
+        <div class="full"><div class="lbl">Freigabe zum Laden</div><div class="chips">${FREIGABEN.map(f=>`<button type="button" class="chip" data-act="freigabe" data-v="${f}" aria-pressed="${freigabeListe(s).includes(f)}">${icon("check")}${f}</button>`).join("")}</div></div>
+        <div><div class="lbl">Ladepunkte</div>${seg("lps",s.lps,[[1,"1"],[2,"2"]])}</div>
         <div><div class="lbl">Anschluss</div>${seg("phasen",s.phasen,[[3,"3-phasig"],[1,"1-phasig"]])}</div>
       </div></section>
       <section class="card"><h3>Schutzeinrichtungen</h3><div class="fg">
@@ -1477,7 +1479,7 @@ function saeuleView(){
     }
     h+=`</section>`;
   }
-  h+=`<section class="card">${ta(`${lb}bem`,`Bemerkung LP ${li+1}`,lp.bem,{ph:"z. B. Freigabe per Ladekarte nötig"})}</section></div>`;
+  h+=`<section class="card">${ta(`${lb}bem`,`Bemerkung Ladepunkt ${li+1}`,lp.bem,{ph:"z. B. Freigabe per Ladekarte nötig"})}</section></div>`;
   return h;
 }
 function abschlussView(){
@@ -1748,6 +1750,10 @@ document.addEventListener("click",ev=>{
   }
   if(!canEdit(cur)) return;
   switch(a){
+  case "freigabe": { const s=cur.s[nav.si], v=b.dataset.v; let L=freigabeListe(s);
+    if(L.includes(v)) L=L.filter(x=>x!==v); else L=v===FREIGABEN[2]?[v]:[...L.filter(x=>x!==FREIGABEN[2]),v];
+    s.freigabe=FREIGABEN.filter(f=>L.includes(f)).join(", "); scheduleSave();
+    b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",L.includes(x.dataset.v))); return; }
   case "norm": { const n=b.dataset.n, L=cur.p.normen, i=L.indexOf(n); if(i>=0) L.splice(i,1); else L.push(n); b.setAttribute("aria-pressed",i<0); scheduleSave(); return; }
   case "addS": { const prev=cur.s[cur.s.length-1], s=newSaeule(cur.s.length+1);
     if(prev) ["typ","absTyp","absIn","zsMan","rcd","idn","inenn","freigabe","phasen","lps"].forEach(k=>s[k]=prev[k]);
