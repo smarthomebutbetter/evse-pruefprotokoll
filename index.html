@@ -1176,20 +1176,33 @@ function buildPDF(P){
   P.s.forEach((s,i)=>{ if(y>270) np("Übersicht (Fortsetzung)",""); if(i%2){ d.setFillColor(...SUNK); d.rect(M,y-4,CW,6,"F"); } d.setFont("helvetica","normal"); d.setTextColor(20);
     d.text(pt(s.name),oc[0],y); d.text(pt(d.splitTextToSize(s.typ||"-",56)[0]),oc[1],y); d.text(pt(s.sn||"-"),oc[2],y); d.text(String(s.lps),oc[3],y); badge(M+CW-1,y,saeuleResult(s)); y+=6; });
 
-  const fit=(data,x,yy,w,hmax)=>{ try{ const ip=d.getImageProperties(data), f=Math.min(w/ip.width,hmax/ip.height), iw=ip.width*f, ih=ip.height*f;
-      d.addImage(data,"JPEG",x+(w-iw)/2,yy,iw,ih); return ih; }catch(e){ return 0; } };
+  const fit=(data,alias,x,yy,w,hmax,vc)=>{ try{ const ip=d.getImageProperties(data), f=Math.min(w/ip.width,hmax/ip.height), iw=ip.width*f, ih=ip.height*f;
+      d.addImage(data,"JPEG",x+(w-iw)/2,yy+(vc?(hmax-ih)/2:0),iw,ih,alias); return vc?hmax:ih; }catch(e){ return 0; } };
+  const fotoLinks=[];
   const caption=(t,h,x,yy,w)=>{ d.setFont("helvetica","bold"); d.setFontSize(8.5); d.setTextColor(...NAVY); d.text(pt(t),x,yy); if(h){ d.setFont("helvetica","normal"); d.setTextColor(...GR); d.text(pt(h),x+d.getTextWidth(pt(t))+2,yy); } };
   P.s.forEach(s=>{
     np(s.name,[s.typ,s.ort].filter(Boolean).join(" | ")||"Ladesäule");
     const z=zsInfo(s); sec("Gerätedaten");
     kv([["Hersteller / Typ",s.typ],["Seriennummer",s.sn],["Standort",s.ort],["Firmware",s.fw],["Absicherung",s.absTyp==="manuell"?"lt. Tabelle":`${s.absTyp}${s.absIn} A`],["Zs zulässig",isNaN(z.zul)?"-":`${fmt(z.zul,2)} Ohm`],
         ["RCD",`Typ ${s.rcd}, ${s.idn} mA`],["Nennstrom je LP",s.inenn?`${s.inenn} A`:"-"],["Freigabe",s.freigabe],["Anschluss",s.phasen===3?"3-phasig":"1-phasig"]]);
-    // Zeilenhöhe so wählen, dass die Tabelle die Seite füllt (5 bis 8 mm)
+    // Drei kleine Fotos nebeneinander (Klick im PDF -> Großansicht im Anhang)
+    const F=FOTO_SLOTS.map(([k,l,h])=>({l,h,id:(s.fotos||{})[k],data:fotoCache.get((s.fotos||{})[k])}));
+    const hasF=F.some(f=>f.data);
+    if(hasF){
+      const tw=(CW-12)/3, th=30, ty=y-2, link={page:d.getNumberOfPages(),s,rects:[],ty:ty+th+8};
+      F.forEach((f,i)=>{ const x=M+i*(tw+6);
+        d.setFillColor(...SUNK); d.roundedRect(x,ty,tw,th,1.5,1.5,"F");
+        if(f.data){ fit(f.data,f.id,x+1,ty+1,tw-2,th-2,true); link.rects.push([x,ty,tw,th]); }
+        else { d.setFont("helvetica","normal"); d.setFontSize(7.5); d.setTextColor(...GR); d.text("kein Foto",x+tw/2,ty+th/2+1,{align:"center"}); }
+        d.setFont("helvetica","bold"); d.setFontSize(7.5); d.setTextColor(...NAVY); d.text(pt(f.l),x,ty+th+4); });
+      fotoLinks.push(link); y=ty+th+13;
+    }
+    // Zeilenhöhe so wählen, dass die Tabelle die Seite füllt
     const groups=GROUPS.map(g=>({g,rows:g.rows.filter(r=>rowVisible(r,s))})).filter(x=>x.rows.length);
     const nR=groups.reduce((n,x)=>n+x.rows.length,0);
     d.setFontSize(8.5); let resH=4;
     for(let li=0;li<s.lps;li++){ resH+=8; if(s.lp[li].bem) resH+=d.splitTextToSize(pt("Bemerkung: "+s.lp[li].bem),CW-4).length*4.2+1.5; }
-    const avail=278-y-8-resH, rh=Math.max(5,Math.min(8,avail/(nR+groups.length*1.15))), gh=rh*1.15, fs=Math.min(9,8+(rh-5)*0.45), off=rh*0.68;
+    const avail=278-y-8-resH, rh=Math.max(4.6,Math.min(8,avail/(nR+groups.length*1.15))), gh=rh*1.15, fs=Math.min(9,8+(rh-5)*0.45), off=rh*0.68;
     const cP=M+2,cS=M+70,c1=M+118,c2=M+152;
     d.setFillColor(...NAVY); d.rect(M,y-4.6,CW,8,"F"); d.setTextColor(255); d.setFont("helvetica","bold"); d.setFontSize(8.5);
     d.text("Prüfung",cP,y+0.6); d.text("Sollwert",cS,y+0.6); d.text("LP 1 (links)",c1,y+0.6); if(s.lps===2) d.text("LP 2 (rechts)",c2,y+0.6); y+=8;
@@ -1205,23 +1218,12 @@ function buildPDF(P){
       });
     }
     y+=4;
-    for(let li=0;li<s.lps;li++){ const lp=s.lp[li]; d.setDrawColor(...LINE); d.line(M,y-3.5,M+CW,y-3.5);
+    for(let li=0;li<s.lps;li++){ const lp=s.lp[li];
+      if(y+8+(lp.bem?d.splitTextToSize(pt("Bemerkung: "+lp.bem),CW-4).length*4.2+1.5:0)>280){ np(`${s.name} (Fortsetzung)`,""); }
+      d.setDrawColor(...LINE); d.line(M,y-3.5,M+CW,y-3.5);
       d.setFont("helvetica","bold"); d.setFontSize(9); d.setTextColor(...NAVY); d.text(`Ergebnis LP ${li+1}${s.lps===2?(li?" (rechts)":" (links)"):""}`,M+2,y+1.5); badge(M+CW-1,y+1.5,lpResult(s,li)); y+=8;
       if(lp.bem){ d.setFont("helvetica","normal"); d.setFontSize(8.5); d.setTextColor(30); const l=d.splitTextToSize(pt("Bemerkung: "+lp.bem),CW-4); d.text(l,M+2,y-1.5); y+=l.length*4.2+1.5; } }
 
-    // Fotodokumentation: eigene Seite, Übersicht groß, darunter geöffnet und Prüfplakette
-    const F=FOTO_SLOTS.map(([k,l,h])=>({l,h,data:fotoCache.get((s.fotos||{})[k])}));
-    if(F.some(f=>f.data)){
-      np(`${s.name} - Fotos`,[s.typ,s.ort].filter(Boolean).join(" | ")||"Fotodokumentation");
-      sec("Fotodokumentation");
-      const slot=(f,x,yy,w,hmax)=>{ let ih;
-        if(f.data) ih=fit(f.data,x,yy,w,hmax);
-        else { ih=Math.min(30,hmax); d.setDrawColor(...LINE); d.setLineDashPattern([1.5,1.5],0); d.rect(x,yy,w,ih); d.setLineDashPattern([],0); d.setFont("helvetica","normal"); d.setFontSize(8); d.setTextColor(...GR); d.text("kein Foto aufgenommen",x+w/2,yy+ih/2+1,{align:"center"}); }
-        caption(f.l,f.h,x,yy+ih+5,w); return ih+9; };
-      y+=slot(F[0],M,y,CW,118)+2;
-      const w2=(CW-8)/2, h2=278-y-9;
-      const a=slot(F[1],M,y,w2,h2), b2=slot(F[2],M+w2+8,y,w2,h2); y+=Math.max(a,b2);
-    }
   });
 
   np("Abschluss","Gesamtergebnis | Mängel | Unterschriften");
@@ -1237,6 +1239,23 @@ function buildPDF(P){
     if(P.a[k]){ try{ const ip=d.getImageProperties(P.a[k]); let h=sw*ip.height/ip.width,w=sw; if(h>28){ h=28; w=h*ip.width/ip.height; } d.addImage(P.a[k],"PNG",x,y+28-h,w,h); }catch(e){} }
     d.setDrawColor(40); d.line(x,y+30,x+sw,y+30); d.setFont("helvetica","normal"); d.setFontSize(8); d.setTextColor(...GR);
     d.text(pt(`${l}: ${P.a[n]||(i?"":P.p.pruefer)||""} | ${deDate(P.p.datum)}`),x,y+35); });
+  for(const L of fotoLinks){
+    const s=L.s, F=FOTO_SLOTS.map(([k,l,h])=>({l,h,id:(s.fotos||{})[k],data:fotoCache.get((s.fotos||{})[k])}));
+    np(`Anhang: Fotos ${s.name}`,[s.typ,s.ort].filter(Boolean).join(" | ")||"Fotodokumentation");
+    const ap=d.getNumberOfPages();
+    d.setFont("helvetica","normal"); d.setFontSize(8); d.setTextColor(...SIG); d.textWithLink(pt(`<- zurück zu ${s.name} (Seite ${L.page})`),M,y-2,{pageNumber:L.page}); y+=5;
+    const slot=(f,x,yy,w,hmax)=>{ let ih;
+      if(f.data) ih=fit(f.data,f.id,x,yy,w,hmax,false);
+      else { ih=Math.min(30,hmax); d.setDrawColor(...LINE); d.setLineDashPattern([1.5,1.5],0); d.rect(x,yy,w,ih); d.setLineDashPattern([],0); d.setFont("helvetica","normal"); d.setFontSize(8); d.setTextColor(...GR); d.text("kein Foto aufgenommen",x+w/2,yy+ih/2+1,{align:"center"}); }
+      caption(f.l,f.h,x,yy+ih+5,w); return ih+9; };
+    y+=slot(F[0],M,y,CW,118)+2;
+    const w2=(CW-8)/2, h2=278-y-9; slot(F[1],M,y,w2,h2); slot(F[2],M+w2+8,y,w2,h2);
+    // Rücksprung in die Säulenseite: Fotos anklickbar machen, Hinweis auf Anhangseite
+    const cur=d.getNumberOfPages(); d.setPage(L.page);
+    L.rects.forEach(([x,yy,w,h])=>d.link(x,yy,w,h,{pageNumber:ap}));
+    d.setFont("helvetica","normal"); d.setFontSize(7); d.setTextColor(...GR); d.textWithLink(pt(`Großansicht: Anhang Seite ${ap}`),M+CW,L.ty-4,{align:"right",pageNumber:ap});
+    d.setPage(cur);
+  }
   foot();
   return d.output("blob");
 }
