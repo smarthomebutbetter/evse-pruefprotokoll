@@ -186,7 +186,7 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .sig + .sig{margin-top:20px}
 .sig .bar{display:flex;align-items:center;justify-content:space-between;margin:12px 0 6px 4px;font-size:12px;font-weight:600;color:var(--on-sv)}
 canvas.pad{width:100%;height:168px;border-radius:12px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--outline-v);touch-action:none;display:block}
-.btn-text{height:40px;border:0;border-radius:20px;background:transparent;color:var(--primary);font-size:14px;font-weight:700;padding:0 12px}
+.btn-text{white-space:nowrap;height:40px;border:0;border-radius:20px;background:transparent;color:var(--primary);font-size:14px;font-weight:700;padding:0 12px}
 .btn-text:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
 .btn-tonal{height:40px;border:0;border-radius:20px;background:var(--sec-c);color:var(--on-sec-c);font-size:14px;font-weight:700;padding:0 24px}
 
@@ -210,6 +210,15 @@ body.has-nav .fab{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 .dlg .db{color:var(--on-sv);font-size:15px}
 .dlg .da{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
 .dlg .da .danger{color:var(--err)}
+.dlg .dimg{display:block;width:100%;max-height:58vh;object-fit:contain;border-radius:12px;background:var(--sc)}
+.cols > .wide{grid-column:1/-1}
+.fotos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-width:600px}
+.foto{position:relative;aspect-ratio:3/4;border:1.5px dashed var(--outline);border-radius:12px;overflow:hidden;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--on-sv)}
+.foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.foto:not(.leer){border:0;background:var(--sc-high)}
+.foto .fl{font-size:13px;font-weight:700;color:var(--on-surface);line-height:1.2}
+.foto .fh{font-size:11px;text-align:center;padding:0 6px;line-height:1.25}
+.foto:not(.leer) .fl{position:absolute;left:0;right:0;bottom:0;padding:18px 8px 7px;background:linear-gradient(transparent,rgba(0,0,0,.65));color:#fff;text-align:left}
 .radio{display:flex;align-items:center;gap:16px;width:100%;height:48px;border:0;background:transparent;font-size:16px;color:var(--on-surface);padding:0 4px;text-align:left}
 .radio .rb{width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--on-sv);flex:none}
 .radio[aria-checked="true"] .rb{box-shadow:inset 0 0 0 2px var(--primary),inset 0 0 0 5px var(--sc-high),inset 0 0 0 10px var(--primary)}
@@ -240,6 +249,7 @@ body.has-fab.has-nav .snackbar{bottom:calc(168px + env(safe-area-inset-bottom,0p
 <div class="dlg" id="dlg" role="dialog" aria-modal="true" hidden></div>
 <div class="snackbar" id="toast" role="status" hidden></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
+<input type="file" id="fotoFile" accept="image/*" hidden>
 
 <script><!--JSPDF--></script>
 <script>
@@ -296,7 +306,7 @@ const today = ()=>new Date().toISOString().slice(0,10);
 const deDate = iso=>iso?iso.split("-").reverse().join("."):"";
 
 function newLP(){ return {v:{risov:"500 V"}, bem:""}; }
-function newSaeule(n){ return {id:uid(), name:`Ladesäule ${n}`, typ:"", sn:"", ort:"", fw:"", absTyp:"LS B", absIn:"16", zsMan:"", inenn:"", rcd:RCD_TYPES[0], idn:"30", freigabe:"", phasen:3, lps:2, lp:[newLP(),newLP()]}; }
+function newSaeule(n){ return {id:uid(), name:`Ladesäule ${n}`, typ:"", sn:"", ort:"", fw:"", absTyp:"LS B", absIn:"16", zsMan:"", inenn:"", rcd:RCD_TYPES[0], idn:"30", freigabe:"", phasen:3, lps:2, lp:[newLP(),newLP()], fotos:{}}; }
 function newProto(){
   return {id:uid(), created:Date.now(), updated:Date.now(),
     p:{projekt:"", auftraggeber:"", auftragsnr:"", standort:"", datum:today(), pruefer:"", geraet:"Wiha MFT one", geraetSn:"", kal:"", adapter:"Fluke FEV300", art:"Erstprüfung", normen:["DIN VDE 0100-600","DIN VDE 0100-722"], netz:"TN-C-S", umfang:DEF_UMFANG},
@@ -346,6 +356,27 @@ function saveNow(){
 let saveTxt="Gespeichert auf diesem Gerät";
 function setSub(t){ saveTxt=t; const e=$("#saveState"); if(e) e.textContent=t; }
 function toast(t){ const el=$("#toast"); el.textContent=t; el.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>el.hidden=true,2800); }
+// Fotos: IndexedDB (localStorage ist für Bilder zu klein), zusätzlich im Speicher gespiegelt
+const FOTO_SLOTS=[["ueb","Übersicht","von weiter weg"],["offen","Geöffnet","Anschlussraum"],["plak","Prüfplakette","gut lesbar"]];
+const fotoCache=new Map(); let fotoDB=null, fotoTarget=null;
+const fotoIds=s=>Object.values(s.fotos||{}).filter(Boolean);
+function idbOpen(){ return new Promise((res,rej)=>{ if(!window.indexedDB) return rej(0); const r=indexedDB.open("evse_fotos",1); r.onupgradeneeded=()=>r.result.createObjectStore("f"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+function idbAll(db){ return new Promise((res,rej)=>{ const out=[], rq=db.transaction("f").objectStore("f").openCursor(); rq.onsuccess=()=>{ const c=rq.result; if(c){ out.push([c.key,c.value]); c.continue(); } else res(out); }; rq.onerror=()=>rej(rq.error); }); }
+function fotoPut(id,data){ fotoCache.set(id,data); if(!fotoDB) return Promise.resolve(false);
+  return new Promise(res=>{ try{ const t=fotoDB.transaction("f","readwrite"); t.objectStore("f").put(data,id); t.oncomplete=()=>res(true); t.onerror=t.onabort=()=>res(false); }catch(e){ res(false); } }); }
+function fotoDel(ids){ ids=ids.filter(Boolean); ids.forEach(i=>fotoCache.delete(i)); if(!fotoDB||!ids.length) return; try{ const t=fotoDB.transaction("f","readwrite"); ids.forEach(i=>t.objectStore("f").delete(i)); }catch(e){} }
+async function fotoInit(){
+  try{ fotoDB=await idbOpen(); const all=await idbAll(fotoDB);
+    const used=new Set(protos.flatMap(p=>p.s.flatMap(fotoIds))); if(cur) cur.s.flatMap(fotoIds).forEach(i=>used.add(i));
+    const orphan=[]; for(const [k,v] of all){ if(used.has(k)) fotoCache.set(k,v); else orphan.push(k); } fotoDel(orphan);
+  }catch(e){ fotoDB=null; }
+  if(nav.v==="saeule"){ const y=scrollY; render(); scrollTo(0,y); }
+}
+function fotoVerkleinern(file){ return new Promise((res,rej)=>{ const url=URL.createObjectURL(file), img=new Image();
+  img.onload=()=>{ const f=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight)), c=document.createElement("canvas");
+    c.width=Math.round(img.naturalWidth*f); c.height=Math.round(img.naturalHeight*f); c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg",0.72)); };
+  img.onerror=()=>{ URL.revokeObjectURL(url); rej(0); }; img.src=url; }); }
 function saveFile(blob,name){ const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=name; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000); }
 
 
@@ -376,6 +407,7 @@ const IC={
   copy:"M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z",
   chev:"M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z",
   drop:"M7 10l5 5 5-5z",
+  cam:"M12 12m-3.2 0a3.2 3.2 0 1 0 6.4 0a3.2 3.2 0 1 0 -6.4 0M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z",
   check:"M9 16.17L4.83 12l-1.42 1.42L9 19 21 7l-1.41-1.41z",
   backup:"M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z",
   upload:"M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z",
@@ -496,6 +528,9 @@ function saeuleView(){
         ${tf(b+"idn","RCD IΔn",s.idn,{im:"numeric",sfx:"mA"})}
         ${tf(b+"inenn","Nennstrom je Ladepunkt",s.inenn,{im:"decimal",sfx:"A"})}
       </div></section>
+      <section class="card wide"><h3>Fotos</h3><div class="fotos">${FOTO_SLOTS.map(([k,l,hint])=>{ const id=(s.fotos||{})[k], src=id&&fotoCache.get(id);
+        return src?`<button class="foto" data-act="fotoShow" data-k="${k}" aria-label="Foto ${l} ansehen"><img src="${src}" alt=""><span class="fl">${l}</span></button>`
+          :`<button class="foto leer" data-act="fotoAdd" data-k="${k}">${icon("cam")}<span class="fl">${l}</span><span class="fh">${hint}</span></button>`; }).join("")}</div></section>
     </div>`;
   }
   const li=+st.slice(2), lp=s.lp[li], lb=`${b}lp.${li}.`;
@@ -569,6 +604,7 @@ document.addEventListener("input",ev=>{
 document.addEventListener("change",ev=>{
   const el=ev.target;
   if(el.id==="importFile"){ importBackup(el); return; }
+  if(el.id==="fotoFile"){ fotoAufnehmen(el); return; }
   if(!el.matches("select[data-bind]")||!cur) return;
   if(/^s\.\d+\.(absTyp|rcd)$/.test(el.dataset.bind)){ const y=scrollY; render(); scrollTo(0,y); } else refresh();
 });
@@ -596,7 +632,8 @@ document.addEventListener("click",ev=>{
   if(a==="setTheme"){ theme=b.dataset.v; applyTheme(theme); closeOverlays(); if(nav.v==="abschluss") render(); return; }
   if(a==="new"){ cur=newProto(); saveNow(); go({v:"projekt"}); return; }
   if(a==="open"){ const p=protos.find(x=>x.id===b.dataset.id); if(!p) return; cur=JSON.parse(JSON.stringify(p)); setSub("Gespeichert auf diesem Gerät"); go({v:"saeulen"}); return; }
-  if(a==="export"){ const blob=new Blob([JSON.stringify({app:"evse-pruefprotokoll",version:1,saved:Date.now(),protokolle:protos})],{type:"application/json"}); saveFile(blob,`EVSE-Protokolle_Sicherung_${today()}.json`); toast(`${protos.length} Protokoll(e) gesichert`); return; }
+  if(a==="export"){ const fotos={}; protos.forEach(p=>p.s.flatMap(fotoIds).forEach(i=>{ const d=fotoCache.get(i); if(d) fotos[i]=d; }));
+    const blob=new Blob([JSON.stringify({app:"evse-pruefprotokoll",version:2,saved:Date.now(),protokolle:protos,fotos})],{type:"application/json"}); saveFile(blob,`EVSE-Protokolle_Sicherung_${today()}.json`); toast(`${protos.length} Protokoll(e) gesichert`); return; }
   if(a==="import"){ $("#importFile").click(); return; }
   if(a==="demo"){ const d=demoProtos(); protos=[...d,...protos]; lsSave(); render(); toast("2 Beispielprojekte angelegt"); return; }
   if(!cur) return;
@@ -605,19 +642,23 @@ document.addEventListener("click",ev=>{
   if(a==="addS"){ const prev=cur.s[cur.s.length-1], s=newSaeule(cur.s.length+1);
     if(prev) ["typ","absTyp","absIn","zsMan","rcd","idn","inenn","freigabe","phasen","lps"].forEach(k=>s[k]=prev[k]);
     cur.s.push(s); saveNow(); go({v:"saeule",si:cur.s.length-1,st:"geraet"}); toast(`${s.name} angelegt`); return; }
-  if(a==="dupS"){ const src=cur.s[nav.si], c=JSON.parse(JSON.stringify(src)); c.id=uid(); c.sn=""; c.ort="";
+  if(a==="dupS"){ const src=cur.s[nav.si], c=JSON.parse(JSON.stringify(src)); c.id=uid(); c.sn=""; c.ort=""; c.fotos={};
     c.lp=[newLP(),newLP()]; c.name=`Ladesäule ${cur.s.length+1}`;
     cur.s.push(c); saveNow(); go({v:"saeule",si:cur.s.length-1,st:"geraet"}); toast(`Kopie von ${src.name} – ohne Seriennummer und Messwerte`); return; }
+  if(a==="fotoAdd"){ fotoTarget={si:nav.si,k:b.dataset.k}; closeOverlays(); $("#fotoFile").click(); return; }
+  if(a==="fotoShow"){ const k=b.dataset.k, sl=FOTO_SLOTS.find(x=>x[0]===k), src=fotoCache.get(cur.s[nav.si].fotos[k]);
+    dialog(sl[1],`<img class="dimg" src="${src}" alt="">`,`<button class="btn-text danger" data-act="fotoDel" data-k="${k}">Löschen</button><span style="flex:1"></span><button class="btn-text" data-act="fotoAdd" data-k="${k}">Ersetzen</button><button class="btn-text" data-act="cancel">Schließen</button>`); return; }
+  if(a==="fotoDel"){ const s=cur.s[nav.si]; fotoDel([s.fotos[b.dataset.k]]); delete s.fotos[b.dataset.k]; saveNow(); closeOverlays(); const y=scrollY; render(); scrollTo(0,y); toast("Foto gelöscht"); return; }
   if(a==="sub"){ saveNow(); nav={...nav,st:b.dataset.v}; render(); window.scrollTo(0,0); return; }
   if(a==="lps"||a==="phasen"){ const s=cur.s[nav.si]; s[a]=+b.dataset.v; while(s.lp.length<2) s.lp.push(newLP()); scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   if(a==="chk"){ const p=b.dataset.path, v=b.dataset.v; setPath(p,getPath(p)===v?"":v); scheduleSave(); b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",getPath(p)===x.dataset.v)); refresh(); return; }
   if(a==="sigclear"){ cur.a[b.dataset.k]=""; scheduleSave(); const c=$("#"+b.dataset.k); c.getContext("2d").clearRect(0,0,c.width,c.height); return; }
   if(a==="delSask"){ confirmDlg("Ladesäule entfernen?",`${cur.s[nav.si].name} wird mit allen Messwerten aus diesem Protokoll entfernt.`,"Entfernen","delS"); return; }
-  if(a==="delS"){ cur.s.splice(nav.si,1); if(!cur.s.length) cur.s.push(newSaeule(1)); saveNow(); go({v:"saeulen"}); toast("Ladesäule entfernt"); return; }
+  if(a==="delS"){ fotoDel(fotoIds(cur.s[nav.si])); cur.s.splice(nav.si,1); if(!cur.s.length) cur.s.push(newSaeule(1)); saveNow(); go({v:"saeulen"}); toast("Ladesäule entfernt"); return; }
   if(a==="delask"){ confirmDlg("Protokoll löschen?",`„${cur.p.projekt||"Ohne Namen"}“ wird von diesem Gerät gelöscht. Das lässt sich nicht rückgängig machen.`,"Löschen","del"); return; }
-  if(a==="del"){ const id=cur.id; clearTimeout(saveTimer); protos=protos.filter(p=>p.id!==id); lsSave(); cur=null; go({v:"list"}); toast("Protokoll gelöscht"); return; }
+  if(a==="del"){ fotoDel(cur.s.flatMap(fotoIds)); const id=cur.id; clearTimeout(saveTimer); protos=protos.filter(p=>p.id!==id); lsSave(); cur=null; go({v:"list"}); toast("Protokoll gelöscht"); return; }
   if(a==="dup"){ saveNow(); const c=JSON.parse(JSON.stringify(cur)); c.id=uid(); c.created=c.updated=Date.now(); c.p.projekt=(c.p.projekt?c.p.projekt+" ":"")+"(Kopie)"; c.p.datum=today();
-    c.s.forEach(s=>{ s.id=uid(); s.lp=s.lp.map(()=>newLP()); }); c.a.sigP=c.a.sigK=""; c.a.maengel=""; cur=c; saveNow(); go({v:"projekt"}); toast("Kopie ohne Messwerte angelegt"); return; }
+    c.s.forEach(s=>{ s.id=uid(); s.lp=s.lp.map(()=>newLP()); s.fotos={}; }); c.a.sigP=c.a.sigK=""; c.a.maengel=""; cur=c; saveNow(); go({v:"projekt"}); toast("Kopie ohne Messwerte angelegt"); return; }
   if(a==="pdf"){ makePDF(); return; }
 });
 $("#backBtn").addEventListener("click",()=>{ saveNow();
@@ -625,9 +666,19 @@ $("#backBtn").addEventListener("click",()=>{ saveNow();
   cur=null; protos.sort((a,b)=>b.updated-a.updated); go({v:"list"}); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeOverlays(); });
 window.addEventListener("scroll",()=>$("#topbar").classList.toggle("scrolled",scrollY>4),{passive:true});
+async function fotoAufnehmen(el){
+  const f=el.files[0], t=fotoTarget; el.value=""; if(!f||!cur||!t) return;
+  let data; try{ data=await fotoVerkleinern(f); }catch(e){ toast("Das Bild konnte nicht gelesen werden"); return; }
+  const s=cur.s[t.si]; if(!s) return; s.fotos=s.fotos||{};
+  if(s.fotos[t.k]) fotoDel([s.fotos[t.k]]);
+  const id=uid(), ok=await fotoPut(id,data); s.fotos[t.k]=id; saveNow();
+  if(nav.v==="saeule"&&nav.si===t.si){ const y=scrollY; render(); scrollTo(0,y); }
+  if(!ok) toast("Foto nur bis zum Schließen der App gespeichert – Speicher nicht verfügbar");
+}
 async function importBackup(el){
   const f=el.files[0]; if(!f) return;
   try{ const txt=await new Response(f).text(); const d=JSON.parse(txt); const list=Array.isArray(d)?d:d.protokolle; if(!Array.isArray(list)) throw 0;
+    if(d.fotos) for(const [k,v] of Object.entries(d.fotos)) if(!fotoCache.has(k)) await fotoPut(k,v);
     let neu=0,akt=0; for(const p of list){ if(!p||!p.id||!p.p||!Array.isArray(p.s)) continue; const i=protos.findIndex(x=>x.id===p.id);
       if(i<0){protos.push(p);neu++;} else if((p.updated||0)>(protos[i].updated||0)){protos[i]=p;akt++;} }
     protos.sort((a,b)=>b.updated-a.updated); lsSave(); render(); toast(`${neu} neu, ${akt} aktualisiert`);
@@ -710,7 +761,7 @@ function buildPDF(P){
     d.text(pt(`${P.p.projekt||""} | Auftrag ${P.p.auftragsnr||"-"} | Prüfdatum ${deDate(P.p.datum)}`),M,292); d.text(`Seite ${page}`,W-M,292,{align:"right"}); };
   const np=(t,s)=>{ foot(); d.addPage(); page++; head(t,s); };
   const sec=t=>{ d.setFillColor(...SUNK); d.rect(M,y-4.5,CW,7,"F"); d.setFillColor(...SIG); d.rect(M,y-4.5,1.2,7,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(9.5); d.text(pt(t),M+4,y); y+=8; };
-  const kv=prs=>{ const cw=CW/2; d.setFontSize(8.5); for(let i=0;i<prs.length;i+=2){ let rh=5.5; for(let c=0;c<2&&i+c<prs.length;c++){ const [k,v]=prs[i+c],x=M+c*cw;
+  const kv=prs=>{ const cw=CW/2; d.setFontSize(8.5); for(let i=0;i<prs.length;i+=2){ let rh=6.2; for(let c=0;c<2&&i+c<prs.length;c++){ const [k,v]=prs[i+c],x=M+c*cw;
       d.setFont("helvetica","normal"); d.setTextColor(...GR); d.text(pt(k),x,y); d.setFont("helvetica","bold"); d.setTextColor(20); const l=d.splitTextToSize(pt(v||"-"),cw-34); d.text(l,x+32,y); rh=Math.max(rh,l.length*4+1.5); }
       d.setDrawColor(...LINE); d.line(M,y+1.6,M+CW,y+1.6); y+=rh+1.2; } y+=2; };
   const para=t=>{ d.setFont("helvetica","normal"); d.setFontSize(8.5); d.setTextColor(30); const l=d.splitTextToSize(pt(t||"-"),CW); d.text(l,M,y); y+=l.length*4+4; };
@@ -727,30 +778,52 @@ function buildPDF(P){
   P.s.forEach((s,i)=>{ if(y>270) np("Übersicht (Fortsetzung)",""); if(i%2){ d.setFillColor(...SUNK); d.rect(M,y-4,CW,6,"F"); } d.setFont("helvetica","normal"); d.setTextColor(20);
     d.text(pt(s.name),oc[0],y); d.text(pt(d.splitTextToSize(s.typ||"-",56)[0]),oc[1],y); d.text(pt(s.sn||"-"),oc[2],y); d.text(String(s.lps),oc[3],y); badge(M+CW-1,y,saeuleResult(s)); y+=6; });
 
+  const fit=(data,x,yy,w,hmax)=>{ try{ const ip=d.getImageProperties(data), f=Math.min(w/ip.width,hmax/ip.height), iw=ip.width*f, ih=ip.height*f;
+      d.addImage(data,"JPEG",x+(w-iw)/2,yy,iw,ih); return ih; }catch(e){ return 0; } };
+  const caption=(t,h,x,yy,w)=>{ d.setFont("helvetica","bold"); d.setFontSize(8.5); d.setTextColor(...NAVY); d.text(pt(t),x,yy); if(h){ d.setFont("helvetica","normal"); d.setTextColor(...GR); d.text(pt(h),x+d.getTextWidth(pt(t))+2,yy); } };
   P.s.forEach(s=>{
     np(s.name,[s.typ,s.ort].filter(Boolean).join(" | ")||"Ladesäule");
     const z=zsInfo(s); sec("Gerätedaten");
     kv([["Hersteller / Typ",s.typ],["Seriennummer",s.sn],["Standort",s.ort],["Firmware",s.fw],["Absicherung",s.absTyp==="manuell"?"lt. Tabelle":`${s.absTyp}${s.absIn} A`],["Zs zulässig",isNaN(z.zul)?"-":`${fmt(z.zul,2)} Ohm`],
         ["RCD",`Typ ${s.rcd}, ${s.idn} mA`],["Nennstrom je LP",s.inenn?`${s.inenn} A`:"-"],["Freigabe",s.freigabe],["Anschluss",s.phasen===3?"3-phasig":"1-phasig"]]);
+    // Zeilenhöhe so wählen, dass die Tabelle die Seite füllt (5 bis 8 mm)
+    const groups=GROUPS.map(g=>({g,rows:g.rows.filter(r=>rowVisible(r,s))})).filter(x=>x.rows.length);
+    const nR=groups.reduce((n,x)=>n+x.rows.length,0);
+    d.setFontSize(8.5); let resH=4;
+    for(let li=0;li<s.lps;li++){ resH+=8; if(s.lp[li].bem) resH+=d.splitTextToSize(pt("Bemerkung: "+s.lp[li].bem),CW-4).length*4.2+1.5; }
+    const avail=278-y-8-resH, rh=Math.max(5,Math.min(8,avail/(nR+groups.length*1.15))), gh=rh*1.15, fs=Math.min(9,8+(rh-5)*0.45), off=rh*0.68;
     const cP=M+2,cS=M+70,c1=M+118,c2=M+152;
-    d.setFillColor(...NAVY); d.rect(M,y-4,CW,6.5,"F"); d.setTextColor(255); d.setFont("helvetica","bold"); d.setFontSize(8);
-    d.text("Prüfung",cP,y); d.text("Sollwert",cS,y); d.text("LP 1 (links)",c1,y); if(s.lps===2) d.text("LP 2 (rechts)",c2,y); y+=6.5;
-    for(const g of GROUPS){
-      const rows=g.rows.filter(r=>rowVisible(r,s)); if(!rows.length) continue;
-      d.setFillColor(...SUNK); d.rect(M,y-3.6,CW,5,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(7.5); d.text(pt(`${g.t} (${g.sub})`),cP,y); y+=5.4;
+    d.setFillColor(...NAVY); d.rect(M,y-4.6,CW,8,"F"); d.setTextColor(255); d.setFont("helvetica","bold"); d.setFontSize(8.5);
+    d.text("Prüfung",cP,y+0.6); d.text("Sollwert",cS,y+0.6); d.text("LP 1 (links)",c1,y+0.6); if(s.lps===2) d.text("LP 2 (rechts)",c2,y+0.6); y+=8;
+    for(const {g,rows} of groups){
+      d.setFillColor(...SUNK); d.rect(M,y-off,CW,gh,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(fs-0.5); d.text(pt(`${g.t} (${g.sub})`),cP,y+(gh-rh)/2); y+=gh;
       rows.forEach((r,ri)=>{
-        if(ri%2){ d.setFillColor(250,251,252); d.rect(M,y-3.6,CW,5,"F"); }
-        d.setFont("helvetica","normal"); d.setFontSize(8); d.setTextColor(20); d.text(pt(r.l),cP,y); d.setTextColor(...GR); d.text(pt(sollOf(r,s)).slice(0,32),cS,y);
+        if(ri%2){ d.setFillColor(250,251,252); d.rect(M,y-off,CW,rh,"F"); }
+        d.setFont("helvetica","normal"); d.setFontSize(fs); d.setTextColor(20); d.text(pt(r.l),cP,y); d.setTextColor(...GR); d.text(pt(sollOf(r,s)).slice(0,32),cS,y);
         for(let li=0;li<s.lps;li++){ const x=li?c2:c1, val=s.lp[li].v[r.k]??"", e=evalRow(r,val,s);
           const t=r.type==="chk"?(val==="ok"?"i.O.":val==="nok"?"n.i.O.":"-"):(val===""?"-":`${val}${r.u?" "+r.u:""}`);
           d.setTextColor(...(e==="ok"?OKC:e==="bad"?BADC:GR)); d.setFont("helvetica",e==="open"?"normal":"bold"); d.text(pt(t),x,y); }
-        y+=5;
+        y+=rh;
       });
     }
-    y+=3;
-    for(let li=0;li<s.lps;li++){ const lp=s.lp[li]; d.setDrawColor(...LINE); d.line(M,y-3,M+CW,y-3);
-      d.setFont("helvetica","bold"); d.setFontSize(8.5); d.setTextColor(...NAVY); d.text(`Ergebnis LP ${li+1}${s.lps===2?(li?" (rechts)":" (links)"):""}`,M+2,y+1.5); badge(M+CW-1,y+1.5,lpResult(s,li)); y+=6;
-      if(lp.bem){ d.setFont("helvetica","normal"); d.setTextColor(30); const l=d.splitTextToSize(pt("Bemerkung: "+lp.bem),CW-4); d.text(l,M+2,y); y+=l.length*4+1; } y+=1; }
+    y+=4;
+    for(let li=0;li<s.lps;li++){ const lp=s.lp[li]; d.setDrawColor(...LINE); d.line(M,y-3.5,M+CW,y-3.5);
+      d.setFont("helvetica","bold"); d.setFontSize(9); d.setTextColor(...NAVY); d.text(`Ergebnis LP ${li+1}${s.lps===2?(li?" (rechts)":" (links)"):""}`,M+2,y+1.5); badge(M+CW-1,y+1.5,lpResult(s,li)); y+=8;
+      if(lp.bem){ d.setFont("helvetica","normal"); d.setFontSize(8.5); d.setTextColor(30); const l=d.splitTextToSize(pt("Bemerkung: "+lp.bem),CW-4); d.text(l,M+2,y-1.5); y+=l.length*4.2+1.5; } }
+
+    // Fotodokumentation: eigene Seite, Übersicht groß, darunter geöffnet und Prüfplakette
+    const F=FOTO_SLOTS.map(([k,l,h])=>({l,h,data:fotoCache.get((s.fotos||{})[k])}));
+    if(F.some(f=>f.data)){
+      np(`${s.name} - Fotos`,[s.typ,s.ort].filter(Boolean).join(" | ")||"Fotodokumentation");
+      sec("Fotodokumentation");
+      const slot=(f,x,yy,w,hmax)=>{ let ih;
+        if(f.data) ih=fit(f.data,x,yy,w,hmax);
+        else { ih=Math.min(30,hmax); d.setDrawColor(...LINE); d.setLineDashPattern([1.5,1.5],0); d.rect(x,yy,w,ih); d.setLineDashPattern([],0); d.setFont("helvetica","normal"); d.setFontSize(8); d.setTextColor(...GR); d.text("kein Foto aufgenommen",x+w/2,yy+ih/2+1,{align:"center"}); }
+        caption(f.l,f.h,x,yy+ih+5,w); return ih+9; };
+      y+=slot(F[0],M,y,CW,118)+2;
+      const w2=(CW-8)/2, h2=278-y-9;
+      const a=slot(F[1],M,y,w2,h2), b2=slot(F[2],M+w2+8,y,w2,h2); y+=Math.max(a,b2);
+    }
   });
 
   np("Abschluss","Gesamtergebnis | Mängel | Unterschriften");
@@ -776,6 +849,7 @@ $("#backBtn").innerHTML=icon("back"); $("#menuBtn").innerHTML=icon("more");
 if("serviceWorker" in navigator && location.protocol==="https:"){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 protos=lsLoad(); protos.sort((a,b)=>b.updated-a.updated);
 render();
+fotoInit();
 })();
 </script>
 </body>
