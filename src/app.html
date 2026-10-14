@@ -95,8 +95,13 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .hl{font-size:24px;font-weight:700;margin:8px 0 16px;letter-spacing:-.01em}
 .meta{margin:0 0 12px;color:var(--on-sv);font-size:14px}
 .cols{display:grid;gap:16px;align-items:start}
-@media (min-width:1000px){.cols{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.card{background:var(--sc-low);border-radius:16px;padding:16px;min-width:0;--fbg:var(--sc-low)}
+/* iPad quer / Desktop: zwei Spalten, Karten rücken lückenlos nach (wie Google Keep) */
+@media (min-width:1000px){
+  .cols{display:block;column-count:2;column-gap:16px}
+  .cols > *{break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;display:block;width:100%;margin:0 0 16px}
+  .cols > .wide{column-span:all;-webkit-column-span:all}
+}
+.card{background:var(--sc-low);border-radius:20px;padding:16px;min-width:0;--fbg:var(--sc-low)}
 .card h3{font-size:16px;font-weight:700;margin:0 0 16px}
 .fg{display:grid;gap:16px}
 @media (min-width:600px){.fg{grid-template-columns:repeat(2,minmax(0,1fr))}.fg .full{grid-column:1/-1}}
@@ -106,7 +111,7 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 
 /* Outlined Text Field */
 .tf{position:relative;min-width:0}
-.tf input,.tf select,.tf textarea{display:block;width:100%;height:56px;border:0;border-radius:4px;background:transparent;box-shadow:inset 0 0 0 1px var(--outline);padding:16px;font-size:16px;color:var(--on-surface);-webkit-appearance:none;appearance:none}
+.tf input,.tf select,.tf textarea{display:block;width:100%;height:56px;border:0;border-radius:8px;background:transparent;box-shadow:inset 0 0 0 1px var(--outline);padding:16px;font-size:16px;color:var(--on-surface);-webkit-appearance:none;appearance:none}
 .tf textarea{height:auto;min-height:112px;resize:vertical;line-height:1.45;padding-top:18px}
 .tf select{padding-right:44px}
 .tf input:focus,.tf select:focus,.tf textarea:focus{outline:none;box-shadow:inset 0 0 0 2px var(--primary)}
@@ -140,7 +145,7 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .pill.open{background:var(--sc-highest);color:var(--on-sv)}
 
 /* Listen */
-.list{background:var(--sc-low);border-radius:16px;overflow:hidden}
+.list{background:var(--sc-low);border-radius:20px;overflow:hidden}
 .li{display:flex;align-items:center;gap:16px;width:100%;min-height:72px;padding:12px 16px;border:0;border-top:1px solid var(--outline-v);background:transparent;text-align:left;color:var(--on-surface);cursor:pointer}
 .li:first-child,.sw:first-child .li{border-top:0}
 .sec-lbl{font-size:13px;font-weight:700;color:var(--on-sv);margin:20px 4px 8px;letter-spacing:.02em}
@@ -228,6 +233,8 @@ body.has-nav .fab{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 .dlg .da .danger{color:var(--err)}
 .dlg .dimg{display:block;width:100%;max-height:58vh;object-fit:contain;border-radius:12px;background:var(--sc)}
 .cols > .wide{grid-column:1/-1}
+.banner,.robanner{border-radius:20px}
+.foto{border-radius:16px!important}
 .fotos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 @media (min-width:600px){.fotos .foto{aspect-ratio:4/3}}
 .chip.dim{opacity:.38}
@@ -269,7 +276,7 @@ body.has-fab.has-nav .snackbar{bottom:calc(168px + env(safe-area-inset-bottom,0p
 .lt .st{display:flex;align-items:center;gap:6px}
 .lk{color:var(--on-sv)} .lk .ic{width:16px;height:16px}
 .av .ic{width:22px;height:22px}
-.infok{background:var(--sc-low);border-radius:16px;padding:14px 16px;font-size:14px;color:var(--on-surface);margin:8px 0 4px;line-height:1.5}
+.infok{background:var(--sc-low);border-radius:20px;padding:14px 16px;font-size:14px;color:var(--on-surface);margin:8px 0 4px;line-height:1.5}
 .infok .by,.by-line{font-size:12px;color:var(--on-sv)}
 .infok div + .by{margin-top:6px}
 .by-line{margin:16px 4px 0}
@@ -992,7 +999,7 @@ function saeuleView(){
         ${tf(b+"ort","Stellplatz / Position",s.ort,{ph:"z. B. Stellplatz 12–13 oder Reihe B"})}
         ${tf(b+"typ","Hersteller / Typ",s.typ,{list:"dl-typ"})}${datalist("dl-typ",live("pruefungen").flatMap(p=>p.s.map(x=>x.typ)))}
         ${tf(b+"sn","Seriennummer",s.sn)}
-        ${tf(b+"fw","Firmware (optional)",s.fw)}
+        ${tf(b+"fw","Firmware (optional)",s.fw,{full:true})}
         <div class="full"><div class="lbl">Freigabe zum Laden</div><div class="chips">${FREIGABEN.map(f=>`<button type="button" class="chip${f!==FREIGABEN[2]&&freigabeListe(s).includes(FREIGABEN[2])?" dim":""}" data-act="freigabe" data-v="${f}" aria-pressed="${freigabeListe(s).includes(f)}">${icon("check")}${f}</button>`).join("")}</div></div>
         <div><div class="lbl">Ladepunkte</div>${seg("lps",s.lps,[[1,"1"],[2,"2"]])}</div>
         <div><div class="lbl">Anschluss</div>${seg("phasen",s.phasen,[[1,"1-phasig"],[3,"3-phasig"]])}</div>
@@ -1000,10 +1007,10 @@ function saeuleView(){
       <section class="card"><h3>Schutzeinrichtungen</h3><div class="fg">
         <div class="full"><div class="lbl">Leitungsschutz · ${polLS(s)}</div>${seg("abs",s.absTyp,[["LS B","LS B"],["LS C","LS C"],["manuell","Sicherung"]])}</div>
         ${s.absTyp==="manuell"?tf(b+"zsMan","Zs zulässig (aus Tabelle)",s.zsMan,{im:"decimal",sfx:"Ω"}):tf(b+"absIn","Nennstrom",s.absIn,{im:"decimal",sfx:"A"})}
-        ${tf(b+"inenn","Nennstrom je Ladepunkt",s.inenn,{im:"decimal",sfx:"A"})}
+        ${tf(b+"inenn","Strom je Ladepunkt",s.inenn,{im:"decimal",sfx:"A"})}
         <p class="calc full" id="calc">${esc(z.calc)}</p>
         <div class="full"><div class="lbl">Fehlerstromschutz (RCD) · ${polRCD(s)}</div>${seg("rcdTyp",ri.t,RCD_TYPEN.map(t=>[t,"Typ "+t]))}</div>
-        ${tf(b+"idn","Bemessungsfehlerstrom IΔn",s.idn,{im:"numeric",sfx:"mA"})}
+        ${tf(b+"idn","Bemessungsfehlerstrom IΔn",s.idn,{im:"numeric",sfx:"mA",full:true})}
         <div class="full"><div class="lbl">DC-Fehlerstromerkennung 6 mA in der Wallbox (RDC-DD)</div>${seg("rdc",ri.dc?"1":"0",[["0","Nein"],["1","Ja"]])}
           ${ri.t==="A"&&!ri.dc?`<p class="warnline">${icon("warn")}RCD Typ A nur zulässig, wenn die Wallbox 6 mA DC selbst erkennt – sonst RCD Typ B (oder A-EV) nötig.</p>`:`<p class="sup">Die Polzahl ergibt sich aus dem Anschluss (${s.phasen===3?"3-phasig":"1-phasig"}).</p>`}</div>
       </div></section>
