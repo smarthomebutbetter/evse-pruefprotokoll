@@ -320,6 +320,19 @@ details.how ol{margin:4px 0 8px;padding-left:20px;line-height:1.45}
 details.how li{margin:4px 0}
 details.optrows{border-top:1px solid var(--outline-v);margin-top:4px;padding-top:4px}
 details.optrows .mrow:first-of-type{border-top:0}
+.doc h3{font-size:17px;margin:0 0 12px}
+.doc p{font-size:14px;line-height:1.55;margin:0 0 12px}
+.doc a,.about a{color:var(--primary)}
+.note-doc{color:var(--on-sv);font-size:13px}
+.about{text-align:center}
+.about .app-ic{width:88px;height:88px;border-radius:20px;box-shadow:var(--e1);margin:8px auto 12px;display:block}
+.about h2{margin:0;font-size:24px}
+.about .ver{color:var(--on-sv);margin:4px 0 16px;font-size:14px}
+.about p{font-size:14px;line-height:1.5}
+.about .logos{display:flex;align-items:center;justify-content:center;gap:24px;margin:20px 0 12px;background:#fff;border-radius:16px;padding:16px}
+.about .lg-firma{height:32px;width:auto}
+.about .lg-e{height:52px;width:auto;border-radius:4px}
+.tb-row:has(#backBtn[hidden]) .tb-title{margin-left:16px}
 .row2{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:12px}
 .iz{display:flex;gap:12px;padding:3px 0}
 .iz span{flex:none;width:118px;color:var(--on-sv);font-size:13px}
@@ -833,12 +846,18 @@ const IC={
   edit:"M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
   move:"M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 12v-3h-4v-4h4V8l5 5-5 5z",
   logout:"M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z",
+  menu:"M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z",
+  info:"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z",
+  shield:"M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z",
+  paragraph:"M9 4v4c-2.2 0-4-1.8-4-4s1.8-4 4-4h10v2h-2v18h-2V2h-2v18h-2V10c-2.2 0-4-1.8-4-4",
   person:"M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
 };
 const icon=n=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 const pill=(r,t)=>`<span class="pill ${r}">${esc(t??RES_TXT[r])}</span>`;
 const DEST=[["projekt","Auftrag","project"],["saeulen","Ladesäulen","ev"],["abschluss","Abschluss","done"]];
-const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"]];
+const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["mehr","Mehr","menu"]];
+const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
+const APP_VERSION="<!--VERSION-->";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -853,18 +872,24 @@ function render(){
   if(SYNC_ON&&!ME.signedIn&&nav.v!=="login") nav={v:"login"};
   if(ed&&!cur) nav={v:"start"};
   if(nav.v==="saeule"&&!cur.s[nav.si]) nav={v:"saeulen"};
-  const top=nav.v==="start"||nav.v==="kunden", login=nav.v==="login", E=EDITOR.includes(nav.v);
-  document.body.classList.toggle("is-list",top||login);
+  const top=TOP.includes(nav.v), login=nav.v==="login", E=EDITOR.includes(nav.v);
+  document.body.classList.toggle("is-list",nav.v==="start"||login);
   document.body.classList.toggle("has-nav",!login);
   document.body.classList.toggle("ro",E&&!canEdit(cur));
-  $("#backBtn").hidden=top||login; $("#navbar").hidden=login; $("#tabs").hidden=nav.v!=="saeule"; $("#avBtn").hidden=login||!top;
-  const dests=E?DEST:TOPDEST, active=E?(nav.v==="saeule"?"saeulen":nav.v):(top?nav.v:"kunden");
+  $("#backBtn").hidden=top||login; $("#navbar").hidden=login; $("#tabs").hidden=nav.v!=="saeule"; $("#avBtn").hidden=login||nav.v!=="start"; $("#menuBtn").hidden=top||!!MEHR_SUB[nav.v]||login;
+  const dests=E?DEST:TOPDEST, active=E?(nav.v==="saeule"?"saeulen":nav.v):(top?nav.v:MEHR_SUB[nav.v]?"mehr":"kunden");
   $("#navbar").innerHTML=dests.map(([k,t,i])=>`<button class="nav-item" ${E?`data-go="${k}"`:`data-act="nav" data-v="${k}"`} ${k===active?'aria-current="page"':""}><span class="ind">${icon(i)}</span><span>${t}</span></button>`).join("");
   let title="", sub="", fab=null, body="";
   if(login){ body=loginView(); }
   else if(nav.v==="start"){ body=startView(); fab=["newAny","Neue Prüfung","add"]; }
   else if(nav.v==="kunden"){ title="Kunden"; body=kundenView(); fab=["newKunde","Kunde","add"]; }
+  else if(nav.v==="pruefungen"){ title="Prüfungen"; body=pruefungenView(); fab=["newAny","Neue Prüfung","add"]; }
+  else if(nav.v==="faellig"){ title="Fällig"; body=faelligView(); }
+  else if(nav.v==="mehr"){ title="Mehr"; body=mehrView(); }
   else if(nav.v==="archiv"){ title="Archiv"; body=archivView(); }
+  else if(nav.v==="impressum"){ title="Impressum"; body=impressumView(); }
+  else if(nav.v==="datenschutz"){ title="Datenschutz"; body=datenschutzView(); }
+  else if(nav.v==="about"){ title="Über die App"; body=aboutView(); }
   else if(VIEW_KIND[nav.v]){ const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id);
     if(!r||r.deleted){ nav={v:"kunden"}; return render(); }
     title=r.name; sub=kind==="kunden"?"Kunde":kind==="standorte"?(kundeOf(r.kundeId)||{}).name:[ (kundeOf((standortOf(r.standortId)||{}).kundeId)||{}).name,(standortOf(r.standortId)||{}).name ].filter(Boolean).join(" › ");
@@ -994,6 +1019,94 @@ function archivView(){
   const L=live("pruefungen").filter(p=>META.archiv.includes(p.id)).sort((a,b)=>(b.updated||0)-(a.updated||0));
   if(!L.length) return `<div class="empty">${icon("archive")}<h2>Archiv ist leer</h2><p>Prüfungen auf der Startseite nach rechts wischen, um sie hierher zu legen. Sie bleiben beim Kunden sichtbar.</p></div>`;
   return `<div class="narrow">${listOf(L.map(p=>pItem(p,true)))}<p class="hint">Nach rechts wischen: zurückholen · nach links: löschen</p></div>`;
+}
+// ---- Prüfungen (alle, mit Filter)
+const PFILTER=[["alle","Alle"],["wip","In Arbeit"],["bad","Mit Mängeln"],["ok","Fertig"]];
+function pruefungenListe(){
+  const f=META.pfilter||"alle", q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q);
+  const L=live("pruefungen").filter(p=>{ const st=protoState(p); return (f==="alle"||(f==="wip"?(st==="wip"||st==="open"):st===f))&&(!q||H(pfadText(p))||H(p.p.auftragsnr)||H(p.p.pruefer)||H(p.p.art)); }).sort(byDate);
+  return L.length?listOf(L.map(p=>pItem(p,true))):`<p class="meta">Keine Prüfungen${f!=="alle"?" in diesem Filter":""}.</p>`;
+}
+function pruefungenView(){
+  return `<div class="narrow">${searchBar("Kunde, Ort, Auftragsnr. oder Prüfer suchen")}
+    <div class="chips" style="margin:4px 0 12px">${PFILTER.map(([v,t])=>`<button class="chip" data-act="pfilter" data-v="${v}" aria-pressed="${(META.pfilter||"alle")===v}">${icon("check")}${t}</button>`).join("")}</div>
+    <div id="res">${pruefungenListe()}</div></div>`;
+}
+// ---- Fällig: je Ort die neueste Prüfung mit empfohlenem Termin
+function faelligListe(){
+  const m=new Map();
+  for(const p of live("pruefungen")){ const k=p.standortId+"|"+(p.ladeparkId||""), q=m.get(k); if(!q||byDate(p,q)<0) m.set(k,p); }
+  return [...m.values()].filter(p=>p.a&&p.a.naechste).sort((a,b)=>a.a.naechste.localeCompare(b.a.naechste));
+}
+function faelligView(){
+  const L=faelligListe(), t=today(), bald=new Date(Date.now()+90*864e5).toISOString().slice(0,10);
+  if(!L.length) return `<div class="empty">${icon("pending")}<h2>Keine Termine</h2><p>Hier erscheinen die Wiederholungsprüfungen, sobald im Abschluss „Nächste Prüfung in … Jahren“ gewählt ist.</p></div>`;
+  const item=(p,kl,txt)=>{ const {s,l}=pfad(p);
+    return `<div class="li" role="button" tabindex="0" data-act="nav" data-v="${l?"ladepark":"standort"}" data-id="${esc(l?l.id:s&&s.id)}"><span class="av">${icon(l?"ev":"ort")}</span>
+      <span class="lt"><span class="h">${esc(pfadText(p))}</span><span class="s">Fällig ${esc(deDate(p.a.naechste))} · letzte Prüfung ${esc(deDate(p.p.datum))}</span><span class="st">${pill(kl,txt)}</span></span>${icon("chev")}</div>`; };
+  const g1=L.filter(p=>p.a.naechste<t), g2=L.filter(p=>p.a.naechste>=t&&p.a.naechste<=bald), g3=L.filter(p=>p.a.naechste>bald);
+  return `<div class="narrow">${g1.length?`<div class="sec-lbl">Überfällig</div>${listOf(g1.map(p=>item(p,"bad","überfällig")))}`:""}
+    ${g2.length?`<div class="sec-lbl">In den nächsten 3 Monaten</div>${listOf(g2.map(p=>item(p,"wip","bald fällig")))}`:""}
+    ${g3.length?`<div class="sec-lbl">Später</div>${listOf(g3.map(p=>item(p,"open","geplant")))}`:""}
+    <p class="hint">Antippen öffnet den Ort – dort mit „Neue Prüfung“ die Wiederholungsprüfung anlegen.</p></div>`;
+}
+// ---- Mehr
+function mehrView(){
+  const row=(act,ic,t,sub,cls="")=>`<div class="li ${cls}" role="button" tabindex="0" data-act="${act}"><span class="av">${icon(ic)}</span><span class="lt"><span class="h">${t}</span>${sub?`<span class="s">${sub}</span>`:""}</span>${icon("chev")}</div>`;
+  const nArch=live("pruefungen").filter(p=>META.archiv.includes(p.id)).length;
+  return `<div class="narrow">
+    <div class="sec-lbl">Konto und Darstellung</div><div class="list">
+      ${row("konto","person",SYNC_ON?"Konto":"Mein Name",esc(ME.name||META.profil.name||"noch nicht eingetragen"))}
+      ${row("theme","theme","Darstellung",TH_LABEL[theme])}</div>
+    <div class="sec-lbl">Daten</div><div class="list">
+      ${row("nav:archiv","archive","Archiv",nArch?`${nArch} Prüfung${nArch>1?"en":""}`:"leer")}
+      ${SYNC_ON?row("syncNow","sync","Jetzt abgleichen",esc(syncText())):""}
+      ${row("export","backup","Alle sichern","Sicherungsdatei mit allen Daten und Fotos")}
+      ${row("import","upload","Sicherung laden","Daten aus einer Sicherungsdatei übernehmen")}
+      ${live("kunden").some(isDemo)?row("demoHide","bulb","Beispieldaten ausblenden","Zum Vorführen angelegte Daten entfernen"):row("demo","bulb","Beispieldaten laden","Zum Ausprobieren und Vorführen")}</div>
+    <div class="sec-lbl">Rechtliches und Info</div><div class="list">
+      ${row("nav:impressum","doc","Impressum","")}
+      ${row("nav:datenschutz","shield","Datenschutz","")}
+      ${row("nav:about","info","Über die App",`Version ${APP_VERSION}`)}</div>
+    <p class="hint">Ladeprüfung · Version ${APP_VERSION}</p></div>`;
+}
+const FIRMA={name:"Elektro Irrgang",inhaber:"[Inhaber / Geschäftsführer]",rechtsform:"[Rechtsform, z. B. Inh. … e. K. / GmbH]",strasse:"Hahner Weg 2",ort:"51545 Waldbröl",tel:"02291 4878",mail:"info@elektro-irrgang.de",
+  ust:"[USt-IdNr. gemäß § 27a UStG]",register:"[Handelsregister / Registergericht, falls eingetragen]",hwk:"[Handwerkskammer, z. B. Handwerkskammer zu Köln]",innung:"[Innung, z. B. Elektro-Innung …]",beruf:"[Berufsbezeichnung, z. B. Elektrotechnikermeister (verliehen in Deutschland)]"};
+function rechtsSeite(html){ return `<div class="narrow"><section class="card doc">${html}</section></div>`; }
+function impressumView(){
+  const F=FIRMA;
+  return rechtsSeite(`<h3>Angaben gemäß § 5 Digitale-Dienste-Gesetz (DDG)</h3>
+    <p><b>${F.name}</b><br>${F.rechtsform}<br>${F.strasse}<br>${F.ort}</p>
+    <p><b>Vertreten durch:</b> ${F.inhaber}</p>
+    <p><b>Kontakt</b><br>Telefon: <a href="tel:022914878">${F.tel}</a><br>E-Mail: <a href="mailto:${F.mail}">${F.mail}</a></p>
+    <p><b>Umsatzsteuer-ID:</b> ${F.ust}<br><b>Register:</b> ${F.register}</p>
+    <p><b>Berufsrechtliche Angaben</b><br>Berufsbezeichnung: ${F.beruf}<br>Zuständige Kammer: ${F.hwk}<br>Mitglied der ${F.innung}<br>Es gilt die Handwerksordnung (HwO), abrufbar unter gesetze-im-internet.de.</p>
+    <p><b>Verantwortlich für den Inhalt:</b> ${F.inhaber}, Anschrift wie oben.</p>
+    <p class="note-doc">Diese App ist ein internes Werkzeug von ${F.name} zur Dokumentation von Prüfungen an Ladeeinrichtungen.</p>
+    <p class="warnline">${icon("warn")}Vorlage: Die Angaben in eckigen Klammern bitte vor der Weitergabe ergänzen.</p>`);
+}
+function datenschutzView(){
+  const F=FIRMA;
+  return rechtsSeite(`<h3>Datenschutzhinweise zur App „Ladeprüfung“</h3>
+    <p><b>Verantwortlicher</b><br>${F.name}, ${F.strasse}, ${F.ort} · ${F.tel} · ${F.mail}</p>
+    <p><b>Was die App speichert</b><br>Kunden- und Standortdaten, Daten der Ladeeinrichtungen, Messwerte, Fotos und Unterschriften. Diese Daten werden <b>nur auf dem jeweiligen Gerät</b> im Speicher des Browsers abgelegt. Sie werden nicht an Server von ${F.name} oder an Dritte übertragen. Weitergegeben werden Daten nur, wenn ein Mitarbeiter aktiv ein PDF oder eine Sicherungsdatei erstellt und versendet.</p>
+    ${SYNC_ON?`<p><b>Microsoft 365</b><br>Mitarbeiter melden sich mit ihrem Firmenkonto an. Prüfungen, Fotos und PDFs werden im Microsoft-365-Speicher (OneDrive/SharePoint) von ${F.name} abgelegt und dort von Microsoft als Auftragsverarbeiter verarbeitet.</p>`:`<p><b>Microsoft 365 (geplant)</b><br>Wird die Anmeldung mit dem Firmenkonto aktiviert, werden die Daten zusätzlich im Microsoft-365-Speicher von ${F.name} abgelegt. Dieser Abschnitt wird dann angepasst.</p>`}
+    <p><b>Zweck und Rechtsgrundlage</b><br>Dokumentation der Prüfung elektrischer Anlagen und Ladeeinrichtungen im Rahmen des Auftrags (Art. 6 Abs. 1 lit. b DSGVO) sowie zur Erfüllung von Nachweispflichten (Art. 6 Abs. 1 lit. c DSGVO).</p>
+    <p><b>Bereitstellung der App</b><br>Die App wird über GitHub Pages (GitHub Inc., USA) ausgeliefert. Beim Aufruf verarbeitet GitHub technisch notwendige Verbindungsdaten wie IP-Adresse, Zeitpunkt und Browsertyp (Art. 6 Abs. 1 lit. f DSGVO). Kundendaten liegen dort nicht. Weitere Informationen: GitHub Privacy Statement.</p>
+    <p><b>Keine Cookies, kein Tracking</b><br>Die App setzt keine Cookies, verwendet keine Analyse- oder Werbedienste und lädt keine Schriftarten oder Skripte von fremden Servern nach.</p>
+    <p><b>Speicherdauer</b><br>Daten bleiben auf dem Gerät, bis sie in der App gelöscht oder die Websitedaten des Browsers entfernt werden. Abgelegte Prüfprotokolle werden gemäß den gesetzlichen Aufbewahrungsfristen aufbewahrt.</p>
+    <p><b>Ihre Rechte</b><br>Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO). Wenden Sie sich dazu an die oben genannte Adresse. Beschwerden können an die Aufsichtsbehörde gerichtet werden: Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen.</p>
+    <p class="warnline">${icon("warn")}Vorlage: bitte vor der Weitergabe an Dritte rechtlich prüfen lassen.</p>`);
+}
+function aboutView(){
+  const ic=(document.querySelector('link[rel="apple-touch-icon"]')||{}).href||"";
+  return `<div class="narrow"><section class="card about">
+    <img class="app-ic" src="${ic}" alt=""><h2>Ladeprüfung</h2><p class="ver">Version ${APP_VERSION}</p>
+    <p>Prüfprotokolle für Wallboxen und Ladesäulen nach DIN VDE 0100-600, 0105-100 und 0100-722 – mit geführtem Prüfablauf, Fotos, Unterschrift und PDF.</p>
+    <div class="logos"><img class="lg-firma l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><img class="lg-e" src="${EHW_PDF}" alt="Zeichen des Elektrohandwerks"></div>
+    <p class="note-doc">${FIRMA.name} · ${FIRMA.strasse} · ${FIRMA.ort}</p>
+    <p class="note-doc">Speicher: ${SYNC_ON?"Microsoft 365 und Gerät":"nur auf diesem Gerät"} · ${live("pruefungen").length} Prüfung(en), ${live("kunden").length} Kunde(n)</p>
+  </section></div>`;
 }
 function loginView(){
   return `<div class="login"><img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><h2>Ladeprüfung</h2>
@@ -1232,6 +1345,7 @@ function zurueck(){
   if(nav.v==="ladepark"){ const l=ladeparkOf(nav.id); go(l?{v:"standort",id:l.standortId}:{v:"kunden"}); return; }
   if(nav.v==="standort"){ const s=standortOf(nav.id); go(s?{v:"kunde",id:s.kundeId}:{v:"kunden"}); return; }
   if(nav.v==="kunde"){ go({v:"kunden"}); return; }
+  if(MEHR_SUB[nav.v]){ go({v:"mehr"}); return; }
   go({v:"start"});
 }
 
@@ -1304,7 +1418,7 @@ function loeschePruefung(p){
 const getPath=p=>p.split(".").reduce((o,k)=>o==null?o:o[k],cur);
 function setPath(p,v){ const ks=p.split("."); let o=cur; for(let i=0;i<ks.length-1;i++) o=o[ks[i]]; o[ks[ks.length-1]]=v; }
 document.addEventListener("input",ev=>{
-  if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="kunden"?kundenListe():(query?suche(query):startListen()); return; }
+  if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="kunden"?kundenListe():nav.v==="pruefungen"?pruefungenListe():(query?suche(query):startListen()); return; }
   const el=ev.target.closest("[data-bind]"); if(!el||!cur) return;
   const path=el.dataset.bind, alt=path==="p.adapter"?cur.p.adapter:null; setPath(path,el.value); scheduleSave();
   if(path==="p.datum"&&cur.a.fristJ){ const d=new Date((el.value||today())+"T12:00:00"); d.setFullYear(d.getFullYear()+(+cur.a.fristJ)); cur.a.naechste=d.toISOString().slice(0,10); }
@@ -1349,6 +1463,7 @@ document.addEventListener("click",ev=>{
   case "login": Auth.login(); return;
   case "relogin": Auth.relogin(); return;
   case "syncNow": syncNow(true); return;
+  case "pfilter": META.pfilter=b.dataset.v; metaSave(); { const r=$("#res"); if(r) r.innerHTML=pruefungenListe(); } document.querySelectorAll('[data-act="pfilter"]').forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===META.pfilter)); return;
   case "filter": META.filter=b.dataset.v; metaSave(); softRender(); return;
   case "konto": {
     if(!SYNC_ON){ dialog("Mein Name",`<div class="fg1">${tf("name","Name (erscheint als Prüfer und Ersteller)",META.profil.name,{form:true})}</div><p class="sup" style="margin:12px 0 0">Die Anmeldung mit dem Microsoft-Konto wird freigeschaltet, sobald die IT die App eingerichtet hat. Bis dahin bleibt alles auf diesem Gerät.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveName">Speichern</button>`); return; }
@@ -1359,7 +1474,7 @@ document.addEventListener("click",ev=>{
   case "logout": confirmDlg("Abmelden?","Nicht abgeglichene Änderungen bleiben auf dem Gerät und werden nach der nächsten Anmeldung hochgeladen.","Abmelden","logoutOk"); return;
   case "logoutOk": Auth.logout(); return;
   case "theme": dialog("Darstellung",THEMES.map(t=>`<button class="radio" role="radio" data-act="setTheme" data-v="${t}" aria-checked="${t===theme}"><span class="rb"></span>${TH_LABEL[t]}</button>`).join(""),`<button class="btn-text" data-act="cancel">Schließen</button>`); return;
-  case "setTheme": theme=b.dataset.v; applyTheme(theme); closeOverlays(); if(nav.v==="abschluss") render(); return;
+  case "setTheme": theme=b.dataset.v; applyTheme(theme); closeOverlays(); render(); return;
   case "export": exportBackup(); return;
   case "import": $("#importFile").click(); return;
   case "demo": demoLaden(); render(); toast("Beispieldaten angelegt – sie werden nicht abgeglichen"); return;
@@ -1492,10 +1607,10 @@ function demoLaden(){
   D("pruefungen",base({p:{auftragsnr:"2510-099",datum:today(),art:"Wiederholungsprüfung",standort:"UV-TG",normen:["DIN VDE 0105-100","DIN VDE 0100-722"]},x:{kundeId:k1.id,standortId:s1.id,ladeparkId:l1.id,
     s:[demoSaeule(1,"151612202MA.05006",demoLP(),demoLP({v:{zs1:"0,46",r1:"24,5"}})),
        demoSaeule(2,"151812202MA.05030",demoLP({v:{zs1:"0,40"}}),demoLP({v:{riso:"0,4"},bem:"Isolationswert LP 2 zu niedrig (0,4 MΩ). Dichtung Kabeleinführung defekt. LP 2 außer Betrieb genommen."}))],
-    a:{maengel:"Ladesäule 2, LP 2: Isolationswiderstand 0,4 MΩ (< 1 MΩ). Dichtung der Kabeleinführung erneuern, Anschlussraum trocknen, danach erneut messen.",funktion:DEF_FUNKTION,naechste:"",sigP:"",sigK:"",sigPName:"Max",sigKName:""}}}));
+    a:{maengel:"Ladesäule 2, LP 2: Isolationswiderstand 0,4 MΩ (< 1 MΩ). Dichtung der Kabeleinführung erneuern, Anschlussraum trocknen, danach erneut messen.",funktion:DEF_FUNKTION,fristJ:"4",naechste:String(new Date().getFullYear()+4)+today().slice(4),sigP:"",sigK:"",sigPName:"Max",sigKName:""}}}));
   D("pruefungen",base({p:{auftragsnr:"2510-104",art:"Erstprüfung",standort:"HV Besucherparkplatz"},x:{kundeId:k1.id,standortId:s1.id,ladeparkId:l2.id,
     s:[demoSaeule(1,"GE-204411",demoLP(),{v:{risov:"500 V",rpe:"0,07",riso:"200"},bem:"Messung LP 2 noch offen – Freigabe durch Betreiber ausstehend."})]}}));
-  D("pruefungen",base({p:{auftragsnr:"2509-017",datum:"2026-09-03",art:"Erstprüfung",standort:"HV Keller"},x:{kundeId:k1.id,standortId:s2.id,ladeparkId:null,
+  D("pruefungen",base({p:{auftragsnr:"2509-017",datum:"2025-12-03",art:"Erstprüfung",standort:"HV Keller"},x:{kundeId:k1.id,standortId:s2.id,ladeparkId:null,a:{...newProto().a,naechste:"2026-12-03",fristJ:"1"},
     s:[Object.assign(demoSaeule(1,"GE-118822",demoLP({v:{zs1:"0,92",zs2:"0,88",zs3:"0,90"}}),newLP()),{typ:"go-e Charger Gemini 11 kW",absIn:"16",inenn:"16",lps:1,ort:"Chefparkplatz"})]}}));
   const k2=D("kunden",{name:"BEISPIEL Erika Mustermann",kdnr:"20871",strasse:"Am Weiher 3",plz:"51545",ort:"Waldbröl",tel:"02291 000000"});
   const s3=D("standorte",{kundeId:k2.id,name:"Einfamilienhaus",strasse:"Am Weiher 3",plz:"51545",ort:"Waldbröl"});
