@@ -228,7 +228,12 @@ body.has-nav .fab{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 .dlg .da .danger{color:var(--err)}
 .dlg .dimg{display:block;width:100%;max-height:58vh;object-fit:contain;border-radius:12px;background:var(--sc)}
 .cols > .wide{grid-column:1/-1}
-.fotos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-width:600px}
+.fotos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (min-width:600px){.fotos .foto{aspect-ratio:4/3}}
+.chip.dim{opacity:.38}
+.warnline{display:flex;gap:8px;align-items:flex-start;color:var(--err);font-size:13px;font-weight:600;margin:8px 4px 0}
+.warnline .ic{width:18px;height:18px;flex:none}
+.seg{max-width:420px}
 .foto{position:relative;aspect-ratio:3/4;border:1.5px dashed var(--outline);border-radius:12px;overflow:hidden;background:transparent;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--on-sv)}
 .foto img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .foto:not(.leer){border:0;background:var(--sc-high)}
@@ -862,7 +867,12 @@ function sollOf(r,s){
   if(r.ria){ const i=num(s.idn)||30; return `${fmt(0.5*i)} – ${fmt(i)} mA`; }
   return r.soll||"";
 }
-function rowVisible(r,s){ if(r.p3&&s.phasen===1) return false; if(r.dc&&!String(s.rcd).includes("RDC-DD")) return false; return true; }
+// RCD: Typ + DC-Fehlerstromerkennung 6 mA in der Wallbox (kompatibel zu älteren Texten in s.rcd)
+const RCD_TYPEN=["A","A-EV","F","B"];
+function rcdInfo(s){ const r=String(s.rcd||""); return {t:s.rcdTyp||(/^B/.test(r)?"B":/A-EV/.test(r)?"A-EV":/^F/.test(r)?"F":"A"), dc:s.rdc!==undefined?!!s.rdc:/RDC-DD/.test(r)}; }
+function setRcd(s,t,dc){ s.rcdTyp=t; s.rdc=dc; s.rcd=`${t}${dc?" + RDC-DD 6 mA":""}`; }
+const polLS=s=>s.phasen===3?"3-polig":"1-polig", polRCD=s=>s.phasen===3?"4-polig":"2-polig";
+function rowVisible(r,s){ if(r.p3&&s.phasen===1) return false; if(r.dc){ const i=rcdInfo(s); if(!i.dc&&i.t!=="A-EV") return false; } return true; }
 function evalRow(r,val,s){
   if(val==null||val==="") return "open";
   if(r.type==="chk") return val==="ok"?"ok":val==="nok"?"bad":"open";
@@ -1283,14 +1293,14 @@ function render(){
 }
 function applyRO(){
   $("#app").querySelectorAll("input,select,textarea").forEach(e=>e.disabled=true);
-  $("#app").querySelectorAll('[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
+  $("#app").querySelectorAll('[data-act="abs"],[data-act="rcdTyp"],[data-act="rdc"],[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
 }
 
 // Felder: M3 Outlined Text Field
 function tf(path,label,val,o={}){
   const cls=["tf"]; if(o.full) cls.push("full"); if(o.ph||o.type==="date") cls.push("fl"); if(o.sfx) cls.push("has-sfx");
   const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
-  return `<div class="${cls.join(" ")}"><input id="${esc(id)}" ${bind} type="${o.type||"text"}" ${o.im?`inputmode="${o.im}"`:""} value="${esc(val)}" placeholder="${esc(o.ph||" ")}" autocomplete="off"><label for="${esc(id)}">${esc(label)}</label>${o.sfx?`<span class="sfx">${esc(o.sfx)}</span>`:""}</div>`;
+  return `<div class="${cls.join(" ")}"><input id="${esc(id)}" ${bind} ${o.list?`list="${o.list}"`:""} type="${o.type||"text"}" ${o.im?`inputmode="${o.im}"`:""} value="${esc(val)}" placeholder="${esc(o.ph||" ")}" autocomplete="off"><label for="${esc(id)}">${esc(label)}</label>${o.sfx?`<span class="sfx">${esc(o.sfx)}</span>`:""}</div>`;
 }
 function ta(path,label,val,o={}){
   const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
@@ -1300,6 +1310,8 @@ function sf(path,label,val,opts,o={}){
   const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
   return `<div class="tf fl${o.full?" full":""}"><select id="${esc(id)}" ${bind}>${opts.map(x=>{ const [v,t]=Array.isArray(x)?x:[x,x]; return `<option value="${esc(v)}" ${v===val?"selected":""}>${esc(t||"–")}</option>`; }).join("")}</select><label for="${esc(id)}">${esc(label)}</label><span class="arr">${icon("drop")}</span></div>`;
 }
+const datalist=(id,vals)=>`<datalist id="${id}">${[...new Set(vals.map(v=>String(v||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de")).map(v=>`<option value="${esc(v)}">`).join("")}</datalist>`;
+const LEITUNGEN=["NYM-J 5×2,5 mm²","NYM-J 5×4 mm²","NYM-J 5×6 mm²","NYM-J 5×10 mm²","NYM-J 5×16 mm²","NYY-J 5×6 mm²","NYY-J 5×10 mm²","NYY-J 5×16 mm²","NYY-J 5×25 mm²","NYM-J 3×2,5 mm²","NYM-J 3×6 mm²"];
 const seg=(act,cur,opts,cls="")=>`<div class="seg ${cls}" role="group">${opts.map(([v,t])=>`<button type="button" data-act="${act}" data-v="${v}" aria-pressed="${String(cur)===String(v)}">${icon("check")}${esc(t)}</button>`).join("")}</div>`;
 
 // --- Listen-Einträge
@@ -1438,25 +1450,31 @@ function saeuleTabs(s){
 function saeuleView(){
   const si=nav.si, s=cur.s[si], st=nav.st||"geraet", b=`s.${si}.`;
   if(st==="geraet"){
-    const z=zsInfo(s); fotoFetch(fotoIds(s));
+    const z=zsInfo(s), ri=rcdInfo(s); fotoFetch(fotoIds(s));
     return `<div class="cols">
       <section class="card"><h3>Gerät</h3><div class="fg">
         ${tf(b+"name","Bezeichnung",s.name)}
         ${tf(b+"ort","Stellplatz / Position",s.ort,{ph:"z. B. Stellplatz 12–13 oder Reihe B"})}
-        ${tf(b+"typ","Hersteller / Typ",s.typ)}
+        ${tf(b+"typ","Hersteller / Typ",s.typ,{list:"dl-typ"})}${datalist("dl-typ",live("pruefungen").flatMap(p=>p.s.map(x=>x.typ)))}
         ${tf(b+"sn","Seriennummer",s.sn)}
         ${tf(b+"fw","Firmware (optional)",s.fw)}
-        <div class="full"><div class="lbl">Freigabe zum Laden</div><div class="chips">${FREIGABEN.map(f=>`<button type="button" class="chip" data-act="freigabe" data-v="${f}" aria-pressed="${freigabeListe(s).includes(f)}">${icon("check")}${f}</button>`).join("")}</div></div>
+        <div class="full"><div class="lbl">Freigabe zum Laden</div><div class="chips">${FREIGABEN.map(f=>`<button type="button" class="chip${f!==FREIGABEN[2]&&freigabeListe(s).includes(FREIGABEN[2])?" dim":""}" data-act="freigabe" data-v="${f}" aria-pressed="${freigabeListe(s).includes(f)}">${icon("check")}${f}</button>`).join("")}</div></div>
         <div><div class="lbl">Ladepunkte</div>${seg("lps",s.lps,[[1,"1"],[2,"2"]])}</div>
-        <div><div class="lbl">Anschluss</div>${seg("phasen",s.phasen,[[3,"3-phasig"],[1,"1-phasig"]])}</div>
+        <div><div class="lbl">Anschluss</div>${seg("phasen",s.phasen,[[1,"1-phasig"],[3,"3-phasig"]])}</div>
       </div></section>
       <section class="card"><h3>Schutzeinrichtungen</h3><div class="fg">
-        ${sf(b+"absTyp","Absicherung",s.absTyp,["LS B","LS C","manuell"])}
-        ${s.absTyp==="manuell"?tf(b+"zsMan","Zs zulässig",s.zsMan,{im:"decimal",sfx:"Ω"}):tf(b+"absIn","Nennstrom LS",s.absIn,{im:"decimal",sfx:"A"})}
-        <p class="calc full" id="calc">${esc(z.calc)}</p>
-        ${sf(b+"rcd","RCD-Typ",s.rcd,RCD_TYPES)}
-        ${tf(b+"idn","RCD IΔn",s.idn,{im:"numeric",sfx:"mA"})}
+        <div class="full"><div class="lbl">Leitungsschutz · ${polLS(s)}</div>${seg("abs",s.absTyp,[["LS B","LS B"],["LS C","LS C"],["manuell","Sicherung"]])}</div>
+        ${s.absTyp==="manuell"?tf(b+"zsMan","Zs zulässig (aus Tabelle)",s.zsMan,{im:"decimal",sfx:"Ω"}):tf(b+"absIn","Nennstrom",s.absIn,{im:"decimal",sfx:"A"})}
         ${tf(b+"inenn","Nennstrom je Ladepunkt",s.inenn,{im:"decimal",sfx:"A"})}
+        <p class="calc full" id="calc">${esc(z.calc)}</p>
+        <div class="full"><div class="lbl">Fehlerstromschutz (RCD) · ${polRCD(s)}</div>${seg("rcdTyp",ri.t,RCD_TYPEN.map(t=>[t,"Typ "+t]))}</div>
+        ${tf(b+"idn","Bemessungsfehlerstrom IΔn",s.idn,{im:"numeric",sfx:"mA"})}
+        <div class="full"><div class="lbl">DC-Fehlerstromerkennung 6 mA in der Wallbox (RDC-DD)</div>${seg("rdc",ri.dc?"1":"0",[["0","Nein"],["1","Ja"]])}
+          ${ri.t==="A"&&!ri.dc?`<p class="warnline">${icon("warn")}RCD Typ A nur zulässig, wenn die Wallbox 6 mA DC selbst erkennt – sonst RCD Typ B (oder A-EV) nötig.</p>`:`<p class="sup">Die Polzahl ergibt sich aus dem Anschluss (${s.phasen===3?"3-phasig":"1-phasig"}).</p>`}</div>
+      </div></section>
+      <section class="card"><h3>Zuleitung</h3><div class="fg">
+        ${tf(b+"leitung","Leitung",s.leitung,{list:"dl-leitung",ph:"z. B. NYM-J 5×10 mm²"})}${datalist("dl-leitung",[...LEITUNGEN,...live("pruefungen").flatMap(p=>p.s.map(x=>x.leitung))])}
+        ${tf(b+"laenge","Länge (ca.)",s.laenge,{im:"decimal",sfx:"m"})}
       </div></section>
       <section class="card wide"><h3>Fotos</h3><div class="fotos">${FOTO_SLOTS.map(([k,l,hint])=>{ const id=(s.fotos||{})[k], src=id&&fotoCache.get(id);
         return src?`<button class="foto" data-act="fotoShow" data-k="${k}" aria-label="Foto ${l} ansehen"><img src="${src}" alt=""><span class="fl">${l}</span></button>`
@@ -1750,13 +1768,15 @@ document.addEventListener("click",ev=>{
   }
   if(!canEdit(cur)) return;
   switch(a){
+  case "abs": { const s=cur.s[nav.si]; s.absTyp=b.dataset.v; scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
+  case "rcdTyp": case "rdc": { const s=cur.s[nav.si], i=rcdInfo(s); if(a==="rcdTyp") setRcd(s,b.dataset.v,i.dc); else setRcd(s,i.t,b.dataset.v==="1"); scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "freigabe": { const s=cur.s[nav.si], v=b.dataset.v; let L=freigabeListe(s);
     if(L.includes(v)) L=L.filter(x=>x!==v); else L=v===FREIGABEN[2]?[v]:[...L.filter(x=>x!==FREIGABEN[2]),v];
     s.freigabe=FREIGABEN.filter(f=>L.includes(f)).join(", "); scheduleSave();
-    b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",L.includes(x.dataset.v))); return; }
+    b.parentElement.querySelectorAll("button").forEach(x=>{ x.setAttribute("aria-pressed",L.includes(x.dataset.v)); x.classList.toggle("dim",x.dataset.v!==FREIGABEN[2]&&L.includes(FREIGABEN[2])); }); return; }
   case "norm": { const n=b.dataset.n, L=cur.p.normen, i=L.indexOf(n); if(i>=0) L.splice(i,1); else L.push(n); b.setAttribute("aria-pressed",i<0); scheduleSave(); return; }
   case "addS": { const prev=cur.s[cur.s.length-1], s=newSaeule(cur.s.length+1);
-    if(prev) ["typ","absTyp","absIn","zsMan","rcd","idn","inenn","freigabe","phasen","lps"].forEach(k=>s[k]=prev[k]);
+    if(prev) ["typ","absTyp","absIn","zsMan","rcd","rcdTyp","rdc","idn","inenn","freigabe","phasen","lps","leitung"].forEach(k=>s[k]=prev[k]);
     cur.s.push(s); commit(); go({v:"saeule",si:cur.s.length-1,st:"geraet"}); toast(`${s.name} angelegt`); return; }
   case "dupAsk": { const src=cur.s[nav.si];
     dialog("Säule vervielfältigen",`<div class="fg1">${tf("n","Anzahl Kopien",String(1),{form:true,im:"numeric",sfx:"Stück"})}</div>
@@ -1920,8 +1940,8 @@ function buildPDF(P){
   P.s.forEach(s=>{
     np(s.name,[s.typ,s.ort].filter(Boolean).join(" | ")||"Ladesäule");
     const z=zsInfo(s); sec("Gerätedaten");
-    kv([["Hersteller / Typ",s.typ],["Seriennummer",s.sn],["Standort",s.ort],["Firmware",s.fw],["Absicherung",s.absTyp==="manuell"?"lt. Tabelle":`${s.absTyp}${s.absIn} A`],["Zs zulässig",isNaN(z.zul)?"-":`${fmt(z.zul,2)} Ohm`],
-        ["RCD",`Typ ${s.rcd}, ${s.idn} mA`],["Nennstrom je LP",s.inenn?`${s.inenn} A`:"-"],["Freigabe",s.freigabe],["Anschluss",s.phasen===3?"3-phasig":"1-phasig"]]);
+    kv([["Hersteller / Typ",s.typ],["Seriennummer",s.sn],["Stellplatz",s.ort],["Firmware",s.fw],["Absicherung",s.absTyp==="manuell"?"Sicherung, Zs lt. Tabelle":`${s.absTyp}${s.absIn} A, ${polLS(s)}`],["Zs zulässig",isNaN(z.zul)?"-":`${fmt(z.zul,2)} Ohm`],
+        ["RCD",`Typ ${rcdInfo(s).t}, ${s.idn} mA, ${polRCD(s)}`],["DC 6 mA",rcdInfo(s).dc?"in der Wallbox (RDC-DD)":rcdInfo(s).t==="A-EV"?"im RCD (Typ A-EV)":rcdInfo(s).t==="B"?"RCD Typ B":"-"],["Zuleitung",[s.leitung,s.laenge&&`ca. ${s.laenge} m`].filter(Boolean).join(", ")],["Nennstrom je LP",s.inenn?`${s.inenn} A`:"-"],["Freigabe",s.freigabe],["Anschluss",s.phasen===3?"3-phasig":"1-phasig"]]);
     // Drei kleine Fotos nebeneinander (Klick im PDF -> Großansicht im Anhang)
     const F=FOTO_SLOTS.map(([k,l,h])=>({l,h,id:(s.fotos||{})[k],data:fotoCache.get((s.fotos||{})[k])}));
     const hasF=F.some(f=>f.data);
