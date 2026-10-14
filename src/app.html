@@ -321,6 +321,8 @@ details.how li{margin:4px 0}
 details.optrows{border-top:1px solid var(--outline-v);margin-top:4px;padding-top:4px}
 details.optrows .mrow:first-of-type{border-top:0}
 .doc h3{font-size:17px;margin:0 0 12px}
+.doc h4{font-size:15px;margin:20px 0 6px}
+.doc .ph{background:#FFF3B0;color:#5A4A00;border-radius:4px;padding:0 4px}
 .doc p{font-size:14px;line-height:1.55;margin:0 0 12px}
 .doc a,.about a{color:var(--primary)}
 .note-doc{color:var(--on-sv);font-size:13px}
@@ -1084,18 +1086,46 @@ function impressumView(){
     <p class="note-doc">Diese App ist ein internes Werkzeug von ${F.name} zur Dokumentation von Prüfungen an Ladeeinrichtungen.</p>
     <p class="note-doc">Angaben übernommen aus dem Impressum von elektro-irrgang.de.</p>`);
 }
+const DS_STAND="Oktober 2026";
 function datenschutzView(){
-  const F=FIRMA;
+  const F=FIRMA, ph=t=>`<span class="ph">${t}</span>`, h=(n,t)=>`<h4>${n}. ${t}</h4>`;
   return rechtsSeite(`<h3>Datenschutzhinweise zur App „EVSE Mobility“</h3>
-    <p><b>Verantwortlicher</b><br>${F.name}, Inhaber ${F.inhaber}, ${F.strasse}, ${F.ort} · ${F.tel} · ${F.mail}</p>
-    <p><b>Was die App speichert</b><br>Kunden- und Standortdaten, Daten der Ladeeinrichtungen, Messwerte, Fotos und Unterschriften. Diese Daten werden <b>nur auf dem jeweiligen Gerät</b> im Speicher des Browsers abgelegt. Sie werden nicht an Server von ${F.name} oder an Dritte übertragen. Weitergegeben werden Daten nur, wenn ein Mitarbeiter aktiv ein PDF oder eine Sicherungsdatei erstellt und versendet.</p>
-    ${SYNC_ON?`<p><b>Microsoft 365</b><br>Mitarbeiter melden sich mit ihrem Firmenkonto an. Prüfungen, Fotos und PDFs werden im Microsoft-365-Speicher (OneDrive/SharePoint) von ${F.name} abgelegt und dort von Microsoft als Auftragsverarbeiter verarbeitet.</p>`:`<p><b>Microsoft 365 (geplant)</b><br>Wird die Anmeldung mit dem Firmenkonto aktiviert, werden die Daten zusätzlich im Microsoft-365-Speicher von ${F.name} abgelegt. Dieser Abschnitt wird dann angepasst.</p>`}
-    <p><b>Zweck und Rechtsgrundlage</b><br>Dokumentation der Prüfung elektrischer Anlagen und Ladeeinrichtungen im Rahmen des Auftrags (Art. 6 Abs. 1 lit. b DSGVO) sowie zur Erfüllung von Nachweispflichten (Art. 6 Abs. 1 lit. c DSGVO).</p>
-    <p><b>Bereitstellung der App</b><br>Die App wird über GitHub Pages (GitHub Inc., USA) ausgeliefert. Beim Aufruf verarbeitet GitHub technisch notwendige Verbindungsdaten wie IP-Adresse, Zeitpunkt und Browsertyp (Art. 6 Abs. 1 lit. f DSGVO). Kundendaten liegen dort nicht. Weitere Informationen: GitHub Privacy Statement.</p>
-    <p><b>Keine Cookies, kein Tracking</b><br>Die App setzt keine Cookies, verwendet keine Analyse- oder Werbedienste und lädt keine Schriftarten oder Skripte von fremden Servern nach.</p>
-    <p><b>Speicherdauer</b><br>Daten bleiben auf dem Gerät, bis sie in der App gelöscht oder die Websitedaten des Browsers entfernt werden. Abgelegte Prüfprotokolle werden gemäß den gesetzlichen Aufbewahrungsfristen aufbewahrt.</p>
-    <p><b>Ihre Rechte</b><br>Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO). Wenden Sie sich dazu an die oben genannte Adresse. Beschwerden können an die Aufsichtsbehörde gerichtet werden: Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen.</p>
-    <p class="warnline">${icon("warn")}Vorlage: bitte vor der Weitergabe an Dritte rechtlich prüfen lassen.</p>`);
+    <p class="note-doc">Stand: ${DS_STAND} · Entwurf – gelb markierte Stellen legt der Betrieb fest.</p>
+    ${h(1,"Verantwortlicher")}
+    <p>${F.name}, Inhaber ${F.inhaber}<br>${F.strasse}, ${F.ort}<br>Telefon ${F.tel} · <a href="mailto:${F.mail}">${F.mail}</a></p>
+    <p><b>Datenschutzbeauftragter:</b> ${ph("nicht benannt (keine Pflicht nach § 38 BDSG) – oder Name/Kontakt eintragen")}</p>
+    ${h(2,"Wofür die App da ist")}
+    <p>EVSE Mobility ist ein internes Werkzeug von ${F.name}. Mitarbeiter dokumentieren damit Prüfungen an Wallboxen und Ladesäulen (Erst- und Wiederholungsprüfungen nach DIN VDE) und erstellen das Prüfprotokoll als PDF. Kunden bedienen die App nicht selbst.</p>
+    ${h(3,"Welche Daten verarbeitet werden")}
+    <p><b>Kunden und Ansprechpartner:</b> Firmen- bzw. Personenname, Anschrift, Kundennummer, Ansprechpartner, Telefon, E-Mail, Standort und Auftragsnummer.</p>
+    <p><b>Anlage und Prüfung:</b> Angaben zu Ladeeinrichtungen (Hersteller, Typ, Seriennummer, Stellplatz), Schutzeinrichtungen, Messwerte, Mängel, Prüfdatum und nächster Prüftermin.</p>
+    <p><b>Fotos:</b> Übersicht, geöffnete Ladeeinrichtung, Prüfplakette und Verteiler. Fotos zeigen die Technik, nicht Personen.</p>
+    <p><b>Unterschriften:</b> Unterschrift und Name des Prüfers sowie des Auftraggebers bzw. seines Vertreters.</p>
+    <p><b>Mitarbeiter:</b> Name des Prüfers und verwendete Messgeräte${SYNC_ON?"; bei Anmeldung zusätzlich Name und dienstliche E-Mail-Adresse aus dem Microsoft-Firmenkonto sowie wer einen Eintrag angelegt oder zuletzt geändert hat":""}.</p>
+    ${h(4,"Zwecke und Rechtsgrundlagen")}
+    <p>Durchführung und Dokumentation des Prüfauftrags (Art. 6 Abs. 1 lit. b DSGVO). Nachweis der normgerechten Prüfung, Planung von Wiederholungsprüfungen und Absicherung bei Gewährleistung oder Haftung (Art. 6 Abs. 1 lit. f DSGVO – berechtigtes Interesse an einer vollständigen Prüfdokumentation). Aufbewahrung nach gesetzlichen Pflichten (Art. 6 Abs. 1 lit. c DSGVO). Daten der Mitarbeiter: Durchführung des Beschäftigungsverhältnisses (Art. 6 Abs. 1 lit. b DSGVO).</p>
+    ${h(5,"Wo die Daten gespeichert werden")}
+    <p><b>Auf dem Gerät:</b> Alle Eingaben werden im Speicher des Browsers auf dem jeweiligen iPad bzw. iPhone abgelegt, damit die App auch ohne Netz funktioniert.</p>
+    ${SYNC_ON?`<p><b>Microsoft 365:</b> Mitarbeiter melden sich mit ihrem Firmenkonto an. Prüfungen, Fotos und PDFs werden im Microsoft-365-Speicher (SharePoint/OneDrive) von ${F.name} abgelegt. Microsoft verarbeitet diese Daten als Auftragsverarbeiter (Art. 28 DSGVO) auf Grundlage der Microsoft-Vertragsbedingungen.</p>`
+      :`<p><b>Microsoft 365 (geplant):</b> Wird die Anmeldung mit dem Firmenkonto aktiviert, werden Prüfungen, Fotos und PDFs zusätzlich im Microsoft-365-Speicher (SharePoint/OneDrive) von ${F.name} abgelegt. Microsoft ist dann Auftragsverarbeiter (Art. 28 DSGVO). Bis dahin bleiben alle Daten ausschließlich auf dem Gerät.</p>`}
+    ${h(6,"Empfänger")}
+    <p>Das Prüfprotokoll erhält der Auftraggeber bzw. eine von ihm benannte Stelle (z. B. Betreiber, Hausverwaltung, Versicherer). Innerhalb von ${F.name} haben nur die Mitarbeiter Zugriff, die Prüfungen durchführen oder verwalten.</p>
+    <p>Auftragsverarbeiter: ${SYNC_ON?"Microsoft Ireland Operations Ltd. (Microsoft 365)":"Microsoft Ireland Operations Ltd. (Microsoft 365, sobald aktiviert)"}; ${ph("IT-Dienstleister, z. B. EDV Achenbach, falls er Zugriff auf den Microsoft-365-Mandanten hat")}.</p>
+    ${h(7,"Bereitstellung der App und Übermittlung in Drittländer")}
+    <p>Die App wird über GitHub Pages (GitHub Inc., USA) ausgeliefert. Beim Aufruf verarbeitet GitHub technisch notwendige Verbindungsdaten wie IP-Adresse, Zeitpunkt und Browsertyp (Art. 6 Abs. 1 lit. f DSGVO). Kunden- oder Prüfdaten liegen dort nicht. Die Übermittlung in die USA stützt sich auf das EU-US Data Privacy Framework. ${ph("Prüfen: aktueller Zertifizierungsstand von GitHub")}</p>
+    ${h(8,"Keine Cookies, kein Tracking")}
+    <p>Die App setzt keine Cookies, nutzt keine Analyse- oder Werbedienste und lädt keine Schriftarten oder Skripte von fremden Servern nach.${SYNC_ON?" Für die Anmeldung wird die Microsoft-Anmeldeseite aufgerufen.":""}</p>
+    ${h(9,"Speicherdauer")}
+    <p>Prüfprotokolle und zugehörige Fotos werden ${ph("10 Jahre nach der Prüfung")} aufbewahrt, mindestens bis zur nächsten Wiederholungsprüfung. Kundendaten werden gelöscht, wenn sie für keine Prüfung mehr benötigt werden und keine Aufbewahrungspflicht besteht. Auf einem Gerät gespeicherte Daten werden mit dem Löschen in der App oder dem Entfernen der Websitedaten des Browsers gelöscht.</p>
+    ${h(10,"Sicherheit")}
+    <p>Die Geräte sind mit Code gesperrt. Die Verbindung zur App läuft verschlüsselt (HTTPS).${SYNC_ON?" Die Anmeldung erfolgt über das Microsoft-Firmenkonto mit den dort geltenden Sicherheitsregeln (z. B. Zwei-Faktor). Jeder Mitarbeiter kann nur seine eigenen Prüfungen ändern.":""} Sicherungsdateien und PDFs werden nur über dienstliche Wege weitergegeben.</p>
+    ${h(11,"Ihre Rechte")}
+    <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit (Art. 15–20 DSGVO) und können der Verarbeitung auf Grundlage berechtigter Interessen widersprechen (Art. 21 DSGVO). Wenden Sie sich dazu an die oben genannte Adresse.</p>
+    <p>Beschwerden können Sie an die Aufsichtsbehörde richten: Landesbeauftragte für Datenschutz und Informationsfreiheit Nordrhein-Westfalen, Kavalleriestraße 2–4, 40213 Düsseldorf.</p>
+    <p>Eine automatisierte Entscheidungsfindung oder ein Profiling findet nicht statt.</p>
+    ${h(12,"Hinweise für Mitarbeiter")}
+    <p>Keine Personen und keine Kfz-Kennzeichen fotografieren – nur die Technik. iPad immer mit Code sperren. PDFs und Sicherungsdateien nicht über private Konten oder Messenger verschicken. Geht ein Gerät verloren, sofort ${ph("den Chef / EDV Achenbach")} informieren.</p>
+    <p class="warnline">${icon("warn")}Entwurf: vor der Weitergabe an Dritte vom Betrieb freigeben und rechtlich prüfen lassen.</p>`);
 }
 function aboutView(){
   const ic=(document.querySelector('link[rel="apple-touch-icon"]')||{}).href||"";
