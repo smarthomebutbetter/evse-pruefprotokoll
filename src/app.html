@@ -5,58 +5,68 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="EVSE-Prüfung">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#17324F">
+<meta name="apple-mobile-web-app-title" content="Irrgang EVSE">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="apple-touch-icon" href="<!--ICON-->">
 <link rel="icon" href="<!--ICON-->">
-<title>EVSE-Prüfprotokoll</title>
+<title>EVSE-Prüfprotokoll · Elektro Irrgang</title>
 <style>
-/* Werkzeug-Layout: feste Kopfzeile mit Reitern, Inhalte als Karten im Raster, Signalgelb nur für Hauptaktionen */
+/* Elektro-Irrgang-Look: weiße Kopfzeile mit Logo, Rot für Hauptaktionen, Dunkelgrau wie die Website-Fußzeile */
+@font-face{font-family:"Manrope";font-weight:400;font-display:swap;src:url(data:font/woff2;base64,<!--F400-->) format("woff2")}
+@font-face{font-family:"Manrope";font-weight:600;font-display:swap;src:url(data:font/woff2;base64,<!--F600-->) format("woff2")}
+@font-face{font-family:"Manrope";font-weight:700;font-display:swap;src:url(data:font/woff2;base64,<!--F700-->) format("woff2")}
+@font-face{font-family:"Manrope";font-weight:800;font-display:swap;src:url(data:font/woff2;base64,<!--F800-->) format("woff2")}
 :root{
-  --bg:#EEF1F5; --surface:#FFFFFF; --sunk:#E6EAF0; --field:#F5F7FA; --ink:#15202C; --muted:#5B6878; --line:#D2D9E2;
-  --bar:#17324F; --bar-ink:#FFFFFF; --bar-muted:#B9C9DB; --signal:#F2B705; --signal-ink:#1A1400; --link:#1F5FA6;
-  --ok:#1E8A4B; --ok-bg:#E2F3E9; --bad:#C62828; --bad-bg:#FBE6E6; --open:#8A97A6;
-  --shadow:0 1px 2px rgba(16,30,48,.06),0 2px 8px rgba(16,30,48,.05);
-  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
-  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --bg:#EFF0F3; --surface:#FFFFFF; --sunk:#E8E9ED; --field:#F6F7F9; --ink:#222222; --muted:#62656D; --line:#DADCE1;
+  --bar:#FFFFFF; --bar-ink:#222222; --bar-muted:#6B6E76; --signal:#E11D2F; --signal-ink:#FFFFFF; --link:#C21A2A;
+  --ok:#1E8A4B; --ok-bg:#E2F3E9; --bad:#B71C1C; --bad-bg:#FBE4E6; --open:#8A8D95;
+  --shadow:0 1px 2px rgba(34,34,34,.05),0 4px 14px rgba(34,34,34,.05); --glow:0 6px 16px rgba(225,29,47,.28);
+  --font:"Manrope",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --mono:"Manrope",ui-monospace,"SF Mono",Menlo,monospace;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0E141B; --surface:#17202A; --sunk:#111922; --field:#0F171F; --ink:#E6ECF3; --muted:#93A1B1; --line:#2A3542;
-  --bar:#0A131D; --bar-ink:#E6ECF3; --bar-muted:#8FA3B8; --signal:#F2B705; --signal-ink:#1A1400; --link:#7DB3F0;
-  --ok:#4CC27E; --ok-bg:#15301F; --bad:#FF7B7B; --bad-bg:#3A1B1B; --open:#6E7C8C;
-  --shadow:0 1px 2px rgba(0,0,0,.4); color-scheme:dark}}
+  --bg:#161616; --surface:#222222; --sunk:#1B1B1B; --field:#1A1A1A; --ink:#F1F1F1; --muted:#A4A7AE; --line:#343434;
+  --bar:#222222; --bar-ink:#F1F1F1; --bar-muted:#A4A7AE; --signal:#E11D2F; --signal-ink:#FFFFFF; --link:#FF7480;
+  --ok:#4CC27E; --ok-bg:#15301F; --bad:#FF7B7B; --bad-bg:#3A1B1D; --open:#74777E;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --glow:0 6px 16px rgba(225,29,47,.22); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0E141B; --surface:#17202A; --sunk:#111922; --field:#0F171F; --ink:#E6ECF3; --muted:#93A1B1; --line:#2A3542;
-  --bar:#0A131D; --bar-ink:#E6ECF3; --bar-muted:#8FA3B8; --signal:#F2B705; --signal-ink:#1A1400; --link:#7DB3F0;
-  --ok:#4CC27E; --ok-bg:#15301F; --bad:#FF7B7B; --bad-bg:#3A1B1B; --open:#6E7C8C;
-  --shadow:0 1px 2px rgba(0,0,0,.4); color-scheme:dark}
+  --bg:#161616; --surface:#222222; --sunk:#1B1B1B; --field:#1A1A1A; --ink:#F1F1F1; --muted:#A4A7AE; --line:#343434;
+  --bar:#222222; --bar-ink:#F1F1F1; --bar-muted:#A4A7AE; --signal:#E11D2F; --signal-ink:#FFFFFF; --link:#FF7480;
+  --ok:#4CC27E; --ok-bg:#15301F; --bad:#FF7B7B; --bad-bg:#3A1B1D; --open:#74777E;
+  --shadow:0 1px 2px rgba(0,0,0,.4); --glow:0 6px 16px rgba(225,29,47,.22); color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.4;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 button,input,select,textarea{font:inherit;color:inherit}
 .gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .wrap{max-width:1100px;margin:0 auto}
 
 /* Kopfzeile */
-.appbar{position:sticky;top:0;z-index:30;background:var(--bar);color:var(--bar-ink);padding-top:env(safe-area-inset-top,0px)}
-.appbar .row{display:flex;align-items:center;gap:8px;min-height:56px}
-.appbar .ttl{flex:1;min-width:0}
-.appbar .ttl b{display:block;font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appbar{position:sticky;top:0;z-index:30;background:var(--bar);color:var(--bar-ink);padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.appbar .row{display:flex;align-items:center;gap:10px;min-height:62px}
+.logo{height:30px;width:auto;flex:none;display:block}
+.logo.dk{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .logo.lt{display:none}:root:not([data-theme="light"]) .logo.dk{display:block}}
+:root[data-theme="dark"] .logo.lt{display:none}
+:root[data-theme="dark"] .logo.dk{display:block}
+.appbar .ttl{flex:1;min-width:0;padding-left:12px;border-left:1px solid var(--line)}
+.appbar .ttl b{display:block;font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .appbar .ttl span{display:block;font-size:12px;color:var(--bar-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ab-btn{border:0;background:rgba(255,255,255,.1);color:var(--bar-ink);border-radius:9px;min-height:40px;padding:8px 12px;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap}
-.ab-btn.signal{background:var(--signal);color:var(--signal-ink)}
-.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px}
+@media (max-width:600px){.logo{height:22px}.appbar .ttl{padding-left:8px}.appbar .ttl span{display:none}}
+.ab-btn{border:1px solid var(--line);background:var(--surface);color:var(--bar-ink);border-radius:8px;min-height:40px;padding:8px 12px;font-weight:700;font-size:14px;cursor:pointer;white-space:nowrap}
+.ab-btn.signal{background:var(--signal);border-color:var(--signal);color:var(--signal-ink);box-shadow:var(--glow)}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
-.tab{border:0;background:transparent;color:var(--bar-muted);border-radius:9px;padding:9px 14px;min-height:42px;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.tab{border:0;border-bottom:3px solid transparent;background:transparent;color:var(--bar-muted);padding:10px 14px 9px;min-height:46px;font-weight:700;font-size:15px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:8px}
 .tab .no{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;font-size:12px}
-.tab[aria-current="page"]{background:rgba(255,255,255,.13);color:var(--bar-ink)}
+.tab[aria-current="page"]{color:var(--bar-ink);border-bottom-color:var(--signal)}
 .tab[aria-current="page"] .no{background:var(--signal);border-color:var(--signal);color:var(--signal-ink)}
 
 main{padding-block:20px calc(40px + env(safe-area-inset-bottom,0px))}
-h2.h{font-size:20px;font-weight:700;margin:0 0 4px;text-wrap:balance}
+h2.h{font-size:22px;font-weight:800;letter-spacing:-.01em;margin:0 0 4px;text-wrap:balance}
 p.lead{margin:0 0 18px;color:var(--muted);font-size:15px}
 .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 10px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);min-width:0}
@@ -72,7 +82,7 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:13px;color:var(--mu
 textarea.i{min-height:96px;resize:vertical;line-height:1.45}
 .i:focus{outline:none;border-color:var(--link);box-shadow:0 0 0 3px color-mix(in srgb,var(--link) 25%,transparent)}
 .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;min-height:46px;padding:10px 18px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
-.btn.primary{background:var(--signal);border-color:var(--signal);color:var(--signal-ink)}
+.btn.primary{background:var(--signal);border-color:var(--signal);color:var(--signal-ink);box-shadow:var(--glow)}
 .btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
 .btn.link{border-color:transparent;background:transparent;color:var(--link);padding-inline:8px}
 .btn.small{min-height:38px;padding:7px 12px;font-size:14px}
@@ -136,8 +146,10 @@ canvas.pad{width:100%;height:170px;background:var(--field);border:1.5px dashed v
 <header class="appbar">
   <div class="wrap gut">
     <div class="row">
-      <button class="ab-btn" id="backBtn" hidden aria-label="Zur Protokoll-Liste">‹ Protokolle</button>
-      <div class="ttl"><b id="topTitle">EVSE-Prüfprotokolle</b><span id="saveState">Wallbox- und Ladesäulenprüfung</span></div>
+      <button class="ab-btn" id="backBtn" hidden aria-label="Zur Protokoll-Liste">‹</button>
+      <img class="logo lt" src="<!--LOGO_HELL-->" alt="Elektro Irrgang">
+      <img class="logo dk" src="<!--LOGO_DUNKEL-->" alt="Elektro Irrgang">
+      <div class="ttl"><b id="topTitle">EVSE-Prüfprotokolle</b><span id="saveState">Prüfprotokoll Ladeeinrichtungen</span></div>
       <button class="ab-btn" id="themeBtn" title="Darstellung umschalten">Auto</button>
       <button class="ab-btn signal" id="pdfTop" hidden>PDF</button>
     </div>
@@ -260,7 +272,7 @@ function applyTheme(t){
   $("#themeBtn").textContent=TH_LABEL[t];
   try{ localStorage.setItem(TH_KEY,t); }catch(e){}
   const dark = t==="dark" || (t==="auto" && matchMedia("(prefers-color-scheme: dark)").matches);
-  document.querySelector('meta[name="theme-color"]').setAttribute("content", dark?"#0A131D":"#17324F");
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", dark?"#222222":"#FFFFFF");
 }
 let theme="auto"; try{ theme=localStorage.getItem(TH_KEY)||"auto"; }catch(e){}
 applyTheme(theme);
@@ -272,7 +284,7 @@ function go(n){ nav=n; render(); window.scrollTo(0,0); }
 function render(){
   const app=$("#app"), inP=nav.v!=="list";
   $("#backBtn").hidden=!inP; $("#pdfTop").hidden=!inP; $("#tabs").hidden=!inP;
-  if(!inP){ $("#topTitle").textContent="EVSE-Prüfprotokolle"; setSub("Wallbox- und Ladesäulenprüfung"); app.innerHTML=listView(); return; }
+  if(!inP){ $("#topTitle").textContent="EVSE-Prüfprotokolle"; setSub("Prüfprotokoll Ladeeinrichtungen"); app.innerHTML=listView(); return; }
   $("#topTitle").textContent=cur.p.projekt||"Neues Protokoll";
   const active = nav.v==="saeule"?"saeulen":nav.v;
   $("#tabs").innerHTML=PTABS.map(([k,t],i)=>`<button class="tab" data-go="${k}" ${k===active?'aria-current="page"':""}><span class="no">${i+1}</span>${t}</button>`).join("");
@@ -559,6 +571,7 @@ function sigExport(c){ const o=document.createElement("canvas"); o.width=Math.mi
   for(let i=0;i<d.data.length;i+=4){ if(d.data[i+3]>0){ d.data[i]=20; d.data[i+1]=28; d.data[i+2]=40; } } x.putImageData(d,0,0); return o.toDataURL("image/png"); }
 
 // ================= PDF =================
+const LOGO_PDF="<!--LOGO_HELL-->";
 const PDFMAP={"≈":"ca.","Ω":"Ohm","≤":"<=","≥":">=","→":"->","↔":"<->","–":"-","Δ":"d","…":"...","·":"|","„":"\"","“":"\""};
 const pt=s=>String(s??"").replace(/[≈Ω≤≥→↔–Δ…·„“]/g,c=>PDFMAP[c]);
 function makePDF(){
@@ -571,14 +584,18 @@ function makePDF(){
 }
 function buildPDF(P){
   const {jsPDF}=window.jspdf, d=new jsPDF({unit:"mm",format:"a4"});
-  const W=210,M=14,CW=W-2*M, NAVY=[23,50,79],SIG=[242,183,5],GR=[93,107,123],LINE=[211,218,227],OKC=[31,138,76],BADC=[198,40,40],SUNK=[238,241,245];
+  const W=210,M=14,CW=W-2*M, NAVY=[34,34,34],SIG=[225,29,47],GR=[93,107,123],LINE=[211,218,227],OKC=[31,138,76],BADC=[198,40,40],SUNK=[238,241,245];
   let y=0,page=1;
-  const head=(t,s)=>{ d.setFillColor(...NAVY); d.rect(0,0,W,24,"F"); d.setFillColor(...SIG); d.rect(0,24,W,1.2,"F");
-    d.setTextColor(255); d.setFont("helvetica","bold"); d.setFontSize(15); d.text(pt(t),M,11); d.setFont("helvetica","normal"); d.setFontSize(8.5); d.text(pt(s),M,18);
-    d.setFontSize(8); d.text("EVSE-Prüfprotokoll",W-M,11,{align:"right"}); d.text(pt(`${P.p.geraet} + ${P.p.adapter}`),W-M,18,{align:"right"}); y=33; };
-  const foot=()=>{ d.setFontSize(7); d.setTextColor(...GR); d.text(pt(`${P.p.projekt||""} | Auftrag ${P.p.auftragsnr||"-"} | Prüfdatum ${deDate(P.p.datum)}`),M,290); d.text(`Seite ${page}`,W-M,290,{align:"right"}); };
+  const head=(t,s)=>{ d.setFillColor(255,255,255); d.rect(0,0,W,26,"F");
+    try{ d.addImage(LOGO_PDF,"PNG",M,6,57,10); }catch(e){}
+    d.setTextColor(34,34,34); d.setFont("helvetica","bold"); d.setFontSize(13); d.text(pt(t),W-M,11,{align:"right"});
+    d.setFont("helvetica","normal"); d.setFontSize(8); d.setTextColor(...GR); d.text(pt(s),W-M,17,{align:"right"});
+    d.setFillColor(...SIG); d.rect(0,24,W,1.4,"F"); y=34; };
+  const foot=()=>{ d.setDrawColor(...LINE); d.line(M,284,W-M,284); d.setFont("helvetica","normal"); d.setFontSize(7); d.setTextColor(...GR);
+    d.text("Elektro Irrgang | Hahner Weg 2 | 51545 Waldbröl | Tel. 02291 4878 | info@elektro-irrgang.de",M,288);
+    d.text(pt(`${P.p.projekt||""} | Auftrag ${P.p.auftragsnr||"-"} | Prüfdatum ${deDate(P.p.datum)}`),M,292); d.text(`Seite ${page}`,W-M,292,{align:"right"}); };
   const np=(t,s)=>{ foot(); d.addPage(); page++; head(t,s); };
-  const sec=t=>{ d.setFillColor(...SUNK); d.rect(M,y-4.5,CW,7,"F"); d.setFillColor(...NAVY); d.rect(M,y-4.5,1.2,7,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(9.5); d.text(pt(t),M+4,y); y+=8; };
+  const sec=t=>{ d.setFillColor(...SUNK); d.rect(M,y-4.5,CW,7,"F"); d.setFillColor(...SIG); d.rect(M,y-4.5,1.2,7,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(9.5); d.text(pt(t),M+4,y); y+=8; };
   const kv=prs=>{ const cw=CW/2; d.setFontSize(8.5); for(let i=0;i<prs.length;i+=2){ let rh=5.5; for(let c=0;c<2&&i+c<prs.length;c++){ const [k,v]=prs[i+c],x=M+c*cw;
       d.setFont("helvetica","normal"); d.setTextColor(...GR); d.text(pt(k),x,y); d.setFont("helvetica","bold"); d.setTextColor(20); const l=d.splitTextToSize(pt(v||"-"),cw-34); d.text(l,x+32,y); rh=Math.max(rh,l.length*4+1.5); }
       d.setDrawColor(...LINE); d.line(M,y+1.6,M+CW,y+1.6); y+=rh+1.2; } y+=2; };
