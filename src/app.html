@@ -383,7 +383,9 @@ function saeuleView(){
       </div></div>
     </div>
     <div class="nav-foot"><span id="delZone"><button class="btn link" data-act="delSask" style="color:var(--bad)">Ladesäule entfernen</button></span>
-      <button class="btn primary" data-act="sub" data-v="lp0">Weiter zu LP 1 ›</button></div>`;
+      <span class="chips"><button class="btn" data-act="dupS">Säule duplizieren</button>
+      <button class="btn primary" data-act="sub" data-v="lp0">Weiter zu LP 1 ›</button></span></div>
+    <p class="note" style="margin:8px 0 0;text-align:right">Duplizieren übernimmt Typ, Absicherung, RCD und Ladepunkte – ohne Seriennummer und ohne Messwerte.</p>`;
     return h;
   }
   const li=+st.slice(2), lp=s.lp[li], lb=`${b}lp.${li}.`;
@@ -479,6 +481,9 @@ document.addEventListener("click",ev=>{
   if(a==="addS"){ const prev=cur.s[cur.s.length-1], s=newSaeule(cur.s.length+1);
     if(prev) ["typ","absTyp","absIn","zsMan","rcd","idn","inenn","freigabe","phasen","lps"].forEach(k=>s[k]=prev[k]);
     cur.s.push(s); saveNow(); go({v:"saeule",si:cur.s.length-1,st:"geraet"}); toast(`${s.name} angelegt`); return; }
+  if(a==="dupS"){ const src=cur.s[nav.si], c=JSON.parse(JSON.stringify(src)); c.id=uid(); c.sn=""; c.ort="";
+    c.lp=[newLP(),newLP()]; const n=cur.s.length+1; c.name=`Ladesäule ${n}`;
+    cur.s.push(c); saveNow(); go({v:"saeule",si:cur.s.length-1,st:"geraet"}); toast(`Kopie von ${src.name} angelegt – Seriennummer eintragen`); return; }
   if(a==="sub"){ saveNow(); go({...nav,st:b.dataset.v}); return; }
   if(a==="lps"||a==="phasen"){ const s=cur.s[nav.si]; s[a]=+b.dataset.v; while(s.lp.length<2) s.lp.push(newLP()); scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   if(a==="chk"){ const p=b.dataset.path, v=b.dataset.v; setPath(p,getPath(p)===v?"":v); scheduleSave(); b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",getPath(p)===x.dataset.v)); refresh(); return; }
