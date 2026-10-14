@@ -82,22 +82,28 @@ body.is-list .tb-title{visibility:hidden}
 .nav-item[aria-current="page"]{color:var(--on-surface)}
 .nav-item[aria-current="page"] .ind{background:var(--sec-c);color:var(--on-sec-c)}
 @media (min-width:840px){
-  .navbar{top:0;right:auto;width:88px;flex-direction:column;justify-content:flex-start;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 8px) 0 calc(env(safe-area-inset-bottom,0px) + 20px) env(safe-area-inset-left,0px);background:var(--surface);border-right:1px solid var(--outline-v);transition:width .2s}
-  .nav-tog{display:grid;margin:0 auto 20px}
+  .navbar{top:0;right:auto;width:88px;flex-direction:column;justify-content:flex-start;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 8px) 0 calc(env(safe-area-inset-bottom,0px) + 20px) env(safe-area-inset-left,0px);background:var(--sc);transition:width .2s}
+  .nav-head{display:flex;align-items:center;gap:8px;height:56px;margin:0 0 20px;justify-content:center}
+  .nav-tog{display:grid}
+  .nav-head .nav-logo{display:none;height:24px;width:auto}
   .nav-item{flex:none;height:auto;padding:4px 0}
   .nav-item .ind{width:56px}
   .nav-item.nav-end{margin-top:auto}
   body.has-nav .topbar, body.has-nav main{margin-left:88px;transition:margin-left .2s}
   /* aufgeklappt: Beschriftung neben dem Symbol */
   body.rail-open .navbar{width:232px;gap:4px}
-  body.rail-open .nav-tog{margin:0 0 20px 20px}
+  body.rail-open .nav-head{justify-content:flex-start;padding-left:16px}
+  body.rail-open .nav-head .nav-logo.l-hell{display:block}
+  body.rail-open .logo{display:none!important}
   body.rail-open .nav-item{flex-direction:row;justify-content:flex-start;gap:12px;height:56px;margin:0 12px;padding:0 16px;border-radius:28px;font-size:14px}
   body.rail-open .nav-item .ind{width:24px;height:24px;background:transparent!important}
   body.rail-open .nav-item[aria-current="page"]{background:var(--sec-c);color:var(--on-sec-c)}
   body.rail-open .nav-item.nav-end{margin-top:auto}
   body.rail-open.has-nav .topbar, body.rail-open.has-nav main{margin-left:232px}
 }
-@media (max-width:839.98px){.nav-tog{display:none}}
+@media (max-width:839.98px){.nav-head{display:none}}
+@media (min-width:840px){@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) body.rail-open .nav-head .nav-logo.l-hell{display:none}:root:not([data-theme="light"]) body.rail-open .nav-head .nav-logo.l-dunkel{display:block}}
+:root[data-theme="dark"] body.rail-open .nav-head .nav-logo.l-hell{display:none}:root[data-theme="dark"] body.rail-open .nav-head .nav-logo.l-dunkel{display:block}}
 
 /* Inhalt */
 main{padding:8px max(16px,env(safe-area-inset-right,0px)) calc(104px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
@@ -242,6 +248,11 @@ canvas.pad{width:100%;height:168px;border-radius:12px;background:var(--surface);
 
 /* Extended FAB */
 .fab{position:fixed;z-index:25;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(16px + env(safe-area-inset-bottom,0px));height:56px;border:0;border-radius:16px;background:var(--fab);color:var(--on-fab);display:flex;align-items:center;gap:12px;padding:0 20px 0 16px;font-size:15px;font-weight:700;box-shadow:var(--e3)}
+.fab-rund{width:56px;padding:0;justify-content:center}
+.fabm{position:fixed;inset:0;z-index:24}
+.fabm-scrim{position:absolute;inset:0;background:color-mix(in srgb,var(--on-surface) 12%,transparent)}
+.fabm-list{position:absolute;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(88px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.fabm-it{height:56px;border:0;border-radius:28px;background:var(--pri-c,var(--sec-c));color:var(--on-pri-c,var(--on-sec-c));display:flex;align-items:center;gap:12px;padding:0 20px 0 16px;font-size:15px;font-weight:700;box-shadow:var(--e2,var(--e3))}
 body.has-nav .fab{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 @media (min-width:840px){.fab{right:24px;bottom:24px!important}}
 
@@ -872,7 +883,7 @@ const IC={
 const icon=n=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 const pill=(r,t)=>`<span class="pill ${r}">${esc(t??RES_TXT[r])}</span>`;
 const DEST=[["projekt","Auftrag","project"],["saeulen","Ladesäulen","ev"],["abschluss","Abschluss","done"]];
-let railOpen=false; try{railOpen=localStorage.getItem("evse_rail")==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
+let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
 const APP_VERSION="<!--VERSION-->";
@@ -896,10 +907,11 @@ function render(){
   document.body.classList.toggle("ro",E&&!canEdit(cur));
   $("#backBtn").hidden=top||login; $("#navbar").hidden=login; $("#tabs").hidden=nav.v!=="saeule"; $("#avBtn").hidden=login||nav.v!=="start"; $("#menuBtn").hidden=top||!!MEHR_SUB[nav.v]||login;
   const dests=E?DEST:TOPDEST, active=E?(nav.v==="saeule"?"saeulen":nav.v):(top?nav.v:MEHR_SUB[nav.v]?"mehr":"kunden");
-  $("#navbar").innerHTML=`<button class="icon-btn nav-tog" data-act="railToggle" aria-label="${railOpen?"Seitenleiste einklappen":"Seitenleiste ausklappen"}" aria-expanded="${railOpen}">${icon(railOpen?"menuOpen":"menu")}</button>`+dests.map(([k,t,i])=>`<button class="nav-item${!E&&k==="mehr"?" nav-end":""}" ${E?`data-go="${k}"`:`data-act="nav" data-v="${k}"`} ${k===active?'aria-current="page"':""}><span class="ind">${icon(i)}</span><span>${t}</span></button>`).join("");
+  const lh=$(".logo.l-hell").src, ld=$(".logo.l-dunkel").src;
+  $("#navbar").innerHTML=`<div class="nav-head"><button class="icon-btn nav-tog" data-act="railToggle" aria-label="${railOpen?"Seitenleiste einklappen":"Seitenleiste ausklappen"}" aria-expanded="${railOpen}">${icon(railOpen?"menuOpen":"menu")}</button><img class="nav-logo l-hell" src="${lh}" alt="Elektro Irrgang"><img class="nav-logo l-dunkel" src="${ld}" alt=""></div>`+dests.map(([k,t,i])=>`<button class="nav-item${!E&&k==="mehr"?" nav-end":""}" ${E?`data-go="${k}"`:`data-act="nav" data-v="${k}"`} ${k===active?'aria-current="page"':""}><span class="ind">${icon(i)}</span><span>${t}</span></button>`).join("");
   let title="", sub="", fab=null, body="";
   if(login){ body=loginView(); }
-  else if(nav.v==="start"){ body=startView(); fab=["newAny","Neue Prüfung","add"]; }
+  else if(nav.v==="start"){ body=startView(); fab=["fabMenu","","add"]; }
   else if(nav.v==="kunden"){ title="Kunden"; body=kundenView(); fab=["newKunde","Kunde","add"]; }
   else if(nav.v==="pruefungen"){ title="Prüfungen"; body=pruefungenView(); fab=["newAny","Neue Prüfung","add"]; }
   else if(nav.v==="faellig"){ title="Fällig"; body=faelligView(); }
@@ -924,7 +936,8 @@ function render(){
   app.innerHTML=body;
   $("#topTitle").innerHTML=title?`<span>${esc(title)}</span>${sub?`<small>${esc(sub)}</small>`:""}`:"";
   const f=$("#fab"); f.hidden=!fab; document.body.classList.toggle("has-fab",!!fab);
-  if(fab){ f.dataset.act=fab[0]; f.innerHTML=`${icon(fab[2])}<span>${fab[1]}</span>`; }
+  f.classList.toggle("fab-rund",!!fab&&!fab[1]); $("#fabm")?.remove();
+  if(fab){ f.dataset.act=fab[0]; f.setAttribute("aria-label",fab[1]||"Neu anlegen"); f.innerHTML=`${icon(fab[2])}${fab[1]?`<span>${fab[1]}</span>`:""}`; }
   $("#avTxt").textContent=initials(ME.name||META.profil.name); $("#avBtn").dataset.sync=SY.state;
   if(E&&!canEdit(cur)) applyRO();
 }
@@ -1500,9 +1513,15 @@ document.addEventListener("click",ev=>{
   const b=ev.target.closest("[data-act]"); if(!b||b.disabled) return;
   let a=b.dataset.act;
   if(b.closest("#menu")) closeOverlays();
+  if(a!=="fabMenu") $("#fabm")?.remove();
   if(a.startsWith("nav:")){ go({v:a.slice(4)}); return; }
   switch(a){
   case "menu": openMenu(); return;
+  case "fabMenu": { if($("#fabm")){ $("#fabm").remove(); return; }
+    const it=(act,ic,t)=>`<button class="fabm-it" data-act="${act}">${icon(ic)}<span>${t}</span></button>`;
+    document.body.insertAdjacentHTML("beforeend",`<div id="fabm" class="fabm"><div class="fabm-scrim" data-act="fabClose"></div><div class="fabm-list">${it("newAny","doc","Neue Prüfung")}${it("newKunde","firma","Neuer Kunde")}</div></div>`);
+    return; }
+  case "fabClose": return;
   case "cancel": closeOverlays(); pick=null; locForm=null; return;
   case "nav": { const v=b.dataset.v; if(v!==nav.v) query=""; saveNow(); if(EDITOR.includes(nav.v)) cur=null; go(b.dataset.id?{v,id:b.dataset.id}:{v}); return; }
   case "login": Auth.login(); return;
@@ -1515,7 +1534,7 @@ document.addEventListener("click",ev=>{
     dialog("Konto",`<div class="konto"><span class="avatar-big">${esc(initials(ME.name))}</span><div><b>${esc(ME.name)}</b><span>${esc(ME.mail)}</span><span>${ME.admin?"Rolle: Admin – darf alle Prüfungen bearbeiten":"Rolle: Prüfer – bearbeitet eigene Prüfungen"}</span></div></div><p class="sup" id="syncState" style="margin:16px 0 0">${esc(syncText())}</p>`,
       `<button class="btn-text danger" data-act="logout">Abmelden</button><span style="flex:1"></span><button class="btn-text" data-act="syncNow">Jetzt abgleichen</button><button class="btn-text" data-act="cancel">Schließen</button>`); return; }
   case "saveName": { const v=formVals().name; META.profil.name=v; metaSave(); setMe(); closeOverlays(); render(); toast("Name gespeichert");
-    if(nachName&&v){ const n=nachName; nachName=null; $("#fab").dataset.act===n&&$("#fab").click(); } return; }
+    if(nachName&&v){ const n=nachName; nachName=null; if($("#fab").dataset.act===n) $("#fab").click(); else if(n==="newAny"){ pick={mode:"new"}; pickDialog(); } } return; }
   case "logout": confirmDlg("Abmelden?","Nicht abgeglichene Änderungen bleiben auf dem Gerät und werden nach der nächsten Anmeldung hochgeladen.","Abmelden","logoutOk"); return;
   case "logoutOk": Auth.logout(); return;
   case "railToggle": railOpen=!railOpen; try{localStorage.setItem("evse_rail",railOpen?"1":"0");}catch(e){} document.body.classList.toggle("rail-open",railOpen); render(); return;
