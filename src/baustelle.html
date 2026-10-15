@@ -548,6 +548,8 @@ body.zg-offen{overflow:hidden}
 .btn-filled.sm{min-height:36px;padding:0 16px;font-size:14px}
 .zg-flaeche{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:12px}
 .zg canvas{background:#fff;border-radius:12px;box-shadow:var(--e1);touch-action:none}
+
+html.standalone .app-weiter{display:none!important}html.standalone a.li.weiter{pointer-events:none}html.standalone a.li.weiter > .ic:last-child{display:none}
 </style>
 </head>
 <body class="is-list">
@@ -576,6 +578,7 @@ body.zg-offen{overflow:hidden}
 <script>
 (() => {
 "use strict";
+try{ if(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches||navigator.standalone) document.documentElement.classList.add("standalone"); }catch(e){}
 const $ = (s,r=document)=>r.querySelector(s);
 const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const num = s=>{ if(s==null) return NaN; const m=String(s).replace(",",".").replace(/[^0-9.\-]/g,""); return m===""?NaN:parseFloat(m); };
@@ -1392,7 +1395,7 @@ function mehrView(){
       ${SYNC_ON?row("syncNow","sync","Jetzt abgleichen",esc(syncText())):""}
       ${row("export","backup","Alle sichern","Baustellen, Übergaben, Fotos und Kunden")}
       ${row("import","upload","Sicherung laden","Daten aus einer Sicherungsdatei übernehmen")}</div>
-    <div class="sec-lbl">Apps</div><div class="list">${`<a class="li" href="../uebersicht/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">Übersicht</span><span class="s">Startseite mit Statistik und Kunden</span></span>${icon("chev")}</a><a class="li" href="../evse/" style="text-decoration:none;color:inherit"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">EVSE</span><span class="s">Prüfung von Wallboxen und Ladesäulen</span></span>${icon("chev")}</a><a class="li" href="../echeck/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">E-Check</span><span class="s">Hausinstallation und Geräte · in Vorbereitung</span></span>${icon("chev")}</a>`}</div>
+    <div class="app-weiter"><div class="sec-lbl">Apps</div><div class="list">${`<a class="li" href="../uebersicht/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">Übersicht</span><span class="s">Startseite mit Statistik und Kunden</span></span>${icon("chev")}</a><a class="li" href="../evse/" style="text-decoration:none;color:inherit"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">EVSE</span><span class="s">Prüfung von Wallboxen und Ladesäulen</span></span>${icon("chev")}</a><a class="li" href="../echeck/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">E-Check</span><span class="s">Hausinstallation und Geräte · in Vorbereitung</span></span>${icon("chev")}</a>`}</div></div>
     <div class="sec-lbl">Rechtliches und Info</div><div class="list">
       ${row("nav:impressum","paragraph","Impressum","")}
       ${row("nav:about","info","Über die App",`Version ${APP_VERSION}`)}</div>

@@ -560,6 +560,8 @@ body.zg-offen{overflow:hidden}
 .br-n{font-size:13px;color:var(--on-sv);margin:8px 0 0}
 .br-l{margin:0 0 12px;padding-left:20px;font-size:14px;line-height:1.5}
 .bereich .btn-filled{align-self:flex-start;opacity:.5}
+
+html.standalone .app-weiter{display:none!important}html.standalone a.li.weiter{pointer-events:none}html.standalone a.li.weiter > .ic:last-child{display:none}
 </style>
 </head>
 <body class="is-list">
@@ -588,6 +590,7 @@ body.zg-offen{overflow:hidden}
 <script>
 (() => {
 "use strict";
+try{ if(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches||navigator.standalone) document.documentElement.classList.add("standalone"); }catch(e){}
 const $ = (s,r=document)=>r.querySelector(s);
 const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const num = s=>{ if(s==null) return NaN; const m=String(s).replace(",",".").replace(/[^0-9.\-]/g,""); return m===""?NaN:parseFloat(m); };
@@ -1045,7 +1048,7 @@ function mehrView(){
       ${!SYNC_ON&&TEST_LOGIN.an&&META.angemeldet?row("testLogout","logout","Abmelden",esc(`Angemeldet: ${META.angemeldet.mail}`)):""}
       ${row("nav:team","person","Mitarbeiter",esc(META.profil.name||""))}
       ${row("theme","theme","Darstellung",TH_LABEL[theme])}</div>
-    <div class="sec-lbl">Apps</div><div class="list">${link("../uebersicht/","home","Übersicht","Startseite mit Statistik und Kunden")}${link("../evse/","ev","EVSE","Prüfung von Wallboxen und Ladesäulen")}${link("../baustelle/","baustelle","Baustelle","Tagesstand, offene Punkte und Material")}</div>
+    <div class="app-weiter"><div class="sec-lbl">Apps</div><div class="list">${link("../uebersicht/","home","Übersicht","Startseite mit Statistik und Kunden")}${link("../evse/","ev","EVSE","Prüfung von Wallboxen und Ladesäulen")}${link("../baustelle/","baustelle","Baustelle","Tagesstand, offene Punkte und Material")}</div></div>
     <div class="sec-lbl">Rechtliches und Info</div><div class="list">
       ${row("nav:impressum","paragraph","Impressum","")}
       ${row("nav:about","info","Über die App",`Version ${APP_VERSION}`)}</div></div>`;

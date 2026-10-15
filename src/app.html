@@ -458,6 +458,8 @@ body.is-login .topbar{display:none}
 .akte-tab td.d small{display:block;color:var(--on-sv);font-size:12px}
 .akte-tab td.bad{color:var(--err);font-weight:700}
 .akte-tab td.leer{color:var(--outline)}
+
+html.standalone .app-weiter{display:none!important}html.standalone a.li.weiter{pointer-events:none}html.standalone a.li.weiter > .ic:last-child{display:none}
 </style>
 </head>
 <body class="is-list">
@@ -489,6 +491,7 @@ body.is-login .topbar{display:none}
 <script>
 (() => {
 "use strict";
+try{ if(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches||navigator.standalone) document.documentElement.classList.add("standalone"); }catch(e){}
 const GROUPS = [
   {id:"frei", ps:"Helfer: LS aus", t:"Spannungsfrei", sub:"Helfer schaltet den LS der Ladestation aus", how:[
     "Spannungsfreiheit feststellen, FEV300 in die Ladedose stecken.",
@@ -1201,7 +1204,7 @@ function mehrView(){
       ${row("export","backup","Alle sichern","Sicherungsdatei mit allen Daten und Fotos")}
       ${row("import","upload","Sicherung laden","Daten aus einer Sicherungsdatei übernehmen")}
       ${!demoFehlt()?row("demoHide","bulb","Beispieldaten ausblenden","Zum Vorführen angelegte Daten entfernen"):row("demo","bulb","Beispieldaten laden","Zum Ausprobieren und Vorführen")}</div>
-    <div class="sec-lbl">Apps</div><div class="list"><a class="li" href="../uebersicht/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">Übersicht</span><span class="s">Startseite mit Statistik und Kunden</span></span>${icon("chev")}</a><a class="li" href="../baustelle/" style="text-decoration:none;color:inherit"><span class="av">${icon("baustelle")}</span><span class="lt"><span class="h">Baustelle</span><span class="s">Tagesstand, offene Punkte und Material pro Baustelle</span></span>${icon("chev")}</a><a class="li" href="../echeck/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">E-Check</span><span class="s">Hausinstallation und Geräte · in Vorbereitung</span></span>${icon("chev")}</a></div>
+    <div class="app-weiter"><div class="sec-lbl">Apps</div><div class="list"><a class="li" href="../uebersicht/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">Übersicht</span><span class="s">Startseite mit Statistik und Kunden</span></span>${icon("chev")}</a><a class="li" href="../baustelle/" style="text-decoration:none;color:inherit"><span class="av">${icon("baustelle")}</span><span class="lt"><span class="h">Baustelle</span><span class="s">Tagesstand, offene Punkte und Material pro Baustelle</span></span>${icon("chev")}</a><a class="li" href="../echeck/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">E-Check</span><span class="s">Hausinstallation und Geräte · in Vorbereitung</span></span>${icon("chev")}</a></div></div>
     <div class="sec-lbl">Rechtliches und Info</div><div class="list">
       ${row("nav:impressum","doc","Impressum","")}
       ${row("nav:datenschutz","shield","Datenschutz","")}

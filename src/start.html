@@ -527,6 +527,8 @@ body.is-login .topbar{display:none}
 .tipp p{font-size:14px;margin:8px 0}
 .tipp .btn-text{display:inline-flex;align-items:center;gap:6px;text-decoration:none;padding-left:0}
 .av{font-weight:700;font-size:14px}
+
+html.standalone .app-weiter{display:none!important}html.standalone a.li.weiter{pointer-events:none}html.standalone a.li.weiter > .ic:last-child{display:none}
 </style>
 </head>
 <body class="is-list">
@@ -555,6 +557,7 @@ body.is-login .topbar{display:none}
 <script>
 (() => {
 "use strict";
+try{ if(matchMedia("(display-mode: standalone)").matches||matchMedia("(display-mode: fullscreen)").matches||navigator.standalone) document.documentElement.classList.add("standalone"); }catch(e){}
 const $ = (s,r=document)=>r.querySelector(s);
 const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const num = s=>{ if(s==null) return NaN; const m=String(s).replace(",",".").replace(/[^0-9.\-]/g,""); return m===""?NaN:parseFloat(m); };
@@ -1067,7 +1070,7 @@ function gruss(){ const h=new Date().getHours(); return h<11?"Guten Morgen":h<18
 function startView(){
   const kacheln=APPS.map(a=>a.geplant?`<div class="app-k geplant"><span class="app-ph">${icon("bulb")}</span><span class="app-t"><b>${a.name}</b><span>${a.text}</span></span>${pill("open","in Planung")}</div>`
     :`<a class="app-k" href="${a.href}"><img src="${a.ic}" alt=""><span class="app-t"><b>${a.name}</b><span>${a.text}</span></span>${icon("chev")}</a>`).join("");
-  let h=`<div class="narrow"><h2 class="gruss">${gruss()}${ME.name?`, ${esc(ME.name)}`:""}</h2><div class="apps">${kacheln}</div>`;
+  let h=`<div class="narrow"><h2 class="gruss">${gruss()}${ME.name?`, ${esc(ME.name)}`:""}</h2><div class="apps app-weiter">${kacheln}</div>`;
   if(ME.admin){
     const bs=echt("baustellen"), F=faellig(), t=today(), bald=new Date(Date.now()+90*864e5).toISOString().slice(0,10);
     const inArbeit=echt("pruefungen").filter(p=>["wip","open"].includes(pStand(p))).length;
@@ -1075,7 +1078,7 @@ function startView(){
       <div class="kpis">${kpi(bs.filter(b=>(b.status||"aktiv")==="aktiv").length,"aktive Baustellen")}${kpi(inArbeit,"Prüfungen in Arbeit")}
       ${kpi(F.filter(p=>p.a.naechste<=bald).length,"Prüfungen fällig in 3 Monaten",F.some(p=>p.a.naechste<t)?"warn":"")}${kpi(echt("kunden").length,"Kunden")}</div>`;
   }
-  return h+`<p class="hint">Jede App lässt sich einzeln auf den Home-Bildschirm legen: App öffnen, dann „Teilen“ → „Zum Home-Bildschirm“.</p></div>`;
+  return h+`<p class="hint app-weiter">Jede App lässt sich einzeln auf den Home-Bildschirm legen: App öffnen, dann „Teilen“ → „Zum Home-Bildschirm“.</p></div>`;
 }
 function balken(werte){ const max=Math.max(1,...werte.map(w=>w[1]));
   return `<div class="balken">${werte.map(([l,v])=>`<div class="bk"><span class="bk-v">${v||""}</span><span class="bk-b" style="height:${Math.round(v/max*100)}%"></span><span class="bk-l">${l}</span></div>`).join("")}</div>`; }
@@ -1128,8 +1131,8 @@ function kundenView(){
 function bezugListen(kind,id){
   const bs=live("baustellen").filter(b=>kind==="kunden"?b.kundeId===id:b.standortId===id).sort((a,b)=>bAktiv(b)-bAktiv(a));
   const ps=live("pruefungen").filter(p=>kind==="kunden"?p.kundeId===id:p.standortId===id).sort(byDate);
-  const bZ=b=>`<a class="li" href="../baustelle/" style="text-decoration:none;color:inherit"><span class="av">${icon("baustelle")}</span><span class="lt"><span class="h">${esc(b.name)}</span><span class="s">${esc([kind==="kunden"&&(standortOf(b.standortId)||{}).name,b.auftragsnr&&`Auftrag ${b.auftragsnr}`].filter(Boolean).join(" · "))}</span><span class="st">${pill((b.status||"aktiv")==="fertig"?"ok":(b.status||"aktiv")==="aktiv"?"wip":"open",B_TXT[b.status||"aktiv"])}</span></span>${icon("chev")}</a>`;
-  const pZ=p=>`<a class="li" href="../evse/" style="text-decoration:none;color:inherit"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">${esc(p.p.art||"Prüfung")} · ${esc(deDate(p.p.datum))}</span><span class="s">${esc([(ladeparkOf(p.ladeparkId)||{}).name||(kind==="kunden"&&(standortOf(p.standortId)||{}).name),p.p.auftragsnr&&`Auftrag ${p.p.auftragsnr}`,`${lpZahl(p)} Ladepunkt${lpZahl(p)===1?"":"e"}`].filter(Boolean).join(" · "))}</span><span class="st">${pill(pStand(p)==="open"?"wip":pStand(p))}${p.a&&p.a.naechste?pill("open",`nächste ${deDate(p.a.naechste)}`):""}</span></span>${icon("chev")}</a>`;
+  const bZ=b=>`<a class="li weiter" href="../baustelle/" style="text-decoration:none;color:inherit"><span class="av">${icon("baustelle")}</span><span class="lt"><span class="h">${esc(b.name)}</span><span class="s">${esc([kind==="kunden"&&(standortOf(b.standortId)||{}).name,b.auftragsnr&&`Auftrag ${b.auftragsnr}`].filter(Boolean).join(" · "))}</span><span class="st">${pill((b.status||"aktiv")==="fertig"?"ok":(b.status||"aktiv")==="aktiv"?"wip":"open",B_TXT[b.status||"aktiv"])}</span></span>${icon("chev")}</a>`;
+  const pZ=p=>`<a class="li weiter" href="../evse/" style="text-decoration:none;color:inherit"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">${esc(p.p.art||"Prüfung")} · ${esc(deDate(p.p.datum))}</span><span class="s">${esc([(ladeparkOf(p.ladeparkId)||{}).name||(kind==="kunden"&&(standortOf(p.standortId)||{}).name),p.p.auftragsnr&&`Auftrag ${p.p.auftragsnr}`,`${lpZahl(p)} Ladepunkt${lpZahl(p)===1?"":"e"}`].filter(Boolean).join(" · "))}</span><span class="st">${pill(pStand(p)==="open"?"wip":pStand(p))}${p.a&&p.a.naechste?pill("open",`nächste ${deDate(p.a.naechste)}`):""}</span></span>${icon("chev")}</a>`;
   return `${bs.length?`<div class="sec-lbl">Baustellen</div>${listOf(bs.map(bZ))}`:""}${ps.length?`<div class="sec-lbl">Prüfungen</div>${listOf(ps.slice(0,10).map(pZ))}`:""}`;
 }
 function kundeView(k){
@@ -1188,7 +1191,7 @@ function mehrView(){
       ${row("theme","theme","Darstellung",TH_LABEL[theme])}</div>
     ${ME.admin?`<div class="sec-lbl">Verwaltung</div><div class="list">
       ${row("nav:team","person","Mitarbeiter und Rechte",`${team().length} aktiv · Protokolle an ${esc(mailAn())}`)}</div>`:""}
-    <div class="sec-lbl">Apps</div>${listOf(APPS.filter(a=>!a.geplant).map(a=>`<a class="li" href="${a.href}" style="text-decoration:none;color:inherit"><img class="app-mini" src="${a.ic}" alt=""><span class="lt"><span class="h">${a.name}</span><span class="s">${a.text}</span></span>${icon("chev")}</a>`))}
+    <div class="app-weiter"><div class="sec-lbl">Apps</div>${listOf(APPS.filter(a=>!a.geplant).map(a=>`<a class="li" href="${a.href}" style="text-decoration:none;color:inherit"><img class="app-mini" src="${a.ic}" alt=""><span class="lt"><span class="h">${a.name}</span><span class="s">${a.text}</span></span>${icon("chev")}</a>`))}</div>
     <div class="sec-lbl">Info</div><div class="list">
       ${row("nav:entwicklung","bulb","Entwicklung der Apps",`Stand ${ENTW_STAND}`)}
       ${row("nav:impressum","paragraph","Impressum","")}
