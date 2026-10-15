@@ -595,7 +595,7 @@ async function dataLoad(){
   }catch(e){ dataDB=null; toast("Gerätespeicher nicht verfügbar – Daten nur bis zum Schließen"); }
   if(!META.migriert){ let old=null; try{ old=JSON.parse(localStorage.getItem(OLD_KEY)||"null"); }catch(e){}
     if(Array.isArray(old)&&old.length) importLegacy(old); META.migriert=true; metaSave(); }
-  if(!META.katSeed){ katSeed(); META.katSeed=1; metaSave(); }
+  if((META.katSeed||0)<KAT_STAND){ katSeed(); META.katSeed=KAT_STAND; metaSave(); }
 }
 const live=k=>[...DB[k].values()].filter(r=>!r.deleted);
 const who=()=>({name:ME.name||META.profil.name||"",mail:ME.mail||""});
@@ -1375,12 +1375,41 @@ function abschlussView(){
 
 const KAT_DATEIEN=false;
 const KAT_HINWEIS=["PE-Anschluss","Anschlussraum / Klemmen","Typschild","Einrichtung / Konfiguration","Fehlerstromschutz","Sonstiges"];
-const KAT_SEED=[["Mennekes",["AMTRON Compact 2.0s","AMTRON Charge Control","AMTRON Professional+","AMTRON 4You 500","AMTRON 4Business 700"]],
-  ["Schneider Electric",["EVlink Home","EVlink Pro AC","EVlink Wallbox Plus"]],["Huawei",["AC Smart Charger"]]];
-const katSlug=t=>String(t).toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const KAT_STAND=2, KAT_GEPRUEFT="15.10.2026";
+const KAT_SEED=[
+  ["Mennekes", "AMTRON Compact 2.0s", "11 kW", "Wallbox", "11", "3", "1", "ja", "max. 10 mm² (6 mm² mit Aderendhülse)", "1321301205", "https://www.stagobel.be/pdf/_Fiches_Techniques_2016/e-Mobility/M1321301205_fr.pdf", "Kein FI und kein LS in der Station – bauseits FI Typ A vorsehen. Laut Datenblatt max. 20 A Vorsicherung. Festes Typ-2-Kabel 7,5 m."],
+  ["Mennekes", "AMTRON Compact 2.0s", "22 kW", "Wallbox", "22", "3", "1", "ja", "max. 10 mm² (6 mm² mit Aderendhülse)", "1321302205", "https://www.stagobel.be/pdf/_Fiches_Techniques_2016/e-Mobility/M1321302205_en.pdf", "DC-Fehlerstromüberwachung > 6 mA (IEC 62955). Kein FI und kein LS in der Station – bauseits FI Typ A. Festes Typ-2-Kabel 7,5 m."],
+  ["Mennekes", "AMTRON Charge Control", "11 kW", "Wallbox", "11", "3", "1", "ja", "max. 5×10 mm² (0,5–10 mm²)", "1349201 (Kabel), 1349401 (Steckdose)", "https://www.mennekes.de/fileadmin/MEN-Deutschland/emobility/04_software/02_amtron_charge_control/1038400DS-1_BA-IA_AMTRON_Charge_Control_FW5.22.4_v02_2023-02-22.pdf", "Kein FI integriert – laut Anleitung mind. FI Typ A vorschalten. Vorsicherung max. 16 A Charakteristik C. Werkseitig 3-phasig, 1-phasig im Webinterface umstellen."],
+  ["Mennekes", "AMTRON Professional", "22 kW", "Wallbox", "22", "3", "1", "ja", "max. 10 mm²", "1384402", "https://assets.heizung-billiger.de/documents/1384402_de.pdf", "FI Typ A und LS C32 in der Station integriert, max. 80 A Vorsicherung. Typ-2-Steckdose."],
+  ["Mennekes", "AMTRON Professional PnC", "22 kW", "Wallbox", "22", "3", "1", "ja", "max. 10 mm²", "1385402", "https://www.mennekes.de/fileadmin/products_media/medien_sge2/produktdatenblaetter/neu/de/1385402_de.pdf", "FI Typ A 40 A/30 mA, LS C32 und Steuersicherung B6 integriert, max. 80 A Vorsicherung. DC > 6 mA (IEC 62752). Typ-2-Steckdose."],
+  ["Mennekes", "AMTRON Professional+", "22 kW", "Wallbox", "22", "3", "1", "ja", "max. 10 mm²", "1386202", "https://www.siblik.com/fileadmin/mam/medias/docus/153/Artikel_AMEM%201386202_Datenblatt-1.pdf", "FI Typ A und LS 32 A integriert, eichrechtskonform. Festes Typ-2-Kabel 7,5 m."],
+  ["Mennekes", "AMTRON Professional+ PnC", "22 kW", "Wallbox", "22", "3", "1", "ja", "max. 10 mm²", "1387202", "https://www.solartraders.com/uploads/production/data_sheet/file/21016/datasheet-german.pdf?locale=de", "FI Typ A 40 A/30 mA und LS C32 integriert, DC > 6 mA (IEC 62752). Festes Typ-2-Kabel 7,5 m."],
+  ["Mennekes", "AMTRON 4You 510", "11 kW", "Wallbox", "11", "3", "1", "ja", "max. 5×10 mm² (6 mm² mit Aderendhülse)", "1315001205BK", "https://www.photovoltaik4all.de/media/a7/4f/e0/1784213493/MENNEKES%C2%AE%20Wallbox%20AMTRON%C2%AE%204You%20510%20Bedienungsanleitung.pdf", "Kein FI integriert – mind. FI Typ A und LS vorschalten, max. 16 A Charakteristik C. Rechtsdrehfeld erforderlich."],
+  ["Mennekes", "AMTRON 4You 510", "22 kW", "Wallbox", "22", "3", "1", "ja", "max. 5×10 mm² (6 mm² mit Aderendhülse)", "1315002205BK", "https://www.photovoltaik4all.de/media/a7/4f/e0/1784213493/MENNEKES%C2%AE%20Wallbox%20AMTRON%C2%AE%204You%20510%20Bedienungsanleitung.pdf", "Kein FI integriert – mind. FI Typ A und LS vorschalten, max. 32 A Charakteristik C. Rechtsdrehfeld erforderlich."],
+  ["Mennekes", "AMTRON 4Business 710", "22 kW", "Wallbox", "22", "3", "1", "ja", "max. 10 mm² (6 mm² mit Aderendhülse)", "1347012205BK", "https://www.vpsolar.com/download/catalog/e-mobility/Mennekes/AMTRON4Business700/Datasheet_Mennekes_Amtron%204Business-710-22-C2_EN.pdf", "Kein FI integriert – bauseits FI vorsehen, max. 32 A Vorsicherung. MID-Zähler, OCPP 1.6j, Lastmanagement."],
+  ["Mennekes", "AMEDIO Professional+", "22 kW", "Ladesäule", "22", "3", "2", "ja", "", "140802412", "https://siblik.com/fileadmin/mam/medias/docus/183/Artikel_AMEM%20140812412_Datenblatt.pdf", "Freistehend, 2× Typ-2-Steckdose. Je Ladepunkt ein FI Typ A und LS 32 A integriert. Anschlussquerschnitt in den Quellen widersprüchlich – am Gerät prüfen."],
+  ["Schneider Electric", "EVlink Home", "7,4 kW", "Wallbox", "7,4", "1", "1", "ja", "2,5–6 mm²", "EVH4S07N2 (Steckdose), EVH4S07NC (Kabel)", "https://cdn.estg.eu/p/5/4/3/c/543ca84f2104012564807f7770474cf6ef915eb6_EVlink_Home___EVH4pppNp_Benutzerhandbuch_DE.pdf", "RDC-DD 6 mA eingebaut, bauseits RCD 30 mA Typ A; LS 40 A B/C. RCD nicht automatisch wiedereinschaltend."],
+  ["Schneider Electric", "EVlink Home", "11 kW", "Wallbox", "11", "3", "1", "ja", "2,5–6 mm²", "EVH4S11N2 (Steckdose), EVH4S11NC (Kabel)", "https://cdn.estg.eu/p/5/4/3/c/543ca84f2104012564807f7770474cf6ef915eb6_EVlink_Home___EVH4pppNp_Benutzerhandbuch_DE.pdf", "RDC-DD 6 mA eingebaut, bauseits RCD 30 mA Typ A und LS 20 A Charakteristik C. Keine 22-kW-Variante."],
+  ["Schneider Electric", "EVlink Home Smart", "11 kW", "Wallbox", "11", "3", "1", "ja", "2,5–6 mm²", "EVH4A11N2 (Steckdose), EVH4A11NC (Kabel)", "https://cdn.estg.eu/p/5/4/3/c/543ca84f2104012564807f7770474cf6ef915eb6_EVlink_Home___EVH4pppNp_Benutzerhandbuch_DE.pdf", "Wie EVlink Home, zusätzlich OCPP, WLAN, Ethernet. Bauseits RCD 30 mA Typ A und LS 20 A C."],
+  ["Schneider Electric", "EVlink Pro AC", "11 kW · RCD A-SI", "Wallbox", "11", "3", "1", "ja", "", "EVB3S11N4A, EVB3S11NCA", "https://www.merten.de/fileadmin/user_upload/Schneider_Electric/Downloads/EVlink_Pro-AC_Datenblatt__122021_web.pdf", "RDC-DD 6 mA, RCD Typ A-SI 30 mA und Arbeitsstromauslöser in der Station integriert. Klemmenquerschnitt nicht belegt."],
+  ["Schneider Electric", "EVlink Pro AC", "22 kW · RCD A-SI", "Wallbox", "22", "3", "1", "ja", "", "EVB3S22N4A, EVB3S22NCA", "https://sklep.fega.pl/amfile/file/download/file/505265/product/197895", "RDC-DD 6 mA, RCD Typ A-SI 30 mA und Arbeitsstromauslöser integriert; Vorsicherung 40 A C. Klemmenquerschnitt nicht belegt."],
+  ["Schneider Electric", "EVlink Pro AC", "22 kW · RCD B-EV", "Wallbox", "22", "3", "1", "nein", "", "EVB3S22N4B, EVB3S22NCB, EVB3S22N4FB", "https://www.merten.de/fileadmin/user_upload/Schneider_Electric/Downloads/EVlink_Pro-AC_Datenblatt__122021_web.pdf", "Kein RDC-DD, dafür RCD Typ B-EV in der Station integriert. Variante „F“ mit Haushaltssteckdose – mitprüfen."],
+  ["Schneider Electric", "EVlink Pro AC", "22 kW · ohne RCD", "Wallbox", "22", "3", "1", "ja", "", "EVB3S22N4, EVB3S22N40M, EVB3S22NC0M", "https://www.merten.de/fileadmin/user_upload/Schneider_Electric/Downloads/EVlink_Pro-AC_Datenblatt__122021_web.pdf", "RDC-DD 6 mA eingebaut, aber kein RCD – bauseits RCD 30 mA Typ A oder B vorsehen."],
+  ["Schneider Electric", "EVlink Wallbox Plus", "11 kW", "Wallbox", "11", "3", "1", "ja", "", "EVH3S11P02K, EVH3S11P04K, EVH3S11P0CK", "https://sistema.depcsuite.com/datasheets_productos/20230505111518.pdf", "Altgerät mit RDC-DD. Hersteller weist darauf hin, dass RCD Typ A mit RDC-DD in dreiphasigen Netzen ggf. unzulässig ist – gegen DIN VDE 0100-722 prüfen."],
+  ["Schneider Electric", "EVlink Wallbox Plus", "22 kW", "Wallbox", "22", "3", "1", "ja", "", "EVH3S22P02K, EVH3S22P04K, EVH3S22P0CK", "https://sistema.depcsuite.com/datasheets_productos/20230505111518.pdf", "Altgerät mit RDC-DD, gleicher Vorbehalt bei dreiphasigem Anschluss wie bei 11 kW. Nicht verwechseln mit EVlink Wallbox ohne „Plus“ (kein RDC-DD, RCD Typ B nötig)."],
+  ["Schneider Electric", "EVlink Parking Standsäule", "22 kW · 2 Ladepunkte", "Ladesäule", "22", "3", "2", "", "", "EVF2S22P22, EVF2S22P44", "https://static.rapidonline.com/pdf/65-2695t_v1.pdf", "Altgerät. Schutzeinrichtungen werden als Kit eingebaut – DC-Erkennung und RCD-Typ vor Ort am Gerät prüfen."],
+  ["Huawei", "SCharger-7KS-S0", "7,4 kW", "Wallbox", "7,4", "1", "1", "ja", "bis 10 mm²", "SCharger-7KS-S0", "https://solar.huawei.com/de/products/SCharger-7KS-S0-22KT-S0/specs/", "Laut Datenblatt RCD Typ A 30 mA + DC 6 mA integriert. Handbuch verlangt vorgeschalteten LS/FI (RCBO). PV-Überschuss nur mit Huawei-Wechselrichter/Smart Dongle."],
+  ["Huawei", "SCharger-22KT-S0", "22 kW", "Wallbox", "22", "3", "1", "ja", "bis 10 mm²", "SCharger-22KT-S0", "https://solar.huawei.com/de/products/SCharger-7KS-S0-22KT-S0/specs/", "Laut Datenblatt RCD Typ A 30 mA + DC 6 mA integriert, auch 1-phasig betreibbar. Handbuch verlangt vorgeschalteten LS/FI (RCBO)."],
+  ["Huawei", "FusionCharge AC AP22N-EU", "22 kW", "Wallbox", "22", "3", "1", "ja", "bis 10 mm²", "AP22N-EU", "https://cdn.autosolar.es/pdf/datasheet-fusioncharge-ac-7,4kw.pdf", "Nachfolger des SCharger. Laut Datenblatt RCD Typ A + RDC-DD 6 mA (IEC 62955) integriert. Quelle ist ein Händler-Datenblatt."]
+];
+const katSlug=t=>String(t).toLowerCase().replace(/\+/g," plus ").replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 function katSeed(){
-  for(const [h,ms] of KAT_SEED) for(const m of ms){ const id="kat-"+katSlug(h+" "+m); if(DB.katalog.has(id)) continue;
-    saveRec("katalog",{id,hersteller:h,modell:m,version:"",art:"Wallbox",leistung:"",phasen:"",lps:"",anschluss:"",dc6:"",artnr:"",quelle:"",notiz:"",hinweise:[],vorlage:true},true); }
+  const F=["hersteller","modell","version","art","leistung","phasen","lps","dc6","anschluss","artnr","quelle","notiz"], neu=new Set();
+  for(const z of KAT_SEED){ const o={}; F.forEach((k,i)=>o[k]=z[i]); o.quelle=`Hersteller-Datenblatt, geprüft ${KAT_GEPRUEFT}: ${o.quelle}`;
+    const id="kat-"+katSlug([o.hersteller,o.modell,o.version].join(" ")); neu.add(id); const alt=DB.katalog.get(id);
+    if(!alt||alt.deleted) saveRec("katalog",Object.assign({id,hinweise:[]},o),true);
+    else if(!alt.quelle||alt.vorlage){ Object.assign(alt,o); delete alt.vorlage; saveRec("katalog",alt); } }
+  for(const r of live("katalog")) if(r.vorlage&&!r.quelle&&!(r.hinweise||[]).length&&!neu.has(r.id)){ r.deleted=true; saveRec("katalog",r); }
 }
 const katName=r=>[r.modell,r.version].filter(Boolean).join(" ");
 const katFotoIds=r=>[r.bild,...(r.hinweise||[]).flatMap(h=>h.fotos||[])].filter(Boolean);
@@ -1432,7 +1461,7 @@ async function katImport(el){
     syncSoon(); render(); toast(`Katalog geladen: ${neu} neu, ${akt} ergänzt`);
   }catch(e){ toast("Die Datei ist keine Katalog-Datei"); }
 }
-const DC6_TXT={ja:"integriert (RDC-DD) – RCD Typ A zulässig",nein:"nicht integriert – RCD Typ B nötig"};
+const DC6_TXT={ja:"integriert (RDC-DD) – RCD Typ A zulässig",nein:"nicht integriert – Schutz Typ B nötig (ggf. in der Station verbaut, siehe Notiz)"};
 function katModellView(r){
   const z=(l,v)=>v?`<div class="iz"><span>${l}</span><b>${esc(v)}</b></div>`:"";
   const stb=[z("Hersteller",r.hersteller),z("Modell",r.modell),z("Version",r.version),z("Bauart",r.art),z("Ladeleistung",r.leistung&&`${r.leistung} kW`),
