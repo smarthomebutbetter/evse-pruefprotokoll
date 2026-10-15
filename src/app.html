@@ -528,8 +528,8 @@ html.standalone .app-weiter{display:none!important}html.standalone a.li.weiter{p
   .sk-neu .ic{width:20px;height:20px}
   .sk-neu:hover{filter:brightness(1.08)}
 }
-@media (min-width:744px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) body .nav-item[aria-current="page"]{background:var(--on-surface)!important;color:var(--surface)!important}}
-@media (min-width:744px){:root[data-theme="dark"] body .nav-item[aria-current="page"]{background:var(--on-surface)!important;color:var(--surface)!important}}
+@media (min-width:744px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) body .nav-item[aria-current="page"]{background:transparent!important;color:var(--surface)!important}}
+@media (min-width:744px){:root[data-theme="dark"] body .nav-item[aria-current="page"]{background:transparent!important;color:var(--surface)!important}}
 
 @media (min-width:744px){
   #backBtn{display:none!important}
@@ -542,6 +542,22 @@ html.standalone .app-weiter{display:none!important}html.standalone a.li.weiter{p
 @media (min-width:744px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) body .logo.l-hell{display:none}:root:not([data-theme="light"]) body:not(.is-login) .logo.l-dunkel{display:block;margin-left:4px}}
 @media (min-width:744px){:root[data-theme="dark"] body .logo.l-hell{display:none}:root[data-theme="dark"] body:not(.is-login) .logo.l-dunkel{display:block;margin-left:4px}}
 @media (min-width:744px) and (max-width:959.98px){body .navbar,body.rail-open .navbar{left:max(184px,calc(env(safe-area-inset-left,0px) + 184px));transform:none}}
+
+html,body{overscroll-behavior-y:none}
+@media (min-width:744px){
+  .topbar,.topbar.scrolled{background:color-mix(in srgb,var(--surface) 80%,transparent);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);box-shadow:none!important}
+  body .navbar{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transform-origin:50% 0;transition:scale .25s cubic-bezier(.3,1.5,.5,1),box-shadow .25s}
+  body .navbar.druck{scale:1.08;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+  .nav-ind{position:absolute;left:0;top:4px;height:32px;width:0;border-radius:16px;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.2);pointer-events:none;z-index:0;opacity:0;transition:transform .34s cubic-bezier(.3,1.3,.5,1),width .34s cubic-bezier(.3,1.3,.5,1),scale .25s cubic-bezier(.3,1.5,.5,1),opacity .15s}
+  .navbar.druck .nav-ind{scale:1.08 1.16}
+  body .nav-item{position:relative;z-index:1;-webkit-tap-highlight-color:transparent;transition:color .2s}
+  body .nav-item:hover,body .nav-item:active{background:transparent!important}
+  body .nav-item[aria-current="page"],body.rail-open .nav-item[aria-current="page"]{background:transparent!important;box-shadow:none;color:var(--on-surface)!important}
+  body .navbar.druck .nav-item[aria-current="page"]{color:var(--on-sv)!important}
+  body .navbar.druck .nav-item.nav-ziel{color:var(--on-surface)!important}
+}
+@media (min-width:744px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) .nav-ind{background:var(--on-surface)}:root:not([data-theme="light"]) body .nav-item[aria-current="page"]{color:var(--surface)!important}:root:not([data-theme="light"]) body .navbar.druck .nav-item[aria-current="page"]{color:var(--on-sv)!important}:root:not([data-theme="light"]) body .navbar.druck .nav-item.nav-ziel{color:var(--surface)!important}}
+@media (min-width:744px){:root[data-theme="dark"] .nav-ind{background:var(--on-surface)}:root[data-theme="dark"] body .nav-item[aria-current="page"]{color:var(--surface)!important}:root[data-theme="dark"] body .navbar.druck .nav-item[aria-current="page"]{color:var(--on-sv)!important}:root[data-theme="dark"] body .navbar.druck .nav-item.nav-ziel{color:var(--surface)!important}}
 </style>
 </head>
 <body class="is-list">
@@ -1091,6 +1107,34 @@ function pfadTeile(){
   if(nav.v==="geraet") return [["Zurück",null]];
   return [];
 }
+let NAV_IND_ALT=null;
+function navIndSetzen(ziel){
+  const nb=$("#navbar"); if(!nb||nb.hidden||!WIDE.matches) return;
+  let ind=nb.querySelector(".nav-ind"); const neu=!ind;
+  if(neu){ ind=document.createElement("span"); ind.className="nav-ind"; nb.prepend(ind); }
+  nb.querySelectorAll(".nav-ziel").forEach(x=>x.classList.remove("nav-ziel"));
+  const it=ziel||nb.querySelector('.nav-item[aria-current="page"]'); if(!it){ ind.style.opacity=0; return; }
+  if(ziel) it.classList.add("nav-ziel");
+  const satz=[...nb.querySelectorAll(".nav-item")].map(x=>x.textContent).join("|"), pos=[it.offsetLeft,it.offsetWidth];
+  if(neu&&NAV_IND_ALT&&NAV_IND_ALT[2]===satz){ ind.style.transition="none"; ind.style.opacity=1; ind.style.transform=`translateX(${NAV_IND_ALT[0]}px)`; ind.style.width=NAV_IND_ALT[1]+"px"; ind.offsetWidth; ind.style.transition=""; }
+  ind.style.opacity=1; ind.style.transform=`translateX(${pos[0]}px)`; ind.style.width=pos[1]+"px";
+  if(!ziel) NAV_IND_ALT=[pos[0],pos[1],satz];
+}
+(()=>{ const nb=$("#navbar"); let dn=null, ziel=null, unterdr=0;
+  const itemAt=x=>{ const its=[...nb.querySelectorAll(".nav-item")]; if(!its.length) return null;
+    return its.find(i=>{ const r=i.getBoundingClientRect(); return x>=r.left&&x<=r.right; })||(x<its[0].getBoundingClientRect().left?its[0]:its[its.length-1]); };
+  nb.addEventListener("pointerdown",e=>{ if(!WIDE.matches||e.button>0) return; const it=e.target.closest(".nav-item"); if(!it) return;
+    dn={it}; ziel=it; try{ nb.setPointerCapture(e.pointerId); }catch(_){} nb.classList.add("druck"); navIndSetzen(it); });
+  nb.addEventListener("pointermove",e=>{ if(!dn) return; const it=itemAt(e.clientX); if(it&&it!==ziel){ ziel=it; navIndSetzen(it); } });
+  const ende=e=>{ if(!dn) return; dn=null; nb.classList.remove("druck");
+    if(e.type==="pointercancel"||!ziel){ navIndSetzen(); return; }
+    unterdr=Date.now()+500; const z=ziel; ziel=null; z.classList.remove("nav-ziel");
+    if(z.getAttribute("aria-current")==="page") navIndSetzen(); else z.click(); };
+  nb.addEventListener("pointerup",ende); nb.addEventListener("pointercancel",ende);
+  document.addEventListener("click",e=>{ if(e.isTrusted&&Date.now()<unterdr&&nb.contains(e.target)){ unterdr=0; e.stopPropagation(); e.preventDefault(); } },true);
+  addEventListener("resize",()=>navIndSetzen());
+})();
+
 function render(){
   const app=$("#app"), ed=EDITOR.includes(nav.v);
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1135,7 +1179,7 @@ function render(){
     if(!canEdit(cur)) body=`<div class="robanner">${icon("lock")}<span>Nur lesen – erstellt von ${esc(vonText(cur)||"jemand anderem")}. Bearbeiten darf nur der Ersteller oder ein Admin.</span></div>`+body;
   }
   if(SY.state==="anmelden"&&!login) body=`<div class="robanner warn">${icon("sync")}<span>Anmeldung abgelaufen – Änderungen werden nur auf dem Gerät gespeichert.</span><button class="btn-text" data-act="relogin">Anmelden</button></div>`+body;
-  app.innerHTML=(WIDE.matches&&!login?seitenKopf(title,sub,fab):"")+body; backSetzen();
+  app.innerHTML=(WIDE.matches&&!login?seitenKopf(title,sub,fab):"")+body; backSetzen(); navIndSetzen();
   $("#topTitle").innerHTML=title?`<span>${esc(title)}</span>${sub?`<small>${esc(sub)}</small>`:""}`:"";
   const f=$("#fab"); f.hidden=!fab; document.body.classList.toggle("has-fab",!!fab);
   f.classList.toggle("fab-rund",!!fab&&!fab[1]); $("#fabm")?.remove();
