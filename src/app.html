@@ -649,7 +649,7 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 }
 
 /* iPad/PC: Google M3 (Expressive) mit Apple-Bedienung */
-@media (min-width:744px){
+@media all{
   .sk{align-items:center!important}
   .sk-zur{width:44px;height:44px;border-radius:50%;border:0;background:var(--sc-high);color:var(--on-surface);display:grid;place-items:center;flex:none;margin-right:4px;-webkit-tap-highlight-color:transparent;transition:background .15s,transform .15s}
   .sk-zur:active{transform:scale(.92);background:var(--sc-highest)}
@@ -692,7 +692,7 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 @media (min-width:744px){.sec-lbl{margin-left:2px!important;margin-right:2px!important}.sec-row{padding:0!important;margin-left:0!important}.sec-row .sec-lbl{margin-left:2px!important}.hint{margin-left:2px!important}}
 
 /* iPad/PC: Erfassungsseiten (Ladestation, Auftrag, Abschluss) */
-@media (min-width:744px){
+@media all{
   .stabs{position:sticky;top:var(--tbh,72px);z-index:5;display:flex;gap:4px;width:max-content;max-width:100%;margin:-4px 0 20px;padding:4px;border-radius:24px;background:var(--sc-high);box-shadow:0 0 0 10px var(--surface)}
   .stabs .tab{flex:none;height:40px;max-width:none;padding:0 20px;border-radius:20px;font-size:15px;font-weight:650;color:var(--on-sv);transition:background .2s,color .2s}
   .stabs .tab .tl::after{display:none!important}
@@ -751,7 +751,7 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 :root{--feld:#FFFFFF}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--feld:var(--sc-high)}}
 :root[data-theme="dark"]{--feld:var(--sc-high)}
-@media (min-width:744px){
+@media all{
   .tf input,.tf select,.tf textarea{background:var(--feld)!important;box-shadow:none!important;border-radius:14px!important;padding:24px 16px 8px}
   .tf textarea{padding-top:26px}
   .tf input:focus,.tf select:focus,.tf textarea:focus{box-shadow:inset 0 0 0 2px var(--primary)!important}
@@ -773,7 +773,7 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 }
 
 /* iPad/PC: ohne Häkchen und Fokusrahmen, gleitende Umschalter */
-@media (min-width:744px){
+@media all{
   .seg button .ic,.chip .ic{display:none!important}
   .chip[aria-pressed="true"]{padding-left:16px!important}
   .tf input:focus,.tf select:focus,.tf textarea:focus{box-shadow:none!important;outline:none!important;background:color-mix(in srgb,var(--primary) 9%,var(--feld))!important}
@@ -796,7 +796,49 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
   .kp-i > .ic:last-child{color:var(--primary);opacity:1;width:22px;height:22px}
   .av.av-img{background:#fff;overflow:hidden}.av.av-img img{width:100%;height:100%;object-fit:contain}
 }
-@media (max-width:743.98px){.kat-feld{display:none}}
+
+/* PC (Maus/Trackpad, ab 1024 px): Seitenleiste statt Tab-Leiste oben */
+@media (min-width:1024px) and (hover:hover) and (pointer:fine){
+  :root body nav.navbar,:root body.rail-open nav.navbar{position:fixed!important;top:0!important;left:0!important;bottom:0!important;right:auto!important;transform:none!important;width:260px!important;height:auto!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:4px!important;padding:18px 12px 20px!important;border-radius:0!important;background:var(--sc-low)!important;box-shadow:none!important;z-index:30;scale:1!important}
+  :root body nav.navbar .nav-head{display:flex!important;align-items:center;height:56px;margin:0 0 14px;padding:0 14px;justify-content:flex-start}
+  :root body nav.navbar .nav-tog{display:none!important}
+  :root body nav.navbar .nav-head .nav-logo{height:26px;width:auto}
+  :root body nav.navbar .nav-head .nav-logo.l-hell{display:block!important}
+  :root body nav.navbar .nav-head .nav-logo.l-dunkel{display:none!important}
+  :root body nav.navbar .nav-item{flex:none!important;flex-direction:row!important;justify-content:flex-start!important;align-items:center!important;gap:14px!important;height:52px!important;margin:0!important;padding:0 18px!important;border-radius:26px!important;font-size:15px!important;font-weight:650;color:var(--on-sv)!important;background:transparent!important;box-shadow:none!important}
+  :root body nav.navbar .nav-item:hover{background:color-mix(in srgb,var(--on-surface) 7%,transparent)!important}
+  :root body nav.navbar .nav-item .ind{display:grid!important;width:24px!important;height:24px!important;background:transparent!important;border-radius:0}
+  :root body nav.navbar .nav-item[aria-current="page"]{background:var(--sec-c)!important;color:var(--on-sec-c)!important}
+  :root body nav.navbar .nav-item > span:last-child{white-space:nowrap}
+  .nav-ind{display:none!important}
+  .topbar{left:260px!important;margin-left:0!important}
+  .topbar .logo{display:none!important}
+  .tb-row{height:64px!important}
+  main,body.has-nav main,body.rail-open.has-nav main{margin-left:260px!important}
+  body.is-login main{margin-left:0!important}
+  .wrap,.narrow,.narrow.lesen{max-width:960px}
+  .snackbar,body.has-fab .snackbar{left:calc(50% + 130px)!important}
+  .pv{left:0}
+}
+@media (min-width:1024px) and (hover:hover) and (pointer:fine) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) body nav.navbar .nav-head .nav-logo.l-hell{display:none!important}:root:not([data-theme="light"]) body nav.navbar .nav-head .nav-logo.l-dunkel{display:block!important}:root:not([data-theme="light"]) body nav.navbar .nav-item[aria-current="page"]{background:var(--sec-c)!important;color:var(--on-sec-c)!important}}
+@media (min-width:1024px) and (hover:hover) and (pointer:fine){:root[data-theme="dark"] body nav.navbar .nav-head .nav-logo.l-hell{display:none!important}:root[data-theme="dark"] body nav.navbar .nav-head .nav-logo.l-dunkel{display:block!important}:root[data-theme="dark"] body nav.navbar .nav-item[aria-current="page"]{background:var(--sec-c)!important;color:var(--on-sec-c)!important}}
+/* Handy: Bausteine wie am iPad, eigene Maße */
+@media (max-width:743.98px){
+  .card{padding:16px 16px 20px}
+  .card h3{font-size:17px;margin:0 0 14px}
+  .search{height:48px;border-radius:24px;padding:0 16px}
+  .li{min-height:64px;padding:12px 14px!important;gap:12px!important}
+  .li .av{width:40px;height:40px}
+  .sec-lbl{margin:22px 4px 8px!important}
+  .fg{gap:14px 16px!important}
+  .seg button{padding:0 8px;font-size:14px}
+}
+
+/* keine feinen Rahmen an Kacheln */
+.app-k,.kpi,.nk{border:0!important;background:var(--sc)!important}
+.app-k:hover,.app-k:active,.nk:hover{background:var(--sc-high)!important}
+.app-k.geplant{background:var(--sc-low)!important}
+.n-add button{border:0!important;background:var(--feld)!important}
 </style>
 </head>
 <body class="is-list">
@@ -1311,7 +1353,7 @@ const IC={
 const icon=n=>`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${IC[n]}"/></svg>`;
 const pill=(r,t)=>`<span class="pill ${r}">${esc(t??RES_TXT[r])}</span>`;
 const DEST=[["projekt","Auftrag","project"],["saeulen","Ladestationen","ev"],["abschluss","Abschluss","done"]];
-const WIDE=matchMedia("(min-width:744px)"); WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
+const WIDE=matchMedia("(min-width:744px)"); const DESK=matchMedia("(min-width:1024px) and (hover:hover) and (pointer:fine)"); DESK.addEventListener?.("change",()=>{ if(typeof render==="function"&&typeof nav!=="undefined"&&nav) render(); }); WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["bibliothek","Bibliothek","folder"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter und Mail",archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
@@ -1349,7 +1391,7 @@ function pfadTeile(){
 let NAV_IND_ALT=null;
 const navSatz=nb=>[...nb.querySelectorAll(".nav-item")].map(x=>x.textContent).join("|");
 function navIndSetzen(){
-  const nb=$("#navbar"); if(!nb||nb.hidden||!WIDE.matches) return;
+  const nb=$("#navbar"); if(!nb||nb.hidden||!WIDE.matches||DESK.matches) return;
   let ind=nb.querySelector(".nav-ind"); const neu=!ind;
   if(neu){ ind=document.createElement("span"); ind.className="nav-ind"; nb.prepend(ind); }
   const it=nb.querySelector('.nav-item[aria-current="page"]'); if(!it){ ind.style.opacity=0; return; }
@@ -1360,7 +1402,7 @@ function navIndSetzen(){
 }
 (()=>{ const nb=$("#navbar"); let z=null, unterdr=0;
   const items=()=>[...nb.querySelectorAll(".nav-item")];
-  nb.addEventListener("pointerdown",e=>{ if(!WIDE.matches||e.button>0) return; const it=e.target.closest(".nav-item");
+  nb.addEventListener("pointerdown",e=>{ if(!WIDE.matches||DESK.matches||e.button>0) return; const it=e.target.closest(".nav-item");
     if(!it||it.getAttribute("aria-current")!=="page") return;
     z={id:e.pointerId,x0:e.clientX,dx:e.clientX-it.getBoundingClientRect().left-it.offsetWidth/2,an:false,ziel:it}; });
   nb.addEventListener("pointermove",e=>{ if(!z||e.pointerId!==z.id) return;
@@ -1518,7 +1560,7 @@ function spickOeffnen(b){ const st=nav.st||"geraet";
   const m=$("#menu"), r=b.getBoundingClientRect(); m.style.top=(r.bottom+6)+"px"; m.style.right=(innerWidth-r.right)+"px"; m.style.minWidth=Math.max(240,r.width)+"px";
   m.hidden=false; $("#scrim").hidden=false; }
 const SEG_ALT=new Map();
-function segInd(){ if(!WIDE.matches) return; const zahl={};
+function segInd(){ const zahl={};
   document.querySelectorAll("#app .seg").forEach(sg=>{ const b0=sg.querySelector("button[data-act]"); if(!b0) return; const a=b0.dataset.act, k=a+":"+(zahl[a]=(zahl[a]||0)+1);
     let ind=sg.querySelector(".seg-ind"); const neu=!ind; if(neu){ ind=document.createElement("span"); ind.className="seg-ind"; sg.prepend(ind); sg.classList.add("hat-ind"); }
     const b=sg.querySelector('button[aria-pressed="true"]'); if(!b){ ind.style.opacity=0; SEG_ALT.delete(k); return; }
@@ -1529,7 +1571,7 @@ function segInd(){ if(!WIDE.matches) return; const zahl={};
 }
 document.addEventListener("click",()=>setTimeout(segInd,0));
 (()=>{ let z=null, sperre=0;
-  document.addEventListener("pointerdown",e=>{ if(!WIDE.matches||e.button>0) return; const sg=e.target.closest("#app .seg.hat-ind"); if(!sg||sg.querySelector("button:disabled")) return; z={sg,x0:e.clientX,id:e.pointerId,an:false,ziel:null}; });
+  document.addEventListener("pointerdown",e=>{ if(e.button>0) return; const sg=e.target.closest("#app .seg.hat-ind"); if(!sg||sg.querySelector("button:disabled")) return; z={sg,x0:e.clientX,id:e.pointerId,an:false,ziel:null}; });
   document.addEventListener("pointermove",e=>{ if(!z||e.pointerId!==z.id) return; if(!z.an){ if(Math.abs(e.clientX-z.x0)<8) return; z.an=true; z.sg.classList.add("zieht"); }
     const bs=[...z.sg.querySelectorAll("button[data-act]")], ind=z.sg.querySelector(".seg-ind"), r=z.sg.getBoundingClientRect(), x=e.clientX-r.left;
     let ziel=bs[0], best=1e9; bs.forEach(b=>{ const d=Math.abs(b.offsetLeft+b.offsetWidth/2-x); if(d<best){ best=d; ziel=b; } });
@@ -1594,7 +1636,7 @@ function render(){
   }
   if(SY.state==="anmelden"&&!login) body=`<div class="robanner warn">${icon("sync")}<span>Anmeldung abgelaufen – Änderungen werden nur auf dem Gerät gespeichert.</span><button class="btn-text" data-act="relogin">Anmelden</button></div>`+body;
   app.innerHTML=(WIDE.matches&&!login?seitenKopf(title,sub,fab):"")+body; backSetzen(); navIndSetzen(); segInd();
-  $("#topTitle").innerHTML=title?`<span>${esc(title)}</span>${sub?`<small>${esc(sub)}</small>`:""}`:"";
+  $("#topTitle").innerHTML=title?`<span>${esc(title)}</span>${sub?`<small>${esc(String(sub).split(/\s*›\s*/).pop())}</small>`:""}`:"";
   const f=$("#fab"); f.hidden=!fab; document.body.classList.toggle("has-fab",!!fab);
   f.classList.toggle("fab-rund",!!fab&&!fab[1]); $("#fabm")?.remove();
   if(fab){ f.dataset.act=fab[0]; f.setAttribute("aria-label",fab[1]||"Neu anlegen"); f.innerHTML=`${icon(fab[2])}${fab[1]?`<span>${fab[1]}</span>`:""}`; }
