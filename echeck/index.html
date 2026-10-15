@@ -1028,7 +1028,7 @@ let theme="auto"; try{ theme=localStorage.getItem(TH_KEY)||"auto"; }catch(e){}
 applyTheme(theme);
 WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
 
-const APP_VERSION="1.70 · 15.10.2026";
+const APP_VERSION="1.71 · 15.10.2026";
 const BEREICHE=[
   {id:"anlage",t:"Hausinstallation",ic:"home",s:"Elektrische Anlagen prüfen",normen:"DIN VDE 0100-600 (Erstprüfung) · DIN VDE 0105-100 (Wiederholungsprüfung)",
     plan:["Prüfung je Kunde und Standort, gegliedert nach Verteiler und Stromkreisen","Besichtigen, Erproben, Messen (RLO, RISO, Zs/Zi, RCD) mit Grenzwertprüfung","Mängel mit Fotos, Prüfprotokoll als PDF und E-Check-Plakette","Übernahme der Messwerte aus dem Messgerät, sobald das Exportformat geklärt ist"]},
@@ -1089,7 +1089,7 @@ function kundenListe(){
   return ks.length?listOf(ks.map(k=>locItem("kunden",k))):`<p class="meta">Kein Kunde gefunden.</p>`;
 }
 function kundenView(){
-  if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Kunden und Standorte sind dieselben wie in EVSE und der Baustelle.</p></div>`;
+  if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Kunden und Standorte sind dieselben wie in den Apps EVSE und Baustelle.</p></div>`;
   return `<div class="narrow">${searchBar("Kunde, Kundennr. oder Ort suchen")}<div id="res">${kundenListe()}</div><p class="hint">Gemeinsame Kundendatenbank aller Apps.</p></div>`;
 }
 function kundeView(k){ const ss=standorteVon(k.id); return `<div class="narrow">${infoKarte(k,"kunden")}<div class="sec-lbl">Standorte</div>${ss.length?listOf(ss.map(s=>locItem("standorte",s))):`<p class="meta">Noch kein Standort – über „Standort“ anlegen.</p>`}</div>`; }
