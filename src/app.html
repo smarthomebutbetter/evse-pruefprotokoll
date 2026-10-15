@@ -785,9 +785,9 @@ const fsName=s=>String(s||"").replace(/[\\/:*?"<>|#%\u0000-\u001f]/g,"-").replac
 function pdfAblage(p){ const {k,s,l}=pfad(p);
   return {dir:[k&&k.name,s&&s.name,l&&l.name].filter(Boolean).map(fsName).join("/")||"Ohne Zuordnung",
           file:fsName(`${p.p.datum||today()} ${p.p.art}${p.p.auftragsnr?" "+p.p.auftragsnr:""}`)+".pdf"}; }
-async function pdfHochladen(p,blob){
+async function pdfHochladen(p,blob,name){
   if(!SYNC_ON||!ME.signedIn) return null;
-  const {dir,file}=pdfAblage(p); await syncRoot(); const fid=await folderId(dir);
+  const {dir}=pdfAblage(p), file=name?fsName(name)+".pdf":pdfAblage(p).file; await syncRoot(); const fid=await folderId(dir);
   if(blob.size<3.5*1024*1024){
     const r=await g(`/drives/${SY.drive}/items/${fid}:/${encodeURIComponent(file)}:/content`,{method:"PUT",headers:{"Content-Type":"application/pdf"},body:blob});
     if(!r.ok) throw new Error(`PDF ablegen fehlgeschlagen (${r.status})`);
@@ -1319,7 +1319,7 @@ function saeuleView(){
 }
 function abschlussView(){
   const a=cur.a, g0=protoState(cur), g=g0==="wip"?"open":g0, nLP=cur.s.reduce((n,s)=>n+s.lps,0);
-  return `<div class="banner ${g}">${icon(g==="ok"?"done":g==="bad"?"warn":"pending")}<div><b>${g==="ok"?"Alle Ladepunkte bestanden":g==="bad"?"Mängel festgestellt":"Noch nicht alle Werte erfasst"}</b><span>${cur.s.length} Ladesäule${cur.s.length>1?"n":""} · ${nLP} Ladepunkt${nLP>1?"e":""}</span></div></div>
+  return `<div class="banner ${g}">${icon(g==="ok"?"done":g==="bad"?"warn":"pending")}<div><b>${g==="ok"?"Alle Ladepunkte bestanden":g==="bad"?"Mängel festgestellt":"Noch nicht alle Werte erfasst"}</b><span>${cur.s.length} ${cur.s.length>1?"Ladestationen":"Ladestation"} · ${nLP} Ladepunkt${nLP>1?"e":""}</span></div></div>
   ${SYNC_ON?`<p class="by-line" style="margin:0 0 16px">${cur.pdfAblage?`PDF abgelegt in: Prüfprotokolle/${esc(cur.pdfAblage)}`:"„PDF erstellen“ legt das PDF zusätzlich im Kundenordner der Share ab."}</p>`:""}
   <div class="cols">
     ${cur.s.length>1?`<section class="card"><h3>Im Bericht</h3><p class="sup" style="margin:-8px 0 12px">Abgewählte Ladestationen erscheinen nicht im PDF. Im Prüfumfang wird vermerkt, dass sie nicht Bestandteil dieses Berichts sind.</p>
@@ -1801,7 +1801,9 @@ document.addEventListener("click",ev=>{
   switch(a){
   case "newSame": saveNow(); neuePruefung(cur.kundeId,cur.standortId,cur.ladeparkId); return;
   case "archCur": { const now=archToggle(cur.id); toast(now?"Archiviert – bleibt beim Kunden sichtbar":"Aus dem Archiv geholt"); return; }
-  case "pdf": makePDF(); return;
+  case "pdf": pdfDialog(); return;
+  case "pdfSave": case "pdfMail": { const n=fsName(formVals().fname.replace(/\.pdf$/i,"")); closeOverlays(); makePDF(n,a==="pdfMail"); return; }
+  case "pdfStd": { const e=$("#f_fname"); if(e) e.value=pdfSchema(cur).name; return; }
   case "openS": saveNow(); go({v:"saeule",si:+b.dataset.si,st:"geraet"}); return;
   case "sub": saveNow(); nav={...nav,st:b.dataset.v}; render(); window.scrollTo(0,0); return;
   case "fotoShow": { const k=b.dataset.k, sl=FOTO_SLOTS.find(x=>x[0]===k), src=fotoCache.get(cur.s[nav.si].fotos[k]), ok=canEdit(cur);
@@ -1975,7 +1977,30 @@ const LOGO_PDF="<!--LOGO_HELL-->";
 const EHW_PDF="<!--EHANDWERK-->";   // Zeichen des Elektrohandwerks (Innungsbetrieb)
 const PDFMAP={"²":"2","³":"3","≈":"ca.","Ω":"Ohm","≤":"<=","≥":">=","→":"->","↔":"<->","–":"-","Δ":"d","…":"...","·":"|","„":"\"","“":"\""};
 const pt=s=>String(s??"").replace(/[²³≈Ω≤≥→↔–Δ…·„“]/g,c=>PDFMAP[c]);
-function makePDF(){
+// Dateiname nach Firmenschema: Auftragsnr_E-CheckEVSE_Kunde_Bereich (Leerzeichen innerhalb der Teile entfallen)
+const PDF_PRUEFART="E-CheckEVSE";
+function pdfSchema(p){
+  const {k,s,l}=pfad(p), kurz=t=>String(t||"").replace(/\s+/g,"").replace(/[\\/:*?"<>|#%]/g,"-");
+  const fehlt=[]; if(!p.p.auftragsnr) fehlt.push("Auftragsnummer"); if(!k) fehlt.push("Kunde"); if(!(l||s)) fehlt.push("Standort / Bereich");
+  const name=[kurz(p.p.auftragsnr),PDF_PRUEFART,kurz(k&&k.name),kurz((l||s||{}).name)].filter(Boolean).join("_");
+  return {name,fehlt};
+}
+function pdfDialog(){
+  saveNow(); const S=pdfSchema(cur);
+  dialog("PDF erstellen",`<div class="fg1">${tf("fname","Dateiname",S.name,{form:true,sfx:".pdf"})}</div>
+    ${S.fehlt.map(f=>`<p class="warnline">${icon("warn")}${esc(f)} fehlt – steht deshalb nicht im Dateinamen.</p>`).join("")}
+    <p class="sup" style="margin:12px 0 0">Schema: Auftragsnr_${PDF_PRUEFART}_Kunde_Bereich · <button class="btn-text" style="height:auto;padding:0" data-act="pdfStd">Standardname</button></p>`,
+    `<button class="btn-text" data-act="cancel">Abbrechen</button><span style="flex:1"></span><button class="btn-text" data-act="pdfMail">Per Mail senden</button><button class="btn-text" data-act="pdfSave">Speichern</button>`);
+}
+async function pdfTeilen(blob,name){
+  const {k,s,l}=pfad(cur), f=new File([blob],name+".pdf",{type:"application/pdf"});
+  const text=`Hallo,\n\nanbei das Prüfprotokoll ${[k&&k.name,(l||s)&&(l||s).name].filter(Boolean).join(", ")}${cur.p.auftragsnr?`, Auftrag ${cur.p.auftragsnr}`:""} vom ${deDate(cur.p.datum)}.\n\nViele Grüße\n${cur.p.pruefer||who().name||""}`;
+  if(navigator.canShare&&navigator.canShare({files:[f]})){
+    try{ await navigator.share({files:[f],title:`Prüfprotokoll ${name}`,text}); return true; }catch(e){ if(e&&e.name==="AbortError") return true; }
+  }
+  saveFile(blob,name+".pdf"); toast("Teilen ist hier nicht möglich – PDF wurde gespeichert"); return false;
+}
+function makePDF(name,mail){
   if(!window.jspdf){ toast("PDF-Erstellung nicht geladen"); return; }
   saveNow();
   const fehlt=cur.s.flatMap(fotoIds).filter(id=>!fotoCache.has(id));
@@ -1983,13 +2008,13 @@ function makePDF(){
   const ohne=(cur.a.pdfOhne||[]).filter(id=>cur.s.some(s=>s.id===id));
   const P=ohne.length?Object.assign({},cur,{s:cur.s.filter(s=>!ohne.includes(s.id)),_ohne:cur.s.filter(s=>ohne.includes(s.id)).map(s=>s.name)}):cur;
   let blob; try{ blob=buildPDF(P); }catch(e){ toast("PDF konnte nicht erstellt werden"); return; }
-  const {k,s}=pfad(cur), base=[k&&k.name,s&&s.name].filter(Boolean).join("_").replace(/[^\wÄÖÜäöüß\-]+/g,"_")||"Protokoll";
-  saveFile(blob,`EVSE-Prüfprotokoll_${base}_${cur.p.datum||today()}.pdf`);
+  name=name||pdfSchema(cur).name||"Prüfprotokoll";
+  if(mail) pdfTeilen(blob,name); else saveFile(blob,name+".pdf");
   if(SYNC_ON&&ME.signedIn&&!cur.demo){ const id=cur.id;
     toast("PDF erstellt – wird zusätzlich in der Share abgelegt …");
-    pdfHochladen(cur,blob).then(pfadTxt=>{ if(!pfadTxt) return; if(cur&&cur.id===id&&canEdit(cur)){ cur.pdfAblage=pfadTxt; commit(); if(nav.v==="abschluss") softRender(); } toast("PDF in der Share abgelegt: "+pfadTxt); })
+    pdfHochladen(cur,blob,name).then(pfadTxt=>{ if(!pfadTxt) return; if(cur&&cur.id===id&&canEdit(cur)){ cur.pdfAblage=pfadTxt; commit(); if(nav.v==="abschluss") softRender(); } toast("PDF in der Share abgelegt: "+pfadTxt); })
       .catch(e=>toast("PDF nicht in der Share abgelegt: "+(e.message||e)+" – bitte später erneut erstellen"));
-  } else toast("PDF erstellt – über Teilen oder „In Dateien sichern“ ablegen");
+  } else if(!mail) toast("PDF erstellt – über Teilen oder „In Dateien sichern“ ablegen");
 }
 function buildPDF(P){
   const {jsPDF}=window.jspdf, d=new jsPDF({unit:"mm",format:"a4"});
