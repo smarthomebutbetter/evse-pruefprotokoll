@@ -93,7 +93,6 @@ body.is-list .tb-title{visibility:hidden}
   body.rail-open .navbar{width:232px;gap:4px}
   body.rail-open .nav-head{justify-content:flex-start;padding-left:16px}
   body.rail-open .nav-head .nav-logo.l-hell{display:block}
-  body.rail-open .logo{display:none!important}
   body.rail-open .nav-item{flex-direction:row;justify-content:flex-start;gap:12px;height:56px;margin:0 12px;padding:0 16px;border-radius:28px;font-size:14px}
   body.rail-open .nav-item .ind{width:24px;height:24px;background:transparent!important}
   body.rail-open .nav-item[aria-current="page"]{background:var(--sec-c);color:var(--on-sec-c)}
@@ -482,11 +481,24 @@ html.standalone .app-weiter{display:none!important}html.standalone a.li.weiter{p
   .nav-item{letter-spacing:0;font-size:11.5px}
   .nav-item > span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
 }
+
+#railBtn{display:none}
+@media (min-width:840px){
+  #railBtn{display:grid;margin-right:4px}
+  .navbar{top:calc(64px + env(safe-area-inset-top,0px));background:var(--surface);padding-top:12px}
+  .nav-head{display:none!important}
+  body.has-nav .topbar,body.rail-open.has-nav .topbar{margin-left:0}
+  body.has-nav .tabs{margin-left:88px}
+  body.rail-open.has-nav .tabs{margin-left:232px}
+  .tb-row{padding-left:max(20px,env(safe-area-inset-left,0px))}
+  body.is-list .logo{margin-left:8px}
+}
 </style>
 </head>
 <body class="is-list">
 <header class="topbar" id="topbar">
   <div class="tb-row">
+    <button class="icon-btn" id="railBtn" data-act="railToggle" aria-label="Seitenleiste ein- oder ausklappen"></button>
     <button class="icon-btn" id="backBtn" hidden aria-label="Zurück"></button>
     <img class="logo l-hell" src="<!--LOGO_HELL-->" alt="Elektro Irrgang">
     <img class="logo l-dunkel" src="<!--LOGO_DUNKEL-->" alt="Elektro Irrgang">
@@ -2027,7 +2039,7 @@ document.addEventListener("click",ev=>{
     if(nachName&&v){ const n=nachName; nachName=null; if($("#fab").dataset.act===n) $("#fab").click(); else if(n==="newAny"){ pick={mode:"new"}; pickDialog(); } } return; }
   case "logout": confirmDlg("Abmelden?","Nicht abgeglichene Änderungen bleiben auf dem Gerät und werden nach der nächsten Anmeldung hochgeladen.","Abmelden","logoutOk"); return;
   case "logoutOk": Auth.logout(); return;
-  case "railToggle": railOpen=!railOpen; try{localStorage.setItem("evse_rail",railOpen?"1":"0");}catch(e){} document.body.classList.toggle("rail-open",railOpen); render(); return;
+  case "railToggle": railOpen=!railOpen; $("#railBtn").innerHTML=icon(railOpen?"menuOpen":"menu"); try{localStorage.setItem("evse_rail",railOpen?"1":"0");}catch(e){} document.body.classList.toggle("rail-open",railOpen); render(); return;
   case "theme": dialog("Darstellung",THEMES.map(t=>`<button class="radio" role="radio" data-act="setTheme" data-v="${t}" aria-checked="${t===theme}"><span class="rb"></span>${TH_LABEL[t]}</button>`).join(""),`<button class="btn-text" data-act="cancel">Schließen</button>`); return;
   case "setTheme": theme=b.dataset.v; applyTheme(theme); closeOverlays(); render(); return;
   case "export": exportBackup(); return;
@@ -2576,7 +2588,7 @@ function buildPDF(P){
 }
 
 
-$("#backBtn").innerHTML=icon("back"); $("#menuBtn").innerHTML=icon("more");
+$("#railBtn").innerHTML=icon(railOpen?"menuOpen":"menu"); $("#backBtn").innerHTML=icon("back"); $("#menuBtn").innerHTML=icon("more");
 if("serviceWorker" in navigator && location.protocol==="https:"){
   const hatteSW=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
