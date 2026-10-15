@@ -1436,7 +1436,7 @@ const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter und Mail",archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.72 · 15.10.2026";
+const APP_VERSION="1.73 · 15.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -1662,7 +1662,7 @@ function mehrView(){
       ${SYNC_ON?row("syncNow","sync","Jetzt abgleichen",esc(syncText())):""}
       ${row("export","backup","Alle sichern","Sicherungsdatei mit allen Daten und Fotos")}
       ${row("import","upload","Sicherung laden","Daten aus einer Sicherungsdatei übernehmen")}
-      ${live("kunden").some(isDemo)?row("demoHide","bulb","Beispieldaten ausblenden","Zum Vorführen angelegte Daten entfernen"):row("demo","bulb","Beispieldaten laden","Zum Ausprobieren und Vorführen")}</div>
+      ${!demoFehlt()?row("demoHide","bulb","Beispieldaten ausblenden","Zum Vorführen angelegte Daten entfernen"):row("demo","bulb","Beispieldaten laden","Zum Ausprobieren und Vorführen")}</div>
     <div class="sec-lbl">Apps</div><div class="list"><a class="li" href="../" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">Übersicht</span><span class="s">Startseite mit Statistik und Kunden</span></span>${icon("chev")}</a><a class="li" href="../baustelle/" style="text-decoration:none;color:inherit"><span class="av">${icon("baustelle")}</span><span class="lt"><span class="h">Baustelle</span><span class="s">Tagesstand, offene Punkte und Material pro Baustelle</span></span>${icon("chev")}</a><a class="li" href="../echeck/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">E-Check</span><span class="s">Hausinstallation und Geräte · in Vorbereitung</span></span>${icon("chev")}</a></div>
     <div class="sec-lbl">Rechtliches und Info</div><div class="list">
       ${row("nav:impressum","doc","Impressum","")}
@@ -2108,7 +2108,7 @@ function openMenu(){
     if(nav.v!=="archiv") it.push(["nav:archiv",`Archiv${META.archiv.length?` (${live("pruefungen").filter(p=>META.archiv.includes(p.id)).length})`:""}`,"archive"]);
     if(SYNC_ON) it.push(["syncNow","Jetzt abgleichen","sync"]);
     it.push(["export","Alle sichern","backup"],["import","Sicherung laden","upload"]);
-    it.push(live("kunden").some(isDemo)?["demoHide","Beispieldaten ausblenden","bulb"]:["demo","Beispieldaten laden","bulb"]);
+    it.push(!demoFehlt()?["demoHide","Beispieldaten ausblenden","bulb"]:["demo","Beispieldaten laden","bulb"]);
   } else if(nav.v==="katmodell"){
     const r=DB.katalog.get(nav.id);
     it.push(["katEdit","Steckbrief bearbeiten","edit"],["katHNeu","Hinweis hinzufügen","add"]);
@@ -2335,7 +2335,7 @@ function geraeteAmOrt(standortId,ladeparkId){
   return [...m.values()];
 }
 function geraetItem(t){ const T=geraeteTreffer(t.s.sn), r=saeuleResult(t.s);
-  return `<div class="li" role="button" tabindex="0" data-act="akte" data-sn="${esc(t.s.sn)}"><span class="av">${icon("wallbox")}</span><span class="lt"><span class="h">${esc(sName(t.s,t.i))}</span>
+  return `<div class="li" role="button" tabindex="0" data-act="akte" data-sn="${esc(t.s.sn)}"><span class="av">${icon(BAUART(t.s)==="Wallbox"?"wallbox":"ev")}</span><span class="lt"><span class="h">${esc(sName(t.s,t.i))}</span>
     <span class="s">${esc([t.s.typ,`SN ${t.s.sn}`].filter(Boolean).join(" · "))}</span><span class="st">${pill(r==="open"?"open":r,r==="ok"?"zuletzt i. O.":r==="bad"?"zuletzt Mängel":"zuletzt offen")}${pill("open",`${T.length} Prüfung${T.length===1?"":"en"}`)}</span></span>${icon("chev")}</div>`; }
 function geraeteSektion(standortId,ladeparkId){ const G=geraeteAmOrt(standortId,ladeparkId); if(!G.length) return "";
   return `<div class="sec-lbl">Geräte · ${G.length}</div>${listOf(G.map(geraetItem))}`; }
@@ -2349,7 +2349,7 @@ function akteView(sn){
     const v=lp.v[r.k]; if(v==null||v==="") return "<td class='leer'>–</td>"; let e="open"; try{ e=evalRow(r,v,t.s); }catch(x){}
     return `<td class="${e==="bad"?"bad":""}">${esc(v)}</td>`; };
   const zeilen=T.map(t=>Array.from({length:Math.max(1,+t.s.lps||1)},(_,li)=>`<tr${li?" class='lp2'":""}>${li?`<td></td>`:`<td class="d"><b>${esc(deDate(t.p.p.datum))}</b><small>${esc(t.p.p.art)}</small></td>`}<td>${(+t.s.lps||1)>1?`LP ${li+1}`:""}</td>${AKTE_SP.map(([k])=>zelle(t,li,k)).join("")}<td>${li?"":pill(saeuleResult(t.s))}</td></tr>`).join("")).join("");
-  return `<div class="narrow"><section class="card akte-k"><div class="ak-h"><span class="av">${icon("wallbox")}</span><div><h2>${esc(s.typ||sName(s,L.i))}</h2>
+  return `<div class="narrow"><section class="card akte-k"><div class="ak-h"><span class="av">${icon(BAUART(s)==="Wallbox"?"wallbox":"ev")}</span><div><h2>${esc(s.typ||sName(s,L.i))}</h2>
       <p>${esc([BAUART(s),`SN ${s.sn}`,s.ort&&`Stellplatz ${s.ort}`].filter(Boolean).join(" · "))}</p><p>${esc(orte.join(" · "))}</p></div></div>
       <div class="kpis3"><div><b>${T.length}</b><span>Prüfung${T.length===1?"":"en"}</span></div><div><b>${esc(deDate(T[T.length-1].p.p.datum))}</b><span>erste Prüfung</span></div><div><b>${esc(deDate(L.p.p.datum))}</b><span>letzte Prüfung</span></div></div>
       ${kat?`<button class="btn-text" data-act="nav" data-v="katmodell" data-id="${esc(kat.id)}">${icon("book")}Steckbrief im Katalog</button>`:""}</section>
@@ -2739,8 +2739,35 @@ function demoSaeule(n,sn,lp1,lp2,extra={}){
   return Object.assign({id:uid(), bauart:"Ladesäule", name:`Ladesäule ${n}`, typ:"Mennekes AMTRON Charge Control", sn, ort:`Stellplatz ${2*n-1}/${2*n}`, fw:"5.22.3",
     absTyp:"LS B", absIn:"32", zsMan:"", inenn:"32", rcd:"A + RDC-DD 6 mA", idn:"30", freigabe:"Ladekarte", phasen:3, lps:2, lp:[lp1,lp2], fotos:{}}, extra);
 }
+const DEMO_AH="BEISPIEL Autohaus Sonnenberg GmbH";
+const demoFehlt=()=>!live("kunden").some(k=>k.demo&&k.name==="BEISPIEL Musterfirma GmbH")||!live("kunden").some(k=>k.demo&&k.name===DEMO_AH);
+function demoAutohaus(D){
+  const zahl=(b,i,sp,st=2)=>(b+(((i*37+11)%17)/16-0.5)*sp).toFixed(st).replace(".",",");
+  const lp=(i,o={})=>demoLP({v:Object.assign({rpe:zahl(0.07,i,0.04),riso:i%3?"200":zahl(48,i,30,0),zs1:zahl(0.38,i,0.08),zs2:zahl(0.37,i,0.08),zs3:zahl(0.39,i,0.08),
+    u1:zahl(232,i,6,1),u2:zahl(231,i,6,1),u3:zahl(233,i,6,1),unpe:zahl(0.5,i,0.6,1),ria:String(19+(i*7)%9),r1:zahl(24,i,10,1),ub:zahl(1.2,i,0.8,1),dc6:zahl(1.8,i,1.2,1),r5:zahl(6,i,3,1)},o.v||{}),bem:o.bem||""});
+  const saeule=(n,sn,i,o1,o2)=>demoSaeule(n,sn,lp(i,o1),lp(i+50,o2),{typ:"Mennekes AMTRON Charge Control",ort:`Stellplatz ${2*n-1}/${2*n}`,absIn:"32",inenn:"32",freigabe:"Ladekarte"});
+  const wallbox=(n,sn,i,o)=>Object.assign(demoSaeule(n,sn,lp(i,o),newLP()),{bauart:"Wallbox",name:`Wallbox ${n}`,typ:"Mennekes AMTRON Professional+ 11 C2",absIn:"16",inenn:"16",lps:1,ort:`Mitarbeiterplatz ${n}`,freigabe:"App",fw:"5.32.0"});
+  const SN_S=[1,2,3,4,5,6].map(n=>`1522${(4100+n*13)}MA.0${7000+n*41}`), SN_W=[1,2,3,4].map(n=>`1491${(3300+n*7)}PP.0${5200+n*29}`);
+  const k=D("kunden",{name:DEMO_AH,kdnr:"30455",strasse:"Gewerbepark 12",plz:"51545",ort:"Waldbröl",ansprech:"Herr Sonnenberg (Geschäftsführung)",tel:"02291 000000",mail:"info@example.com",notiz:"Beispiel: 6 Ladesäulen und 4 Wallboxen auf zwei Parkplätzen, Erst- und Wiederholungsprüfung"});
+  const s=D("standorte",{kundeId:k.id,name:"Autohaus Waldbröl",strasse:"Gewerbepark 12",plz:"51545",ort:"Waldbröl",ansprech:"Herr Werkstattmeister",tel:"02291 000000-20",notiz:"Unterverteilung UV-Lade im Technikraum hinter der Werkstatt"});
+  if(!META.pins.includes(s.id)){ META.pins.push(s.id); metaSave(); }
+  const lK=D("ladeparks",{standortId:s.id,name:"Kundenparkplatz",notiz:"6 Ladesäulen mit je 2 Ladepunkten, Zuleitung aus UV-Lade"});
+  const lM=D("ladeparks",{standortId:s.id,name:"Mitarbeiterparkplatz",notiz:"4 Wallboxen an der Hallenwand"});
+  const proto=(datum,art,auftragsnr,ladeparkId,st,a)=>{ const p=newProto(); Object.assign(p.p,{pruefer:"Max",geraetSn:"MFT-000123",kal:"10.2027",datum,art,auftragsnr,standort:"UV-Lade",
+      normen:art==="Erstprüfung"?["DIN VDE 0100-600","DIN VDE 0100-722"]:["DIN VDE 0105-100","DIN VDE 0100-722"]});
+    return Object.assign(p,{kundeId:k.id,standortId:s.id,ladeparkId,s:st,a:Object.assign({...newProto().a,sigPName:"Max",sigKName:"Herr Sonnenberg"},a)}); };
+  const ok1={maengel:"",fristJ:"1"};
+  D("pruefungen",proto("2025-10-14","Erstprüfung","2510-210",lK.id,SN_S.map((sn,i)=>saeule(i+1,sn,i)),{...ok1,naechste:"2026-10-14"}));
+  D("pruefungen",proto("2025-10-14","Erstprüfung","2510-210",lM.id,SN_W.map((sn,i)=>wallbox(i+1,sn,i+20)),{...ok1,naechste:"2026-10-14"}));
+  D("pruefungen",proto("2026-10-14","Wiederholungsprüfung","2610-118",lK.id,SN_S.map((sn,i)=>saeule(i+1,sn,i+3,i===3?{v:{rpe:"0,24"}}:{},{})),
+    {maengel:"",fristJ:"1",naechste:"2027-10-14"}));
+  D("pruefungen",proto("2026-10-14","Wiederholungsprüfung","2610-118",lM.id,SN_W.map((sn,i)=>wallbox(i+1,sn,i+23,i===2?{v:{riso:"0,8"},bem:"Isolationswiderstand 0,8 MΩ – Feuchtigkeit in der Anschlussdose, Wallbox außer Betrieb genommen."}:{})),
+    {maengel:"Wallbox 3: Isolationswiderstand 0,8 MΩ (< 1 MΩ). Anschlussdose trocknen, Dichtung erneuern, danach erneut messen.",fristJ:"1",naechste:"2027-10-14"}));
+}
 function demoLaden(){
   const D=(kind,r)=>{ r.demo=true; r.id=r.id||uid(); r.created=r.updated=Date.now(); r.createdBy=r.updatedBy={name:"Beispiel",mail:""}; dbPut(kind,r); return r; };
+  if(!live("kunden").some(k=>k.demo&&k.name===DEMO_AH)) demoAutohaus(D);
+  if(live("kunden").some(k=>k.demo&&k.name==="BEISPIEL Musterfirma GmbH")) return;
   const k1=D("kunden",{name:"BEISPIEL Musterfirma GmbH",kdnr:"10234",strasse:"Industriestraße 1",plz:"53359",ort:"Rheinbach",ansprech:"Frau Beispiel (Facility Management)",tel:"02226 0000-0",mail:"facility@example.com",notiz:"Mehrere Standorte"});
   const s1=D("standorte",{kundeId:k1.id,name:"Werk Rheinbach",strasse:"Industriestraße 1",plz:"53359",ort:"Rheinbach",ansprech:"Herr Pförtner",tel:"02226 0000-10",notiz:"Anmeldung an der Pforte, Schlüssel Tiefgarage dort"});
   const s2=D("standorte",{kundeId:k1.id,name:"Verwaltung Nümbrecht",strasse:"Hauptstraße 5",plz:"51588",ort:"Nümbrecht"});
