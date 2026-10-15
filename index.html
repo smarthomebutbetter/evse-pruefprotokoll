@@ -375,6 +375,16 @@ details.optrows .mrow:first-of-type{border-top:0}
 .kat-gepr summary span{flex:1}.kat-gepr summary .ic{width:20px;height:20px}
 .kat-gepr summary .ic:last-child{transition:transform .2s}.kat-gepr[open] summary .ic:last-child{transform:rotate(180deg)}
 .kat-gepr .list{margin-top:8px}
+.stgr{padding:12px;border-radius:16px;background:var(--sc-high)}
+.stgr + .stgr{margin-top:12px}
+.stgr-k{display:flex;align-items:center;justify-content:space-between;margin:-4px 0 8px}
+.stgr-f{margin-top:12px;grid-template-columns:minmax(0,3fr) minmax(0,1fr)}
+.stgr-add{display:flex;align-items:center;gap:4px;margin-top:8px;padding:0 12px 0 8px}
+.stgr-add .ic{width:18px;height:18px}
+.chklist{display:flex;flex-direction:column;max-height:50vh;overflow:auto}
+.chkrow{display:flex;align-items:center;gap:14px;min-height:52px;padding:4px 2px;border-bottom:1px solid var(--outline-v)}
+.chkrow input{width:22px;height:22px;accent-color:var(--primary);flex:none}
+.chkrow span{display:flex;flex-direction:column}.chkrow small{color:var(--on-sv);font-size:12px}
 .kath{padding-bottom:10px}
 .kath + .kath{margin-top:12px}
 .kath-k{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px}
@@ -1378,7 +1388,7 @@ const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.38 · 15.10.2026";
+const APP_VERSION="1.39 · 15.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -1964,7 +1974,7 @@ function openMenu(){
     if(ok) it.push(["delLocAsk",`${KIND_NAME[kind]} löschen`,"del","danger"]);
   } else if(E){
     const ok=canEdit(cur);
-    if(nav.v==="saeule"&&ok) it.push(["dupAsk","Ladestation vervielfältigen","copy"],["delSask","Ladestation entfernen","del","danger"],"-");
+    if(nav.v==="saeule"&&ok) it.push(...(cur.s.length>1?[["uebertragAsk","Auf andere Stationen übertragen","copy"]]:[]),["dupAsk","Ladestation vervielfältigen","copy"],["delSask","Ladestation entfernen","del","danger"],"-");
     it.push(["pdf","PDF erstellen","pdf"],["newSame","Neue Prüfung am selben Ort","copy"]);
     if(ok) it.push(["move","Kunde / Standort ändern","move"]);
     it.push(["archCur",META.archiv.includes(cur.id)?"Aus dem Archiv holen":"Archivieren",META.archiv.includes(cur.id)?"unarchive":"archive"]);
@@ -2024,35 +2034,61 @@ function pickResolve(){
 let nachName=null;
 function nameFehlt(weiter){ if(SYNC_ON||META.profil.name) return false; nachName=weiter;
   dialog("Wie heißt du?",`<div class="fg1">${tf("name","Dein Name",``,{form:true})}</div><p class="sup" style="margin:12px 0 0">Erscheint als Prüfer und Ersteller. Einmalig pro Gerät, änderbar über das Symbol oben rechts.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveName">Weiter</button>`); return true; }
-// Was wird geprüft? Bauart und Anzahl gleich beim Anlegen
+// Was wird geprüft? Gruppen aus Bauart, Hersteller/Typ und Anzahl – z. B. 4 × Ladesäule A und 2 × Wallbox B
+const ST_TECHNIK=["absTyp","absIn","absInAnders","zsMan","lsIcn","lsTyp","rcd","rcdTyp","rdc","idn","rcdIn","rcdHT","inenn","inennAnders","leitung"];
+const ST_GERAET=["bauart","katId","typ","fw","freigabe","lps","phasen"];
 let stDlg=null;
+const stTypListe=()=>[...live("katalog").map(r=>[r.hersteller,katName(r)].filter(Boolean).join(" ")),...live("pruefungen").flatMap(p=>p.s.map(x=>x.typ))];
+function katZuTyp(typ){ const t=katNorm(typ); if(!t) return null;
+  return live("katalog").find(r=>katNorm([r.hersteller,katName(r)].join(" "))===t)||live("katalog").find(r=>r.modell&&t.includes(katNorm(r.modell)))||null; }
+function katAnwenden(s,r){ if(!r) return; s.katId=r.id;
+  if(r.phasen) s.phasen=+r.phasen; if(r.lps) s.lps=+r.lps;
+  const kw=num(r.leistung); if(kw&&s.phasen){ const A=kw*1000/(s.phasen*230); if(Math.abs(A-16)<1.5) s.inenn="16"; else if(Math.abs(A-32)<2.5) s.inenn="32"; } }
+function stLesen(){ const F=formVals(); stDlg.gr.forEach((g,i)=>{ if(F["typ_"+i]!==undefined) g.typ=F["typ_"+i]; if(F["n_"+i]!==undefined) g.n=F["n_"+i]; }); }
 function stDialog(o){
-  if(o) stDlg=Object.assign({bauart:"Wallbox",n:"1"},stDlg&&!o.mode?stDlg:{},o);
-  const D=stDlg;
-  dialog(D.mode==="neu"?"Was wird geprüft?":"Ladestationen hinzufügen",`<div class="fg1">
-    <div><div class="lbl">Bauart</div>${seg("stBauart",D.bauart,BAUARTEN.map(([v,t,z])=>[v,`${t} · ${z}`]))}</div>
-    ${tf("n","Anzahl",D.n,{form:true,im:"numeric",sfx:"Stück"})}</div>
-    <p class="sup" style="margin:12px 0 0">${D.mode==="neu"?"Weitere Stationen, auch mit anderer Bauart, kannst du später unter „Ladestationen“ ergänzen.":"Einstellungen wie Schutzeinrichtung und Leitung werden von der letzten Station gleicher Bauart übernommen."}</p>`,
+  if(o){ const vorB=o.bauart||"Wallbox", vorT=o.mode==="add"?((([...cur.s].reverse().find(x=>BAUART(x)===vorB))||{}).typ||""):"";
+    stDlg=Object.assign({gr:[{bauart:vorB,typ:vorT,n:"1"}]},o); }
+  const D=stDlg, many=D.gr.length>1;
+  const body=D.gr.map((g,i)=>`<div class="stgr">${many?`<div class="stgr-k"><b>Gruppe ${i+1}</b><button class="icon-btn sm" data-act="stGrDel" data-g="${i}" aria-label="Gruppe entfernen">${icon("del")}</button></div>`:""}
+      ${seg("stBauart",g.bauart,BAUARTEN.map(([v,t,z])=>[v,`${t} · ${z}`])).replace(/data-act="stBauart"/g,`data-act="stBauart" data-g="${i}"`)}
+      <div class="row2 stgr-f">${tf("typ_"+i,"Hersteller / Typ (optional)",g.typ,{form:true,list:"dl-sttyp",ph:"z. B. Mennekes AMTRON"})}${tf("n_"+i,"Anzahl",g.n,{form:true,im:"numeric",sfx:"Stück"})}</div></div>`).join("");
+  dialog(D.mode==="neu"?"Was wird geprüft?":"Ladestationen hinzufügen",`<div class="fg1">${body}</div>${datalist("dl-sttyp",stTypListe())}
+    <button class="btn-text stgr-add" data-act="stGrAdd">${icon("add")}Weitere Bauart oder Typ</button>
+    <p class="sup" style="margin:8px 0 0">Ist der Typ im Katalog, werden Ladepunkte, Phasen und Strom übernommen. Schutzeinrichtung und Leitung trägst du bei der ersten Station ein und überträgst sie dann über ⋮ „Auf andere Stationen übertragen“.</p>`,
     `<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="stOk">${D.mode==="neu"?"Prüfung anlegen":"Hinzufügen"}</button>`);
 }
-function stAnlegen(){
-  const D=stDlg, n=Math.max(1,Math.min(50,parseInt(formVals().n,10)||1)); stDlg=null; closeOverlays();
-  if(D.mode==="neu"){ neuePruefung(D.k,D.s,D.l,{bauart:D.bauart,n}); return; }
-  const vor=[...cur.s].reverse().find(x=>BAUART(x)===D.bauart), start=cur.s.length;
-  for(let i=0;i<n;i++){ const s=newSaeule(cur.s.length+1,D.bauart); s.name="";
-    if(vor) ["typ","absTyp","absIn","zsMan","lsIcn","lsTyp","rcd","rcdTyp","rdc","idn","rcdIn","rcdHT","inenn","freigabe","phasen","lps","leitung"].forEach(k=>s[k]=vor[k]);
-    cur.s.push(s); }
-  nummeriere(); commit();
-  if(n===1){ go({v:"saeule",si:start,st:"geraet"}); toast(`${cur.s[start].name} angelegt`); }
-  else { go({v:"saeulen"}); toast(`${n} Ladestationen angelegt (${cur.s[start].name} bis ${cur.s[cur.s.length-1].name})`); }
+function stErzeugen(liste,D){   // liste = vorhandene Stationen (für Vorlagen), liefert neue Stationen
+  const neu=[];
+  for(const g of D.gr){ const n=Math.max(0,Math.min(50,parseInt(g.n,10)||0)); if(!n) continue;
+    const vor=[...liste,...neu].reverse().find(x=>BAUART(x)===g.bauart&&(!g.typ||katNorm(x.typ)===katNorm(g.typ))), kat=katZuTyp(g.typ);
+    for(let i=0;i<n;i++){ const s=newSaeule(1,g.bauart); s.name="";
+      if(vor){ [...ST_GERAET.filter(k=>k!=="fw"),...ST_TECHNIK].forEach(k=>{ if(vor[k]!==undefined) s[k]=vor[k]; }); }
+      if(g.typ){ s.typ=g.typ.trim(); if(!vor) katAnwenden(s,kat); }
+      neu.push(s); } }
+  return neu;
 }
-
+function stAnlegen(){
+  stLesen(); const D=stDlg; stDlg=null; closeOverlays();
+  if(D.mode==="neu"){ const neu=stErzeugen([],D); if(!neu.length) neu.push(newSaeule(1)); neuePruefung(D.k,D.s,D.l,{stationen:neu}); return; }
+  const start=cur.s.length, neu=stErzeugen(cur.s,D); if(!neu.length) return;
+  cur.s.push(...neu); nummeriere(); commit();
+  if(neu.length===1){ go({v:"saeule",si:start,st:"geraet"}); toast(`${cur.s[start].name} angelegt`); }
+  else { go({v:"saeulen"}); toast(`${neu.length} Ladestationen angelegt`); }
+}
+// Daten einer Station auf andere übertragen (Seriennummer, Stellplatz, Messwerte und Fotos bleiben)
+function uebertragDialog(){
+  const q=cur.s[nav.si], andere=cur.s.map((s,i)=>({s,i})).filter(x=>x.i!==nav.si);
+  const vor=x=>BAUART(x.s)===BAUART(q)&&(!x.s.typ||katNorm(x.s.typ)===katNorm(q.typ));
+  dialog("Auf andere Stationen übertragen",`<p class="sup" style="margin:0 0 12px">Von <b>${esc(sName(q,nav.si))}</b>: Bauart, Hersteller/Typ, Firmware, Freigabe, Ladepunkte, Phasen, Ladeleistung, Schutzeinrichtungen und Zuleitung. Name, Seriennummer, Stellplatz, Beschriftung, Länge, Messwerte und Fotos bleiben, wie sie sind.</p>
+    <div class="chklist">${andere.map(x=>`<label class="chkrow"><input type="checkbox" data-tr="${x.i}" ${vor(x)?"checked":""}><span><b>${esc(sName(x.s,x.i))}</b><small>${esc([BAUART(x.s),x.s.typ].filter(Boolean).join(" · "))}</small></span></label>`).join("")}</div>`,
+    `<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="uebertragen">Übertragen</button>`);
+}
 // Neue Prüfung: übernimmt die Ladesäulen der letzten Prüfung am selben Ort (ohne Messwerte, Fotos, Unterschriften)
 function neuePruefung(kundeId,standortId,ladeparkId,st){
   const prev0=pruefAt(standortId,ladeparkId||null)[0];
   if(!prev0&&!st){ stDialog({mode:"neu",k:kundeId,s:standortId,l:ladeparkId}); return; }
   const p=newProto();
-  if(st){ p.s=Array.from({length:st.n},(_,i)=>newSaeule(i+1,st.bauart)); nummeriere(p.s); } p.kundeId=kundeId; p.standortId=standortId; p.ladeparkId=ladeparkId||null; p.p.pruefer=who().name;
+  if(st){ p.s=st.stationen; nummeriere(p.s); } p.kundeId=kundeId; p.standortId=standortId; p.ladeparkId=ladeparkId||null; p.p.pruefer=who().name;
   const meine=live("pruefungen").filter(x=>!SYNC_ON||sameUser(x.createdBy,ME)).sort((a,b)=>(b.created||0)-(a.created||0))[0];
   if(meine) ["geraet","geraetSn","kal","adapter"].forEach(f=>p.p[f]=meine.p[f]);   // eigenes Messgerät übernehmen
   const prev=pruefAt(standortId,ladeparkId||null)[0];
@@ -2239,7 +2275,9 @@ document.addEventListener("click",ev=>{
     if(kind==="standorte") neuePruefung(r.kundeId,r.id,null); else { const s=standortOf(r.standortId); neuePruefung(s.kundeId,s.id,r.id); } return; }
   case "open": oeffne(b.dataset.id); return;
   case "katNeu": katDialog(null); return;
-  case "stBauart": stDlg.n=formVals().n||stDlg.n; stDlg.bauart=b.dataset.v; stDialog(); return;
+  case "stBauart": stLesen(); stDlg.gr[+b.dataset.g].bauart=b.dataset.v; stDialog(); return;
+  case "stGrAdd": stLesen(); stDlg.gr.push({bauart:stDlg.gr[stDlg.gr.length-1].bauart==="Wallbox"?"Ladesäule":"Wallbox",typ:"",n:"1"}); stDialog(); return;
+  case "stGrDel": stLesen(); stDlg.gr.splice(+b.dataset.g,1); stDialog(); return;
   case "stOk": if(!stDlg) return; if(stDlg.mode==="add"&&!canEdit(cur)) return; stAnlegen(); return;
   case "katEdit": katDialog(DB.katalog.get(nav.id)); return;
   case "katSave": katSave(); return;
@@ -2306,6 +2344,11 @@ document.addEventListener("click",ev=>{
     for(let i=0;i<n;i++){ const c=JSON.parse(JSON.stringify(src)); Object.assign(c,{id:uid(),sn:"",ort:"",fotos:{},lp:[newLP(),newLP()],name:/^(Ladesäule|Wallbox) \d+$/.test(src.name||"")?"":src.name}); cur.s.push(c); }
     nummeriere();
     commit(); closeOverlays(); go({v:"saeulen"}); toast(`${n} ${n>1?"Ladestationen":"Ladestation"} angelegt (${cur.s[start].name}${n>1?` bis ${cur.s[cur.s.length-1].name}`:""})`); return; }
+  case "uebertragAsk": uebertragDialog(); return;
+  case "uebertragen": { const q=cur.s[nav.si], ziel=[...document.querySelectorAll("#dlg [data-tr]:checked")].map(e=>cur.s[+e.dataset.tr]).filter(Boolean); closeOverlays();
+    if(!ziel.length){ toast("Keine Station ausgewählt"); return; }
+    ziel.forEach(z=>{ [...ST_GERAET,...ST_TECHNIK,"leistung"].forEach(k=>{ if(q[k]===undefined) delete z[k]; else z[k]=JSON.parse(JSON.stringify(q[k])); }); while(z.lp.length<2) z.lp.push(newLP()); });
+    nummeriere(); commit(); toast(`Auf ${ziel.length} Station${ziel.length>1?"en":""} übertragen`); return; }
   case "bauart": { const s=cur.s[nav.si]; s.bauart=b.dataset.v; nummeriere(); commit(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "lps": case "phasen": { const s=cur.s[nav.si]; s[a]=+b.dataset.v; while(s.lp.length<2) s.lp.push(newLP()); scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "chk": { const p=b.dataset.path, v=b.dataset.v; setPath(p,getPath(p)===v?"":v); scheduleSave(); b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",getPath(p)===x.dataset.v)); refresh(); return; }
