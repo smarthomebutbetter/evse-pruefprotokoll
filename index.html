@@ -392,14 +392,14 @@ details.optrows .mrow:first-of-type{border-top:0}
 .kat-teilen .btn-tonal{display:inline-flex;align-items:center;gap:8px}
 .katgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 @media (min-width:600px){.katgrid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}}
-.ktile{display:flex;flex-direction:column;text-align:left;border:0;padding:0;border-radius:20px;background:var(--sc-low);color:var(--on-surface);overflow:hidden;min-width:0}
-.ktile-bild{aspect-ratio:4/3;background:#fff;display:grid;place-items:center;padding:12px;border-bottom:1px solid var(--outline-v)}
-.ktile-bild img{width:100%;height:100%;object-fit:contain}
+.ktile{display:flex;flex-direction:column;position:relative;isolation:isolate;text-align:left;border:0;padding:0;border-radius:20px;background:var(--sc-low);color:var(--on-surface);overflow:hidden;min-width:0}
+.ktile-bild{display:block;position:relative;aspect-ratio:4/3;background:#fff;overflow:hidden;border-bottom:1px solid var(--outline-v)}
+.ktile-bild img,.ktile-bild .kimg-leer{position:absolute;top:10px;left:10px;right:10px;bottom:10px;width:calc(100% - 20px);height:calc(100% - 20px);object-fit:contain}
 .kimg-leer{width:100%;height:100%;display:block;background:center/40% no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b0b4bb'%3E%3Cpath d='M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11c-.94.36-1.61 1.26-1.61 2.33 0 1.38 1.12 2.5 2.5 2.5.36 0 .69-.08 1-.21v7.21c0 .55-.45 1-1 1s-1-.45-1-1V14c0-1.1-.9-2-2-2h-1V5c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v16h10v-7.5h1.5v5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V9c0-.69-.28-1.32-.73-1.77zM12 10H6V5h6v5zm6 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z'/%3E%3C/svg%3E")}
 .ktile-t{display:flex;flex-direction:column;gap:2px;padding:10px 12px 12px;min-width:0}
 .ktile-t b{font-size:14px;line-height:1.25;overflow-wrap:anywhere}.ktile-t span{font-size:13px;color:var(--on-surface)}.ktile-t small{font-size:12px;color:var(--on-sv)}
 .ktile-p{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.kat-kopf .kat-bild .foto{background:#fff}.kat-kopf .kat-bild .foto img{position:static;object-fit:contain;padding:8px}
+.kat-kopf .kat-bild .foto{background:#fff;overflow:hidden}.kat-kopf .kat-bild .foto img,.kat-kopf .kat-bild .foto .kimg-leer{position:absolute;top:8px;left:8px;width:calc(100% - 16px);height:calc(100% - 16px);object-fit:contain}
 .kat-bild-q{display:block;font-size:11px;color:var(--on-sv);margin-top:4px;text-align:center}
 .katinfo-b{width:44px;height:44px;border-radius:10px;background:#fff;flex:none;overflow:hidden;display:grid;place-items:center;padding:3px}.katinfo-b img{width:100%;height:100%;object-fit:contain}
 .katinfo-x{flex:1;min-width:0}
@@ -1404,7 +1404,7 @@ const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter und Mail",archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.59 · 15.10.2026";
+const APP_VERSION="1.60 · 15.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
