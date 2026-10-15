@@ -1539,7 +1539,8 @@ function segInd(){ if(!WIDE.matches) return; const zahl={};
     let ind=sg.querySelector(".seg-ind"); const neu=!ind; if(neu){ ind=document.createElement("span"); ind.className="seg-ind"; sg.prepend(ind); sg.classList.add("hat-ind"); }
     const b=sg.querySelector('button[aria-pressed="true"]'); if(!b){ ind.style.opacity=0; SEG_ALT.delete(k); return; }
     const pos=[b.offsetLeft,b.offsetWidth], alt=SEG_ALT.get(k);
-    if(neu&&alt&&(alt[0]!==pos[0]||alt[1]!==pos[1])){ ind.style.transition="none"; ind.style.opacity=1; ind.style.translate=alt[0]+"px 0"; ind.style.width=alt[1]+"px"; ind.dataset.v=alt[2]||""; ind.offsetWidth; ind.style.transition=""; }
+    const gleiten=neu&&alt&&alt[2]!==b.dataset.v;
+    if(neu){ ind.style.transition="none"; const st=gleiten?alt:[pos[0],pos[1],b.dataset.v]; ind.style.opacity=1; ind.style.translate=st[0]+"px 0"; ind.style.width=st[1]+"px"; ind.dataset.v=st[2]||""; ind.offsetWidth; ind.style.transition=""; }
     ind.style.opacity=1; ind.style.translate=pos[0]+"px 0"; ind.style.width=pos[1]+"px"; ind.dataset.v=b.dataset.v||""; SEG_ALT.set(k,[pos[0],pos[1],b.dataset.v]); });
 }
 document.addEventListener("click",()=>setTimeout(segInd,0));
