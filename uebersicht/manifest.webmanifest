@@ -1,10 +1,10 @@
 {
-  "id": "/evse-pruefprotokoll/uebersicht/app",
+  "id": "/evse-pruefprotokoll/uebersicht/app3",
   "name": "Übersicht · Elektro Irrgang",
   "short_name": "Übersicht",
   "description": "Alle Apps von Elektro Irrgang: Prüfungen, Baustellen, Kunden",
   "lang": "de",
-  "start_url": "./index.html",
+  "start_url": "./?start=3",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
