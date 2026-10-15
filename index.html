@@ -1397,7 +1397,7 @@ const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter und Mail",archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.43 · 15.10.2026";
+const APP_VERSION="1.44 · 15.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -1694,7 +1694,7 @@ function loginView(){
     <div class="fg1" style="text-align:left">${tlSel==="__andere"?tf("tlMail","E-Mail",tlAndere,{form:true,type:"email",ph:"name@elektro-irrgang.de"}):""}
       <div class="tf"><input id="f_tlPw" data-f="tlPw" type="password" placeholder=" " autocomplete="current-password"><label for="f_tlPw">Passwort</label></div></div>
     <button class="btn-filled" type="submit" style="margin-top:20px">${icon("person")}Anmelden</button>
-    <p class="hint">Testphase – später meldet ihr euch hier mit dem Microsoft-Konto an.</p></form>`;
+    <p class="hint">Testphase – später meldet ihr euch hier mit dem Microsoft-Konto an.</p><p class="hint">Version ${APP_VERSION}</p></form>`;
   return `<div class="login"><img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><h2>EVSE Mobility</h2>
     <p>Melde dich mit deinem Microsoft-Mitarbeiterkonto an. Danach siehst du alle Prüfungen der Firma, deine eigenen kannst du bearbeiten.</p>
     <button class="btn-filled" data-act="login">${icon("person")}Mit Microsoft anmelden</button>
@@ -2732,7 +2732,15 @@ function buildPDF(P){
 
 // ================= Start =================
 $("#backBtn").innerHTML=icon("back"); $("#menuBtn").innerHTML=icon("more");
-if("serviceWorker" in navigator && location.protocol==="https:"){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+if("serviceWorker" in navigator && location.protocol==="https:"){
+  // Neue Version: beim Zurückholen der App nachsehen und Bescheid geben (iPad-Apps werden oft nur fortgesetzt, nicht neu gestartet)
+  const hatteSW=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
+    const pruefe=()=>{ if(document.visibilityState==="visible"&&navigator.onLine) reg.update().catch(()=>{}); };
+    document.addEventListener("visibilitychange",pruefe); setInterval(pruefe,30*60*1000);
+  }).catch(()=>{});
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(!hatteSW) return; toast("Neue Version verfügbar","Jetzt laden",()=>{ try{ saveNow(); }catch(e){} location.reload(); }); });
+}
 (async()=>{
   await dataLoad(); await Auth.init(); setMe();
   if(SYNC_ON&&!ME.signedIn) nav={v:"login"};
