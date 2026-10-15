@@ -411,6 +411,7 @@ details.optrows .mrow:first-of-type{border-top:0}
 body.is-login .logo{display:none!important}
 .login .fg1{margin-top:16px}
 .tl-mail{margin:-4px 4px 0;font-size:13px;color:var(--on-sv)}
+.login-ver{position:fixed;left:0;right:0;bottom:calc(16px + env(safe-area-inset-bottom,0px));margin:0;text-align:center;font-size:12px;color:var(--on-sv);pointer-events:none}
 body.is-login .topbar{display:none}
 .login .logo-big.l-dunkel{display:none}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .login .logo-big.l-hell{display:none}:root:not([data-theme="light"]) .login .logo-big.l-dunkel{display:block}}
@@ -1401,7 +1402,7 @@ const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter und Mail",archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.47 · 15.10.2026";
+const APP_VERSION="1.48 · 15.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -1701,7 +1702,7 @@ function loginView(){
       ${tlSel==="__andere"?tf("tlMail","E-Mail",tlAndere,{form:true,type:"email",ph:"name@elektro-irrgang.de"}):""}
       <div class="tf"><input id="f_tlPw" data-f="tlPw" type="password" placeholder=" " autocomplete="current-password"><label for="f_tlPw">Passwort</label></div></div>
     <button class="btn-filled" type="submit" style="margin-top:20px">${icon("person")}Anmelden</button>
-    <p class="hint">Version ${APP_VERSION}</p></form>`; }
+    <p class="login-ver">Version ${APP_VERSION}</p></form>`; }
   return `<div class="login">${logos}<h2>EVSE Mobility</h2>
     <p>Melde dich mit deinem Microsoft-Mitarbeiterkonto an. Danach siehst du alle Prüfungen der Firma, deine eigenen kannst du bearbeiten.</p>
     <button class="btn-filled" data-act="login">${icon("person")}Mit Microsoft anmelden</button>
