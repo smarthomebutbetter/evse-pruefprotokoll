@@ -1986,6 +1986,7 @@ document.addEventListener("click",ev=>{
   case "fabMenu": { if($("#fabm")){ $("#fabm").remove(); return; }
     const it=(act,ic,t)=>`<button class="fabm-it" data-act="${act}">${icon(ic)}<span>${t}</span></button>`;
     document.body.insertAdjacentHTML("beforeend",`<div id="fabm" class="fabm"><div class="fabm-scrim" data-act="fabClose"></div><div class="fabm-list">${it("newAny","doc","Neue Prüfung")}${it("newKunde","firma","Neuer Kunde")}</div></div>`);
+    { const r=$("#fab").getBoundingClientRect(), l=$("#fabm .fabm-list"); if(r.height){ l.style.bottom=(innerHeight-r.top+12)+"px"; l.style.right=(innerWidth-r.right)+"px"; } }
     return; }
   case "fabClose": return;
   case "cancel": closeOverlays(); pick=null; locForm=null; stDlg=null; return;
