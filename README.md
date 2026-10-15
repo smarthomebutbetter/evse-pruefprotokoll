@@ -1,6 +1,6 @@
 # Irrgang Apps
 
-Interne Web-Apps von Elektro Irrgang, Waldbröl: Startseite mit Übersicht, EVSE Mobility (`/evse/`) und Baustellenübergabe (`/baustelle/`).
+Interne Web-Apps von Elektro Irrgang, Waldbröl: Startseite mit Übersicht, EVSE (`/evse/`) und Baustellenübergabe (`/baustelle/`).
 
 **Entwickelt von M. Pevec** für Elektro Irrgang. Umzug auf das Firmenkonto: siehe `UMZUG.md`.
 

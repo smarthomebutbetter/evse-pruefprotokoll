@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Irrgang Apps">
+<meta name="apple-mobile-web-app-title" content="Übersicht">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#FCFCFD">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="<!--ICON-->">
 <link rel="icon" href="<!--ICON-->">
-<title>Irrgang Apps · Elektro Irrgang</title>
+<title>Übersicht · Elektro Irrgang</title>
 <style>
 @font-face{font-family:"Manrope";font-weight:400;font-display:swap;src:url(data:font/woff2;base64,<!--F400-->) format("woff2")}
 @font-face{font-family:"Manrope";font-weight:600;font-display:swap;src:url(data:font/woff2;base64,<!--F600-->) format("woff2")}
@@ -912,6 +912,13 @@ async function dataLoad(){
 async function neuLaden(){ if(!kDB) return;
   try{ for(const k of KINDS){ const all=await idbReq(dbOf(k).transaction(k).objectStore(k).getAll()); DB[k].clear(); all.forEach(r=>DB[k].set(r.id,r)); } einstSetzen(live("einstellungen")); if(loginSync()&&nav.v==="login"&&META.angemeldet) nav={v:"start"}; setMe(); if(testGesperrt()&&nav.v!=="login") render(); else softRender(); }catch(e){} }
 function saveNow(){}
+function takeServer(k,rec,it){
+  const loc=DB[k].get(rec.id);
+  if(loc&&loc._dirty&&(loc.updated||0)>(rec.updated||0)){ loc._etag=it.eTag; loc._itemId=it.id; dbPut(k,loc); return false; }
+  if(loc&&loc._dirty) konflikte.push(rec.updatedBy&&rec.updatedBy.name||"jemand anderes");
+  rec._etag=it.eTag; rec._itemId=it.id; dbPut(k,rec);
+  return true;
+}
 const echt=k=>live(k).filter(r=>!r.demo);
 const kundeOf=id=>DB.kunden.get(id), standortOf=id=>DB.standorte.get(id), ladeparkOf=id=>id?DB.ladeparks.get(id):null;
 const standorteVon=kid=>live("standorte").filter(s=>s.kundeId===kid).sort((a,b)=>a.name.localeCompare(b.name,"de"));
@@ -1000,18 +1007,18 @@ WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) rende
 
 const APP_VERSION="<!--VERSION-->";
 const APPS=[
-  {name:"EVSE Mobility",text:"Prüfung von Wallboxen und Ladesäulen",href:"evse/",ic:"<!--ICON_EVSE-->"},
+  {name:"EVSE",text:"Prüfung von Wallboxen und Ladesäulen",href:"evse/",ic:"<!--ICON_EVSE-->"},
   {name:"Baustellenübergabe",text:"Tagesstand, offene Punkte und Material",href:"baustelle/",ic:"<!--ICON_BAU-->"},
-  {name:"Hausinstallation",text:"Prüfprotokolle für Elektroinstallationen",geplant:true}];
+  {name:"E-Check",text:"Hausinstallation und Geräte · in Vorbereitung",href:"echeck/",ic:"<!--ICON_ECHECK-->"}];
 const ENTWICKLUNG=[
-  {t:"EVSE Mobility",st:"ok",s:"Im Testbetrieb",d:"Prüfablauf, PDF-Protokoll, Wallbox-Katalog, Wiederholungsprüfung, Plausibilitätsprüfung."},
+  {t:"EVSE",st:"ok",s:"Im Testbetrieb",d:"Prüfablauf, PDF-Protokoll, Wallbox-Katalog, Wiederholungsprüfung, Plausibilitätsprüfung."},
   {t:"Baustellenübergabe",st:"ok",s:"Im Testbetrieb",d:"Seit 15.10.2026. Übergaben mit Stand, offenen Punkten, Material und Fotos."},
-  {t:"Startseite mit Übersicht",st:"ok",s:"Im Testbetrieb",d:"Seit 15.10.2026. Alle Apps an einem Ort, Statistiken, Kundendatenbank mit Ablage, Mitarbeiter."},
+  {t:"Übersicht (Startseite)",st:"ok",s:"Im Testbetrieb",d:"Seit 15.10.2026. Alle Apps an einem Ort, Statistiken, Kundendatenbank mit Ablage, Mitarbeiter."},
   {t:"Microsoft-365-Anbindung",st:"open",s:"Wartet auf EDV Achenbach",d:"Erst damit landen alle Daten in der Firmen-Ablage und jeder sieht die Einträge der Kollegen. Bis dahin bleibt alles auf dem jeweiligen Gerät."},
   {t:"Firmenadresse",st:"open",s:"Geplant",d:"Umzug auf ein Firmenkonto bei GitHub und ggf. eine eigene Adresse unter elektro-irrgang.de."},
-  {t:"Hausinstallation",st:"open",s:"In Planung",d:"Offen: welche Daten das Messgerät exportiert und wie SCC Mobile dazu passt."}];
+  {t:"E-Check (Hausinstallation und Geräte)",st:"wip",s:"In Vorbereitung",d:"App angelegt mit Anmeldung und Kunden. Offen: Messgeräte, Protokollvorlagen, Datenübernahme aus dem Messgerät, Abgrenzung zu SCC Mobile."}];
 const ENTW_STAND="15.10.2026";
-const TOPDEST_ALLE=[["start","Start","home"],["uebersicht","Übersicht","chart"],["kunden","Kunden","firma"],["mehr","Mehr","mehr"]];
+const TOPDEST_ALLE=[["start","Start","home"],["uebersicht","Statistik","chart"],["kunden","Kunden","firma"],["mehr","Mehr","mehr"]];
 const topdest=()=>TOPDEST_ALLE.filter(d=>d[0]!=="uebersicht"||ME.admin);
 const MEHR_SUB={team:"Mitarbeiter",impressum:"Impressum",about:"Über",entwicklung:"Entwicklung"};
 const VIEW_KIND={kunde:"kunden",standort:"standorte"};
@@ -1036,7 +1043,7 @@ function render(){
   let title="", sub="", fab=null, body="";
   if(login) body=loginView();
   else if(nav.v==="start") body=startView();
-  else if(nav.v==="uebersicht"){ title="Übersicht"; sub=SYNC_ON?"":"Daten auf diesem Gerät"; body=uebersichtView(); }
+  else if(nav.v==="uebersicht"){ title="Statistik"; sub=SYNC_ON?"":"Daten auf diesem Gerät"; body=uebersichtView(); }
   else if(nav.v==="kunden"){ title="Kunden"; body=kundenView(); fab=ME.admin?["newKunde","Kunde","add"]:null; }
   else if(nav.v==="mehr"){ title="Mehr"; body=mehrView(); }
   else if(nav.v==="team"){ title="Mitarbeiter"; body=teamView(); fab=["teamNeu","Mitarbeiter","add"]; }
@@ -1064,7 +1071,7 @@ function startView(){
   if(ME.admin){
     const bs=echt("baustellen"), F=faellig(), t=today(), bald=new Date(Date.now()+90*864e5).toISOString().slice(0,10);
     const inArbeit=echt("pruefungen").filter(p=>["wip","open"].includes(pStand(p))).length;
-    h+=`<div class="sec-row"><div class="sec-lbl">Auf einen Blick</div><button class="btn-text" data-act="nav" data-v="uebersicht">Übersicht${icon("chev")}</button></div>
+    h+=`<div class="sec-row"><div class="sec-lbl">Auf einen Blick</div><button class="btn-text" data-act="nav" data-v="uebersicht">Statistik${icon("chev")}</button></div>
       <div class="kpis">${kpi(bs.filter(b=>(b.status||"aktiv")==="aktiv").length,"aktive Baustellen")}${kpi(inArbeit,"Prüfungen in Arbeit")}
       ${kpi(F.filter(p=>p.a.naechste<=bald).length,"Prüfungen fällig in 3 Monaten",F.some(p=>p.a.naechste<t)?"warn":"")}${kpi(echt("kunden").length,"Kunden")}</div>`;
   }
@@ -1115,7 +1122,7 @@ function kundenListe(){
   return ks.length?listOf(ks.map(k=>locItem("kunden",k))):`<p class="meta">Kein Kunde gefunden.</p>`;
 }
 function kundenView(){
-  if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Kunden aus EVSE Mobility und der Baustellenübergabe erscheinen hier automatisch.</p></div>`;
+  if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Kunden aus EVSE und der Baustellenübergabe erscheinen hier automatisch.</p></div>`;
   return `<div class="narrow">${searchBar("Kunde, Ort, Ansprechpartner suchen")}<div id="res">${kundenListe()}</div><p class="hint">Eine Kundendatenbank für alle Apps.${ME.admin?"":" Ändern können Admins."}</p></div>`;
 }
 function bezugListen(kind,id){
@@ -1167,7 +1174,7 @@ function teamDialog(m){
   dialog(m?"Mitarbeiter bearbeiten":"Mitarbeiter hinzufügen",`<div class="fg1">${tf("name","Name (abgekürzt)",m?m.name:"",{form:true,ph:"z. B. M. Mustermann"})}${tf("mail","E-Mail",m?m.mail:"",{form:true,type:"email",ph:"m.mustermann@elektro-irrgang.de"})}${tf("rolle","Aufgabe (optional)",m?m.rolle:"",{form:true,ph:"z. B. Geselle, Azubi, Büro"})}</div>
     <div class="lbl" style="margin:16px 4px 8px">Status</div>${seg("teamStatus",teamForm.status,STATUS_MA)}
     <div class="lbl" style="margin:16px 4px 8px">Rechte</div>${seg("teamAdmin",teamForm.admin?"1":"0",[["0","Mitarbeiter"],["1","Admin"]])}
-    <p class="sup" style="margin:8px 0 0">Admins sehen die Übersicht, verwalten Mitarbeiter und dürfen alle Einträge bearbeiten.${ich?" Dich selbst kannst du nicht herabstufen oder austragen.":""}</p>`,
+    <p class="sup" style="margin:8px 0 0">Admins sehen die Statistik, verwalten Mitarbeiter und dürfen alle Einträge bearbeiten.${ich?" Dich selbst kannst du nicht herabstufen oder austragen.":""}</p>`,
     `${m&&!ich?`<button class="btn-text danger" data-act="teamDelAsk">Entfernen</button><span style="flex:1"></span>`:""}<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="teamSave">${m?"Speichern":"Hinzufügen"}</button>`);
 }
 function teamSpeichern(liste){ const r=DB.einstellungen.get("team")||{id:"team"}; r.liste=liste; r.deleted=false; saveRec("einstellungen",r,!DB.einstellungen.has("team")); }
@@ -1194,7 +1201,7 @@ function entwicklungView(){
 function aboutView(){
   const ic=(document.querySelector('link[rel="apple-touch-icon"]')||{}).href||"";
   return `<div class="narrow"><section class="card about">
-    <img class="app-ic" src="${ic}" alt=""><h2>Irrgang Apps</h2><p class="ver">Version ${APP_VERSION}</p>
+    <img class="app-ic" src="${ic}" alt=""><h2>Übersicht</h2><p class="ver">Version ${APP_VERSION}</p>
     <p>Die Startseite für alle Apps von ${FIRMA.name}: Apps öffnen, Kunden nachschlagen, Dokumente ablegen und den Überblick behalten.</p>
     <div class="logos"><img class="lg-firma l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"></div>
     <p class="note-doc">${FIRMA.name} · ${FIRMA.strasse} · ${FIRMA.ort}</p>
@@ -1204,7 +1211,7 @@ function loginView(){
   const logos=`<img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><img class="logo-big l-dunkel" src="${$(".logo.l-dunkel").src}" alt="Elektro Irrgang">`;
   const weg=META.angemeldet&&gesperrt(META.angemeldet.mail);
   if(!SYNC_ON){ const wer=team().find(m=>m.mail===tlSel);
-    return `<form class="login" id="tlForm" autocomplete="on">${logos}<h2>Irrgang Apps</h2>
+    return `<form class="login" id="tlForm" autocomplete="on">${logos}<h2>Übersicht</h2>
     <p>${weg?"Dein Zugang ist nicht mehr freigeschaltet. Bitte beim Chef melden.":"Name wählen und mit dem Firmen-Passwort anmelden."}</p>
     <div class="fg1" style="text-align:left">${sf("tlWer","Name",tlSel||"",[["","Name auswählen"],...team().map(m=>[m.mail,m.name]),["__andere","Andere Person …"]],{form:true})}
       ${wer?`<p class="tl-mail">${esc(wer.mail)}</p>`:""}
@@ -1212,7 +1219,7 @@ function loginView(){
       <div class="tf"><input id="f_tlPw" data-f="tlPw" type="password" placeholder=" " autocomplete="current-password"><label for="f_tlPw">Passwort</label></div></div>
     <button class="btn-filled" type="submit" style="margin-top:20px">${icon("person")}Anmelden</button>
     <p class="login-ver">Version ${APP_VERSION}</p></form>`; }
-  return `<div class="login">${logos}<h2>Irrgang Apps</h2><p>Melde dich mit deinem Microsoft-Mitarbeiterkonto an.</p>
+  return `<div class="login">${logos}<h2>Übersicht</h2><p>Melde dich mit deinem Microsoft-Mitarbeiterkonto an.</p>
     <button class="btn-filled" data-act="login">${icon("person")}Mit Microsoft anmelden</button>
     <p class="hint">${navigator.onLine?"":"Für die Anmeldung wird Internet benötigt."}</p></div>`;
 }

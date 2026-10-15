@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Irrgang Apps · Elektro Irrgang",
-  "short_name": "Irrgang Apps",
+  "name": "Übersicht · Elektro Irrgang",
+  "short_name": "Übersicht",
   "description": "Alle Apps von Elektro Irrgang: Prüfungen, Baustellen, Kunden",
   "lang": "de",
   "start_url": "./",

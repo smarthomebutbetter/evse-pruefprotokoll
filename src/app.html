@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="EVSE Mobility">
+<meta name="apple-mobile-web-app-title" content="EVSE">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#FCFCFD">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="<!--ICON-->">
 <link rel="icon" href="<!--ICON-->">
-<title>EVSE Mobility · Elektro Irrgang</title>
+<title>EVSE · Elektro Irrgang</title>
 <style>
 @font-face{font-family:"Manrope";font-weight:400;font-display:swap;src:url(data:font/woff2;base64,<!--F400-->) format("woff2")}
 @font-face{font-family:"Manrope";font-weight:600;font-display:swap;src:url(data:font/woff2;base64,<!--F600-->) format("woff2")}
@@ -1174,12 +1174,12 @@ function mehrView(){
       ${row("export","backup","Alle sichern","Sicherungsdatei mit allen Daten und Fotos")}
       ${row("import","upload","Sicherung laden","Daten aus einer Sicherungsdatei übernehmen")}
       ${live("kunden").some(isDemo)?row("demoHide","bulb","Beispieldaten ausblenden","Zum Vorführen angelegte Daten entfernen"):row("demo","bulb","Beispieldaten laden","Zum Ausprobieren und Vorführen")}</div>
-    <div class="sec-lbl">Apps</div><div class="list"><a class="li" href="../" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">Alle Apps</span><span class="s">Startseite mit Übersicht und Kunden</span></span>${icon("chev")}</a><a class="li" href="../baustelle/" style="text-decoration:none;color:inherit"><span class="av">${icon("baustelle")}</span><span class="lt"><span class="h">Baustellenübergabe</span><span class="s">Tagesstand, offene Punkte und Material pro Baustelle</span></span>${icon("chev")}</a></div>
+    <div class="sec-lbl">Apps</div><div class="list"><a class="li" href="../" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">Übersicht</span><span class="s">Startseite mit Statistik und Kunden</span></span>${icon("chev")}</a><a class="li" href="../baustelle/" style="text-decoration:none;color:inherit"><span class="av">${icon("baustelle")}</span><span class="lt"><span class="h">Baustellenübergabe</span><span class="s">Tagesstand, offene Punkte und Material pro Baustelle</span></span>${icon("chev")}</a><a class="li" href="../echeck/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">E-Check</span><span class="s">Hausinstallation und Geräte · in Vorbereitung</span></span>${icon("chev")}</a></div>
     <div class="sec-lbl">Rechtliches und Info</div><div class="list">
       ${row("nav:impressum","doc","Impressum","")}
       ${row("nav:datenschutz","shield","Datenschutz","")}
       ${row("nav:about","info","Über die App",`Version ${APP_VERSION}`)}</div>
-    <p class="hint">EVSE Mobility · Version ${APP_VERSION}</p></div>`;
+    <p class="hint">EVSE · Version ${APP_VERSION}</p></div>`;
 }
 const FIRMA={name:"Elektro Irrgang",inhaber:"Joachim Irrgang",strasse:"Hahner Weg 2",ort:"51545 Waldbröl",tel:"+49 2291 4878",telHref:"+4922914878",fax:"+49 2291 800718",mail:"info@elektro-irrgang.de",
   ust:"DE169864585",register:"Registergericht: Waldbröl",hwk:"Handwerkskammer zu Köln, Heumarkt 12, 50667 Köln",beruf:"Elektromeister (verliehen in Deutschland)"};
@@ -1198,13 +1198,13 @@ function impressumView(){
 const DS_STAND="Oktober 2026";
 function datenschutzView(){
   const F=FIRMA, ph=t=>`<span class="ph">${t}</span>`, h=(n,t)=>`<h4>${n}. ${t}</h4>`;
-  return rechtsSeite(`<h3>Datenschutzhinweise zur App „EVSE Mobility“</h3>
+  return rechtsSeite(`<h3>Datenschutzhinweise zur App „EVSE“</h3>
     <p class="note-doc">Stand: ${DS_STAND} · Entwurf – gelb markierte Stellen legt der Betrieb fest.</p>
     ${h(1,"Verantwortlicher")}
     <p>${F.name}, Inhaber ${F.inhaber}<br>${F.strasse}, ${F.ort}<br>Telefon ${F.tel} · <a href="mailto:${F.mail}">${F.mail}</a></p>
     <p><b>Datenschutzbeauftragter:</b> ${ph("nicht benannt (keine Pflicht nach § 38 BDSG) – oder Name/Kontakt eintragen")}</p>
     ${h(2,"Wofür die App da ist")}
-    <p>EVSE Mobility ist ein internes Werkzeug von ${F.name}. Mitarbeiter dokumentieren damit Prüfungen an Wallboxen und Ladesäulen (Erst- und Wiederholungsprüfungen nach DIN VDE) und erstellen das Prüfprotokoll als PDF. Kunden bedienen die App nicht selbst.</p>
+    <p>EVSE ist ein internes Werkzeug von ${F.name}. Mitarbeiter dokumentieren damit Prüfungen an Wallboxen und Ladesäulen (Erst- und Wiederholungsprüfungen nach DIN VDE) und erstellen das Prüfprotokoll als PDF. Kunden bedienen die App nicht selbst.</p>
     ${h(3,"Welche Daten verarbeitet werden")}
     <p><b>Kunden und Ansprechpartner:</b> Firmen- bzw. Personenname, Anschrift, Kundennummer, Ansprechpartner, Telefon, E-Mail, Standort und Auftragsnummer.</p>
     <p><b>Anlage und Prüfung:</b> Angaben zu Ladeeinrichtungen (Hersteller, Typ, Seriennummer, Stellplatz), Schutzeinrichtungen, Messwerte, Mängel, Prüfdatum und nächster Prüftermin.</p>
@@ -1239,7 +1239,7 @@ function datenschutzView(){
 function aboutView(){
   const ic=(document.querySelector('link[rel="apple-touch-icon"]')||{}).href||"";
   return `<div class="narrow"><section class="card about">
-    <img class="app-ic" src="${ic}" alt=""><h2>EVSE Mobility</h2><p class="ver">Version ${APP_VERSION}</p><p class="note-doc" style="margin-top:-8px">EVSE = Electric Vehicle Supply Equipment – Ladeeinrichtung für Elektrofahrzeuge</p>
+    <img class="app-ic" src="${ic}" alt=""><h2>EVSE</h2><p class="ver">Version ${APP_VERSION}</p><p class="note-doc" style="margin-top:-8px">EVSE = Electric Vehicle Supply Equipment – Ladeeinrichtung für Elektrofahrzeuge</p>
     <p>Prüfprotokolle für Wallboxen und Ladesäulen nach DIN VDE 0100-600, 0105-100 und 0100-722 – mit geführtem Prüfablauf, Fotos, Unterschrift und PDF.</p>
     <div class="logos"><img class="lg-firma l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><img class="lg-e" src="${EHW_PDF}" alt="Zeichen des Elektrohandwerks"></div>
     <p class="note-doc">${FIRMA.name} · ${FIRMA.strasse} · ${FIRMA.ort}</p>
@@ -1249,7 +1249,7 @@ function aboutView(){
 function loginView(){
   const logos=`<img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><img class="logo-big l-dunkel" src="${$(".logo.l-dunkel").src}" alt="Elektro Irrgang">`;
   if(!SYNC_ON){ const wer=team().find(m=>m.mail===tlSel);
-    return `<form class="login" id="tlForm" autocomplete="on">${logos}<h2>EVSE Mobility</h2>
+    return `<form class="login" id="tlForm" autocomplete="on">${logos}<h2>EVSE</h2>
     <p>Name wählen und mit dem Firmen-Passwort anmelden.</p>
     <div class="fg1" style="text-align:left">${sf("tlWer","Name",tlSel||"",[["","Name auswählen"],...team().map(m=>[m.mail,m.name]),["__andere","Andere Person …"]],{form:true})}
       ${wer?`<p class="tl-mail">${esc(wer.mail)}</p>`:""}
@@ -1257,7 +1257,7 @@ function loginView(){
       <div class="tf"><input id="f_tlPw" data-f="tlPw" type="password" placeholder=" " autocomplete="current-password"><label for="f_tlPw">Passwort</label></div></div>
     <button class="btn-filled" type="submit" style="margin-top:20px">${icon("person")}Anmelden</button>
     <p class="login-ver">Version ${APP_VERSION}</p></form>`; }
-  return `<div class="login">${logos}<h2>EVSE Mobility</h2>
+  return `<div class="login">${logos}<h2>EVSE</h2>
     <p>Melde dich mit deinem Microsoft-Mitarbeiterkonto an. Danach siehst du alle Prüfungen der Firma, deine eigenen kannst du bearbeiten.</p>
     <button class="btn-filled" data-act="login">${icon("person")}Mit Microsoft anmelden</button>
     <p class="hint">${navigator.onLine?"":"Für die Anmeldung wird Internet benötigt."}</p></div>`;
