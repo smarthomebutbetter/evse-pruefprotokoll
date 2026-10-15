@@ -1977,15 +1977,15 @@ const LOGO_PDF="<!--LOGO_HELL-->";
 const EHW_PDF="<!--EHANDWERK-->";   // Zeichen des Elektrohandwerks (Innungsbetrieb)
 const PDFMAP={"²":"2","³":"3","≈":"ca.","Ω":"Ohm","≤":"<=","≥":">=","→":"->","↔":"<->","–":"-","Δ":"d","…":"...","·":"|","„":"\"","“":"\""};
 const pt=s=>String(s??"").replace(/[²³≈Ω≤≥→↔–Δ…·„“]/g,c=>PDFMAP[c]);
-// Dateiname nach Firmenschema: Auftragsnr_Prüfart_Kunde_Standort[-Ladepark]_JJJJ-MM-TT
-// Leerzeichen innerhalb der Teile entfallen, Umlaute bleiben. Datum am Ende: eindeutig und sortierbar.
+// Dateiname nach Firmenschema: Auftragsnr_Prüfart_Kunde_Standort[-Ladepark]
+// Leerzeichen innerhalb der Teile entfallen, Umlaute bleiben. Kein Datum – das ergibt sich aus der Auftragsnummer.
 const PDF_PRUEFART={"Erstprüfung":"ErstprüfungEVSE","Erweiterung":"ErweiterungEVSE","Wiederholungsprüfung":"E-CheckEVSE","nach Instandsetzung":"InstandsetzungEVSE"};
-const PDF_SCHEMA="Auftragsnr_Prüfart_Kunde_Standort-Ladepark_Datum";
+const PDF_SCHEMA="Auftragsnr_Prüfart_Kunde_Standort-Ladepark";
 function pdfSchema(p){
   const {k,s,l}=pfad(p), kurz=t=>String(t||"").replace(/\s+/g,"").replace(/[\\/:*?"<>|#%]/g,"-");
-  const fehlt=[]; if(!p.p.auftragsnr) fehlt.push("Auftragsnummer"); if(!k) fehlt.push("Kunde"); if(!s) fehlt.push("Standort"); if(!p.p.datum) fehlt.push("Prüfdatum");
+  const fehlt=[]; if(!p.p.auftragsnr) fehlt.push("Auftragsnummer"); if(!k) fehlt.push("Kunde"); if(!s) fehlt.push("Standort");
   const ort=[s&&kurz(s.name),l&&kurz(l.name)].filter(Boolean).join("-");
-  const name=[kurz(p.p.auftragsnr),PDF_PRUEFART[p.p.art]||"E-CheckEVSE",kurz(k&&k.name),ort,p.p.datum].filter(Boolean).join("_");
+  const name=[kurz(p.p.auftragsnr),PDF_PRUEFART[p.p.art]||"E-CheckEVSE",kurz(k&&k.name),ort].filter(Boolean).join("_");
   return {name,fehlt};
 }
 function pdfDialog(){
