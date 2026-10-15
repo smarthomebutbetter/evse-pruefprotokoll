@@ -385,6 +385,9 @@ details.optrows .mrow:first-of-type{border-top:0}
 .chkrow{display:flex;align-items:center;gap:14px;min-height:52px;padding:4px 2px;border-bottom:1px solid var(--outline-v)}
 .chkrow input{width:22px;height:22px;accent-color:var(--primary);flex:none}
 .chkrow span{display:flex;flex-direction:column}.chkrow small{color:var(--on-sv);font-size:12px}
+.li .rb{width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--on-sv);flex:none;margin:0 10px}
+.li .rb.on{box-shadow:inset 0 0 0 2px var(--primary),inset 0 0 0 6px var(--surface),inset 0 0 0 12px var(--primary)}
+.list.wahl{max-height:40vh;overflow:auto}
 .kath{padding-bottom:10px}
 .kath + .kath{margin-top:12px}
 .kath-k{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px}
@@ -671,7 +674,7 @@ const Auth={pca:null,account:null,test:null,
 };
 function setMe(){
   const a=Auth.account;
-  if(!a){ ME={name:META.profil.name||"",mail:"",admin:false,signedIn:false}; return; }
+  if(!a){ ME={name:META.profil.name||"",mail:(META.profil.mail||"").toLowerCase(),admin:false,signedIn:false}; return; }
   const roles=(a.idTokenClaims&&a.idTokenClaims.roles)||[], mail=(a.username||"").toLowerCase();
   ME={name:a.name||mail,mail,admin:roles.includes("Admin")||CONFIG.admins.map(x=>x.toLowerCase()).includes(mail),signedIn:true};
   // Auf diesem Gerät angelegte, noch nie hochgeladene Einträge gehören dem angemeldeten Nutzer
@@ -913,6 +916,7 @@ const IC={
   shield:"M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z",
   paragraph:"M9 4v4c-2.2 0-4-1.8-4-4s1.8-4 4-4h10v2h-2v18h-2V2h-2v18h-2V10c-2.2 0-4-1.8-4-4",
   wallbox:"M3 2h2v20H3V2zm5 2h9c1.1 0 2 .9 2 2v9c0 1.1-.9 2-2 2h-1v2c0 1.66-1.34 3-3 3h-1v-2h1c.55 0 1-.45 1-1v-2H8V4zm2 2v9h7V6h-7zm3.5 1L11 11h2l-.5 3 2.5-4h-2l.5-3z",
+  mail:"M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z",
   book:"M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z",
   person:"M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
 };
@@ -922,7 +926,7 @@ const DEST=[["projekt","Auftrag","project"],["saeulen","Ladestationen","ev"],["a
 const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
-const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
+const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter und Mail",archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
 const APP_VERSION="<!--VERSION-->";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
@@ -961,6 +965,7 @@ function render(){
   else if(nav.v==="impressum"){ title="Impressum"; body=impressumView(); }
   else if(nav.v==="datenschutz"){ title="Datenschutz"; body=datenschutzView(); }
   else if(nav.v==="about"){ title="Über die App"; body=aboutView(); }
+  else if(nav.v==="team"){ title="Mitarbeiter und Mail"; body=teamView(); }
   else if(VIEW_KIND[nav.v]){ const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id);
     if(!r||r.deleted){ nav={v:"kunden"}; return render(); }
     title=r.name; sub=kind==="kunden"?"Kunde":kind==="standorte"?(kundeOf(r.kundeId)||{}).name:[ (kundeOf((standortOf(r.standortId)||{}).kundeId)||{}).name,(standortOf(r.standortId)||{}).name ].filter(Boolean).join(" › ");
@@ -1129,7 +1134,8 @@ function mehrView(){
   const nArch=live("pruefungen").filter(p=>META.archiv.includes(p.id)).length;
   return `<div class="narrow">
     <div class="sec-lbl">Konto und Darstellung</div><div class="list">
-      ${row("konto","person",SYNC_ON?"Konto":"Mein Name",esc(ME.name||META.profil.name||"noch nicht eingetragen"))}
+      ${SYNC_ON?row("konto","person","Konto",esc(ME.name)):""}
+      ${row("nav:team","person",SYNC_ON?"Mitarbeiter und Mail":"Ich bin · Mitarbeiter und Mail",esc(SYNC_ON?`Protokolle an ${mailAn()}`:[META.profil.name||"noch nicht ausgewählt",`Protokolle an ${mailAn()}`].join(" · ")))}
       ${row("theme","theme","Darstellung",TH_LABEL[theme])}</div>
     ${WIDE.matches?"":`<div class="sec-lbl">Wissen</div><div class="list">${row("nav:katalog","book","Wallbox-Katalog",`${live("katalog").length} Modelle · Hinweise und Fotos`)}</div>`}
     <div class="sec-lbl">Daten</div><div class="list">
@@ -1568,7 +1574,8 @@ function pickResolve(){
 
 let nachName=null;
 function nameFehlt(weiter){ if(SYNC_ON||META.profil.name) return false; nachName=weiter;
-  dialog("Wie heißt du?",`<div class="fg1">${tf("name","Dein Name",``,{form:true})}</div><p class="sup" style="margin:12px 0 0">Erscheint als Prüfer und Ersteller. Einmalig pro Gerät, änderbar über das Symbol oben rechts.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveName">Weiter</button>`); return true; }
+  dialog("Wer prüft?",`<div class="list wahl">${team().map(m=>`<div class="li" role="button" tabindex="0" data-act="ichBin" data-mail="${esc(m.mail)}"><span class="av">${icon("person")}</span><span class="lt"><span class="h">${esc(m.name)}</span><span class="s">${esc(m.mail)}</span></span></div>`).join("")}</div>
+    <div class="fg1" style="margin-top:12px">${tf("name","Oder Name eingeben",``,{form:true})}</div><p class="sup" style="margin:12px 0 0">Einmalig pro Gerät. Ändern und weitere Mitarbeiter: Mehr → Mitarbeiter und Mail.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveName">Weiter</button>`); return true; }
 // Was wird geprüft? Gruppen aus Bauart, Hersteller/Typ und Anzahl – z. B. 4 × Ladesäule A und 2 × Wallbox B
 const ST_TECHNIK=["absTyp","absIn","absInAnders","zsMan","lsIcn","lsTyp","rcd","rcdTyp","rdc","idn","rcdIn","rcdHT","inenn","inennAnders","leitung"];
 const ST_GERAET=["bauart","katId","typ","fw","freigabe","lps","phasen"];
@@ -1772,7 +1779,8 @@ document.addEventListener("click",ev=>{
   case "pfilter": META.pfilter=b.dataset.v; metaSave(); { const r=$("#res"); if(r) r.innerHTML=pruefungenListe(); } document.querySelectorAll('[data-act="pfilter"]').forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===META.pfilter)); return;
   case "filter": META.filter=b.dataset.v; metaSave(); softRender(); return;
   case "konto": {
-    if(!SYNC_ON){ dialog("Mein Name",`<div class="fg1">${tf("name","Name (erscheint als Prüfer und Ersteller)",META.profil.name,{form:true})}</div><p class="sup" style="margin:12px 0 0">Die Anmeldung mit dem Microsoft-Konto wird freigeschaltet, sobald die IT die App eingerichtet hat. Bis dahin bleibt alles auf diesem Gerät.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveName">Speichern</button>`); return; }
+    if(!SYNC_ON){ go({v:"team"}); return; }
+    if(false){ dialog("Mein Name",`<div class="fg1">${tf("name","Name (erscheint als Prüfer und Ersteller)",META.profil.name,{form:true})}</div><p class="sup" style="margin:12px 0 0">Die Anmeldung mit dem Microsoft-Konto wird freigeschaltet, sobald die IT die App eingerichtet hat. Bis dahin bleibt alles auf diesem Gerät.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveName">Speichern</button>`); return; }
     dialog("Konto",`<div class="konto"><span class="avatar-big">${esc(initials(ME.name))}</span><div><b>${esc(ME.name)}</b><span>${esc(ME.mail)}</span><span>${ME.admin?"Rolle: Admin – darf alle Prüfungen bearbeiten":"Rolle: Prüfer – bearbeitet eigene Prüfungen"}</span></div></div><p class="sup" id="syncState" style="margin:16px 0 0">${esc(syncText())}</p>`,
       `<button class="btn-text danger" data-act="logout">Abmelden</button><span style="flex:1"></span><button class="btn-text" data-act="syncNow">Jetzt abgleichen</button><button class="btn-text" data-act="cancel">Schließen</button>`); return; }
   case "saveName": { const v=formVals().name; META.profil.name=v; metaSave(); setMe(); closeOverlays(); render(); toast("Name gespeichert");
@@ -1810,6 +1818,21 @@ document.addEventListener("click",ev=>{
     if(kind==="standorte") neuePruefung(r.kundeId,r.id,null); else { const s=standortOf(r.standortId); neuePruefung(s.kundeId,s.id,r.id); } return; }
   case "open": oeffne(b.dataset.id); return;
   case "katNeu": katDialog(null); return;
+  case "ichBin": { if(ev.target.closest('[data-act="teamEdit"]')) return; const m=team().find(x=>x.mail===b.dataset.mail); if(!m) return; ichBin(m); closeOverlays(); render(); toast(`Ausgewählt: ${m.name}`);
+    if(nachName){ const n=nachName; nachName=null; if($("#fab").dataset.act===n) $("#fab").click(); else if(n==="newAny"){ pick={mode:"new"}; pickDialog(); } } return; }
+  case "teamAdd": teamDialog(null); return;
+  case "teamEdit": teamDialog(team().find(x=>x.mail===b.dataset.mail)); return;
+  case "teamSave": { const F=formVals(), T=teamForm; if(!F.name){ toast("Bitte einen Namen eingeben"); return; }
+    if(T&&T.fest){ META.teamNamen=Object.assign(META.teamNamen||{},{[T.mail]:F.name}); }
+    else { const mail=(F.mail||"").toLowerCase(); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)){ toast("Bitte eine gültige E-Mail eingeben"); return; }
+      if(!T&&team().some(x=>x.mail===mail)){ toast("Diese Adresse ist schon in der Liste"); return; }
+      META.team=(META.team||[]).filter(x=>x.mail!==(T&&T.mail)); META.team.push({name:F.name,mail}); }
+    if(T&&(META.profil.mail||"")===T.mail) ichBin(team().find(x=>x.mail===T.mail)||{name:F.name,mail:T.mail});
+    metaSave(); closeOverlays(); render(); return; }
+  case "teamDel": { META.team=(META.team||[]).filter(x=>x.mail!==teamForm.mail); metaSave(); closeOverlays(); render(); return; }
+  case "mailAnEdit": dialog("Protokolle senden an",`<div class="fg1">${tf("mail","E-Mail",mailAn(),{form:true,type:"email"})}</div><p class="sup" style="margin:12px 0 0">Standard: ${MAIL_BUERO}</p>`,`<button class="btn-text" data-act="mailAnStd">Standard</button><span style="flex:1"></span><button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="mailAnSave">Speichern</button>`); return;
+  case "mailAnStd": delete META.mailAn; metaSave(); closeOverlays(); render(); return;
+  case "mailAnSave": { const v=(formVals().mail||"").trim().toLowerCase(); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){ toast("Bitte eine gültige E-Mail eingeben"); return; } META.mailAn=v===MAIL_BUERO?undefined:v; metaSave(); closeOverlays(); render(); return; }
   case "stBauart": stLesen(); stDlg.gr[+b.dataset.g].bauart=b.dataset.v; stDialog(); return;
   case "stGrAdd": stLesen(); stDlg.gr.push({bauart:stDlg.gr[stDlg.gr.length-1].bauart==="Wallbox"?"Ladesäule":"Wallbox",typ:"",n:"1"}); stDialog(); return;
   case "stGrDel": stLesen(); stDlg.gr.splice(+b.dataset.g,1); stDialog(); return;
@@ -1930,6 +1953,35 @@ async function importBackup(el){
   }catch(e){ toast("Die Datei ist keine gültige Sicherung"); }
 }
 
+// ================= Mitarbeiter und Mail =================
+// Feste Liste der Firma; weitere Personen können auf dem Gerät ergänzt werden. Fertige Protokolle gehen an das Büro (Chef).
+const MITARBEITER=[{name:"Max Pevec",mail:"m.pevec@elektro-irrgang.de"},{name:"M. Seipp",mail:"m.seipp@elektro-irrgang.de"},{name:"A. Brandl",mail:"a.brandl@elektro-irrgang.de"}];
+const MAIL_BUERO="info@elektro-irrgang.de";
+const mailAn=()=>META.mailAn||MAIL_BUERO;
+const team=()=>[...MITARBEITER.map(m=>({...m,name:(META.teamNamen||{})[m.mail]||m.name,fest:true})),...(META.team||[])];
+function ichBin(m){ META.profil.name=m.name; META.profil.mail=m.mail; metaSave(); setMe(); }
+function teamView(){
+  const T=team(), ich=(META.profil.mail||"").toLowerCase();
+  const zeile=m=>`<div class="li${!SYNC_ON&&ich===m.mail?" sel":""}" role="button" tabindex="0" data-act="${SYNC_ON?"teamEdit":"ichBin"}" data-mail="${esc(m.mail)}">
+      ${SYNC_ON?`<span class="av">${icon("person")}</span>`:`<span class="rb${ich===m.mail?" on":""}"></span>`}<span class="lt"><span class="h">${esc(m.name)}</span><span class="s">${esc(m.mail)}</span></span>
+      <button class="icon-btn sm" data-act="teamEdit" data-mail="${esc(m.mail)}" aria-label="Bearbeiten">${icon("edit")}</button></div>`;
+  return `<div class="narrow">
+    <div class="sec-row"><div class="sec-lbl">${SYNC_ON?"Mitarbeiter":"Wer arbeitet auf diesem Gerät?"}</div><button class="btn-text" data-act="teamAdd">${icon("add")}Mitarbeiter</button></div>
+    ${listOf(T.map(zeile))}
+    ${SYNC_ON?"":`<p class="hint">Die Auswahl erscheint als Prüfer und Ersteller und unter dem Mailtext.</p>`}
+    <div class="sec-lbl">Fertige Protokolle gehen an</div>
+    ${listOf([`<div class="li" role="button" tabindex="0" data-act="mailAnEdit"><span class="av">${icon("mail")}</span><span class="lt"><span class="h">${esc(mailAn())}</span><span class="s">Büro – prüft das Protokoll und gibt es mit der Rechnung an den Kunden</span></span>${icon("edit")}</div>`])}
+    <p class="hint">„Per Mail senden“ im PDF-Fenster öffnet Mail mit der PDF im Anhang. Die Empfängeradresse kopiert die App dabei in die Zwischenablage – im Feld „An“ lange tippen und „Einsetzen“. Absender ist das Konto, das auf dem iPad in Mail eingerichtet ist.</p></div>`;
+}
+let teamForm=null;
+function teamDialog(m){
+  teamForm={mail:m&&m.mail,fest:m&&m.fest};
+  dialog(m?"Mitarbeiter bearbeiten":"Mitarbeiter hinzufügen",`<div class="fg1">${tf("name","Name",m?m.name:"",{form:true,ph:"z. B. Max Mustermann"})}${tf("mail","E-Mail",m?m.mail:"",{form:true,type:"email",ph:"vorname.nachname@elektro-irrgang.de"})}</div>
+    ${m&&m.fest?`<p class="sup" style="margin:12px 0 0">Die Adresse gehört zur festen Liste und kann hier nicht geändert werden.</p>`:""}`,
+    `${m&&!m.fest?`<button class="btn-text danger" data-act="teamDel">Entfernen</button><span style="flex:1"></span>`:""}<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="teamSave">${m?"Speichern":"Hinzufügen"}</button>`);
+  if(m&&m.fest){ const e=$("#f_mail"); if(e) e.disabled=true; }
+}
+
 // ================= Beispieldaten (werden nie abgeglichen) =================
 function demoLP(o={}){
   const v={rpe:"0,06",riso:"200",risov:"500 V",pevt:"ok",cp:"ok",u1:"234,0",u2:"227,3",u3:"234,5",unpe:"0,4",dreh:"rechts (123)",
@@ -2035,16 +2087,20 @@ function pdfDialog(){
   saveNow(); const S=pdfSchema(cur);
   dialog("PDF erstellen",`<div class="fg1">${tf("fname","Dateiname",S.name,{form:true,sfx:".pdf"})}</div>
     ${S.fehlt.map(f=>`<p class="warnline">${icon("warn")}${esc(f)} fehlt – steht deshalb nicht im Dateinamen.</p>`).join("")}
-    <p class="sup" style="margin:12px 0 0">Schema: ${PDF_SCHEMA} · <button class="btn-text" style="height:auto;padding:0" data-act="pdfStd">Standardname</button></p>`,
+    <p class="sup" style="margin:12px 0 0">Per Mail an <b>${esc(mailAn())}</b> – die Adresse liegt danach in der Zwischenablage.</p>
+    <p class="sup" style="margin:6px 0 0">Schema: ${PDF_SCHEMA} · <button class="btn-text" style="height:auto;padding:0" data-act="pdfStd">Standardname</button></p>`,
     `<button class="btn-text" data-act="cancel">Abbrechen</button><span style="flex:1"></span><button class="btn-text" data-act="pdfMail">Per Mail senden</button><button class="btn-text" data-act="pdfSave">Speichern</button>`);
 }
 async function pdfTeilen(blob,name){
   const {k,s,l}=pfad(cur), f=new File([blob],name+".pdf",{type:"application/pdf"});
-  const text=`Hallo,\n\nanbei das Prüfprotokoll ${[k&&k.name,(l||s)&&(l||s).name].filter(Boolean).join(", ")}${cur.p.auftragsnr?`, Auftrag ${cur.p.auftragsnr}`:""} vom ${deDate(cur.p.datum)}.\n\nViele Grüße\n${cur.p.pruefer||who().name||""}`;
+  const an=mailAn(); try{ navigator.clipboard&&navigator.clipboard.writeText(an); }catch(e){}
+  const text=`Hallo,\n\nanbei das Prüfprotokoll ${[k&&k.name,(l||s)&&(l||s).name].filter(Boolean).join(", ")}${cur.p.auftragsnr?`, Auftrag ${cur.p.auftragsnr}`:""} vom ${deDate(cur.p.datum)}.\n\nViele Grüße\n${cur.p.pruefer||who().name||""}${who().mail?"\n"+who().mail:""}`;
   if(navigator.canShare&&navigator.canShare({files:[f]})){
     try{ await navigator.share({files:[f],title:`Prüfprotokoll ${name}`,text}); return true; }catch(e){ if(e&&e.name==="AbortError") return true; }
   }
-  saveFile(blob,name+".pdf"); toast("Teilen ist hier nicht möglich – PDF wurde gespeichert"); return false;
+  saveFile(blob,name+".pdf");
+  location.href=`mailto:${an}?subject=${encodeURIComponent("Prüfprotokoll "+name)}&body=${encodeURIComponent(text+"\n\n(PDF bitte anhängen)")}`;
+  toast("PDF gespeichert – bitte in der Mail anhängen"); return false;
 }
 function makePDF(name,mail){
   if(!window.jspdf){ toast("PDF-Erstellung nicht geladen"); return; }

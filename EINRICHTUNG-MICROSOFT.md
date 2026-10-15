@@ -25,6 +25,7 @@ Kein Client-Geheimnis und kein Zertifikat nötig: Die Anmeldung läuft als SPA m
 
 - `User.Read` – Name und E-Mail des angemeldeten Mitarbeiters
 - `Files.ReadWrite.All` – Lesen/Schreiben im freigegebenen Ordner (im Namen des angemeldeten Nutzers, nur dort, wo der Nutzer ohnehin Rechte hat)
+- `Mail.Send` – *optional:* fertige Prüfprotokolle direkt aus der App vom Konto des angemeldeten Mitarbeiters an info@elektro-irrgang.de senden (nur im Namen des angemeldeten Nutzers, kein Zugriff auf Postfächer)
 
 Danach **„Administratorzustimmung für … erteilen“**.
 
