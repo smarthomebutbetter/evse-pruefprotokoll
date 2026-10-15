@@ -388,6 +388,10 @@ details.optrows .mrow:first-of-type{border-top:0}
 .li .rb{width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--on-sv);flex:none;margin:0 10px}
 .li .rb.on{box-shadow:inset 0 0 0 2px var(--primary),inset 0 0 0 6px var(--surface),inset 0 0 0 12px var(--primary)}
 .list.wahl{max-height:40vh;overflow:auto}
+.warnline.mild{color:var(--wip-t,#8a6100)}
+.okline{display:flex;gap:8px;align-items:center;color:var(--ok);font-size:13px;font-weight:600;margin:12px 4px 0}.okline .ic{width:18px;height:18px}
+.pdfchk{margin:14px 0 0;padding:12px 14px;border-radius:14px;background:var(--err-c);color:var(--on-err-c)}
+.pdfchk b{font-size:14px}.pdfchk .warnline{color:inherit;margin:6px 0 0}.pdfchk span{display:block;font-size:12px;margin-top:8px;opacity:.85}
 .kath{padding-bottom:10px}
 .kath + .kath{margin-top:12px}
 .kath-k{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px}
@@ -1402,7 +1406,7 @@ const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter und Mail",archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.48 · 15.10.2026";
+const APP_VERSION="1.49 · 15.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -1725,7 +1729,7 @@ function projektView(){
     <section class="card"><h3>Messgeräte</h3><div class="fg">
       ${tf("p.geraet","Messgerät",p.geraet)}
       ${tf("p.geraetSn","Seriennummer",p.geraetSn)}
-      ${tf("p.kal","Kalibrierung gültig bis",p.kal,{ph:"MM.JJJJ"})}
+      <div>${tf("p.kal","Kalibrierung gültig bis",p.kal,{ph:"MM.JJJJ"})}<div id="kalWarn">${kalWarnHtml(cur)}</div><p class="sup" style="margin:4px 4px 0">Wiha MFT one: Hersteller empfiehlt Kalibrierung alle 12 Monate.</p></div>
       ${tf("p.adapter","Prüfadapter",p.adapter,{list:"dl-adapter"})}${datalist("dl-adapter",["Fluke FEV300",...live("pruefungen").map(x=>x.p.adapter)])}
     </div></section>
     <section class="card"><h3>Prüfung</h3><div class="fg">
@@ -1761,7 +1765,7 @@ function saeuleView(){
         ${tf(b+"name","Bezeichnung",s.name)}
         ${tf(b+"ort","Stellplatz / Position",s.ort,{ph:"z. B. Stellplatz 12–13 oder Reihe B"})}
         ${tf(b+"typ","Hersteller / Typ",s.typ,{list:"dl-typ"})}${datalist("dl-typ",live("pruefungen").flatMap(p=>p.s.map(x=>x.typ)))}
-        ${tf(b+"sn","Seriennummer",s.sn)}
+        <div>${tf(b+"sn","Seriennummer",s.sn)}<div id="snWarn">${snWarnHtml(cur,si)}</div></div>
         ${tf(b+"fw","Firmware (optional)",s.fw,{full:true})}
         <div class="full"><div class="lbl">Freigabe zum Laden</div><div class="chips">${FREIGABEN.map(f=>`<button type="button" class="chip${f!==FREIGABEN[2]&&freigabeListe(s).includes(FREIGABEN[2])?" dim":""}" data-act="freigabe" data-v="${f}" aria-pressed="${freigabeListe(s).includes(f)}">${icon("check")}${f}</button>`).join("")}</div></div>
         <div><div class="lbl">Ladepunkte</div>${seg("lps",s.lps,[[1,"1"],[2,"2"]])}</div>
@@ -2216,6 +2220,8 @@ document.addEventListener("input",ev=>{
   const path=el.dataset.bind, alt=path==="p.adapter"?cur.p.adapter:null; setPath(path,el.value); scheduleSave();
   if(path==="p.datum"&&cur.a.fristJ){ const d=new Date((el.value||today())+"T12:00:00"); d.setFullYear(d.getFullYear()+(+cur.a.fristJ)); cur.a.naechste=d.toISOString().slice(0,10); }
   if(path==="p.adapter"&&(cur.a.funktion===defFunktion(alt)||!cur.a.funktion)) cur.a.funktion=defFunktion(el.value.trim());
+  if((path==="p.kal"||path==="p.datum")&&$("#kalWarn")) $("#kalWarn").innerHTML=kalWarnHtml(cur);
+  { const ms=path.match(/^s\.(\d+)\.sn$/); if(ms&&$("#snWarn")) $("#snWarn").innerHTML=snWarnHtml(cur,+ms[1]); }
   const m=path.match(/^s\.(\d+)\.(.+)$/); if(!m) return;
   const s=cur.s[+m[1]];
   if(m[2]==="name"&&nav.v==="saeule") $("#topTitle span").textContent=sName(s,+m[1]);
@@ -2445,6 +2451,40 @@ async function importBackup(el){
   }catch(e){ toast("Die Datei ist keine gültige Sicherung"); }
 }
 
+// ================= Plausibilität =================
+const snNorm=v=>String(v||"").replace(/[\s\-./]/g,"").toUpperCase();
+function snDoppelt(p,si){ const n=snNorm(p.s[si].sn); if(!n) return []; return p.s.map((x,i)=>i!==si&&snNorm(x.sn)===n?sName(x,i):null).filter(Boolean); }
+const snWarnHtml=(p,si)=>{ const d=snDoppelt(p,si); return d.length?`<p class="warnline">${icon("warn")}Seriennummer kommt auch bei ${esc(d.join(", "))} vor.</p>`:""; };
+// Kalibrierung „gültig bis“: MM.JJJJ, MM/JJJJ, TT.MM.JJJJ oder JJJJ-MM(-TT) → letzter gültiger Tag
+function kalBis(t){ t=String(t||"").trim(); let m;
+  if((m=t.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/))) return new Date(+m[3],+m[2]-1,+m[1]);
+  if((m=t.match(/^(\d{1,2})[./](\d{4})$/))) return new Date(+m[2],+m[1],0);
+  if((m=t.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/))) return m[3]?new Date(+m[1],+m[2]-1,+m[3]):new Date(+m[1],+m[2],0);
+  return null; }
+function kalStatus(p){ const raw=p.p.kal; if(!raw) return {s:"leer",t:"Kalibrierdatum des Messgeräts nicht eingetragen."};
+  const bis=kalBis(raw); if(!bis) return {s:"form",t:"Kalibrierdatum nicht erkannt – bitte als MM.JJJJ eintragen."};
+  const tag=new Date((p.p.datum||today())+"T12:00:00"), rest=Math.floor((bis-tag)/864e5);
+  if(rest<0) return {s:"ab",t:`Kalibrierung abgelaufen (gültig bis ${raw}) – Messungen damit sind nicht nachweissicher.`};
+  if(rest<=30) return {s:"bald",t:`Kalibrierung läuft in ${rest} Tag${rest===1?"":"en"} ab – Gerät rechtzeitig einschicken.`};
+  return {s:"ok",t:""}; }
+const kalWarnHtml=p=>{ const k=kalStatus(p); return k.s==="ok"||k.s==="leer"?"":`<p class="warnline${k.s==="bald"?" mild":""}">${icon("warn")}${esc(k.t)}</p>`; };
+// Vor dem PDF: was im Protokoll fehlt oder nicht zusammenpasst
+function pdfPruefung(p){
+  const out=[], ohne=p.a.pdfOhne||[], S=p.s.map((s,i)=>({s,i})).filter(x=>!ohne.includes(x.s.id));
+  const offen=[]; let bad=false;
+  S.forEach(({s,i})=>{ for(let l=0;l<s.lps;l++){ const st=lpState(s,l); if(st==="bad") bad=true; if(st==="open"||st==="wip") offen.push(`${sName(s,i)}${s.lps>1?` Ladepunkt ${l+1}`:""}`); } });
+  if(offen.length) out.push(`Noch nicht alle Werte erfasst: ${offen.slice(0,4).join(", ")}${offen.length>4?` und ${offen.length-4} weitere`:""}.`);
+  if(bad&&!String(p.a.maengel||"").trim()) out.push("Nicht bestanden, aber keine Mängel / Maßnahmen eingetragen.");
+  const dop=[]; S.forEach(({s,i})=>{ const d=snDoppelt(p,i); if(d.length&&!dop.some(x=>x.includes(sName(s,i)))) dop.push([sName(s,i),...d].join(" = ")); });
+  if(dop.length) out.push(`Doppelte Seriennummer: ${dop.join("; ")}.`);
+  const fehltSn=S.filter(({s})=>!String(s.sn||"").trim()).length; if(fehltSn) out.push(`Seriennummer fehlt bei ${fehltSn} Station${fehltSn>1?"en":""}.`);
+  const k=kalStatus(p); if(k.s!=="ok") out.push(k.t);
+  if(!p.a.sigP) out.push("Unterschrift Prüfer fehlt.");
+  if(!p.a.sigK&&!p.a.kAbwesend) out.push("Unterschrift Auftraggeber fehlt (oder „nicht anwesend“ wählen).");
+  if(!p.a.naechste) out.push("Nächste Prüfung nicht festgelegt.");
+  return out;
+}
+
 // ================= Mitarbeiter und Mail =================
 // Feste Liste der Firma; weitere Personen können auf dem Gerät ergänzt werden. Fertige Protokolle gehen an das Büro (Chef).
 const MITARBEITER=[{name:"J. Irrgang",mail:"info@elektro-irrgang.de",rolle:"Chef · Firmenmail"},{name:"M. Pevec",mail:"m.pevec@elektro-irrgang.de"},{name:"M. Seipp",mail:"m.seipp@elektro-irrgang.de"},{name:"A. Brandl",mail:"a.brandl@elektro-irrgang.de"}];
@@ -2598,6 +2638,7 @@ function pdfDialog(){
   saveNow(); const S=pdfSchema(cur);
   dialog("PDF erstellen",`<div class="fg1">${tf("fname","Dateiname",S.name,{form:true,sfx:".pdf"})}</div>
     ${S.fehlt.map(f=>`<p class="warnline">${icon("warn")}${esc(f)} fehlt – steht deshalb nicht im Dateinamen.</p>`).join("")}
+    ${(()=>{ const P=pdfPruefung(cur); return P.length?`<div class="pdfchk"><b>Vor dem Versenden prüfen</b>${P.map(t=>`<p class="warnline">${icon("warn")}${esc(t)}</p>`).join("")}<span>Erstellen geht trotzdem.</span></div>`:`<p class="okline">${icon("done")}Protokoll vollständig.</p>`; })()}
     <p class="sup" style="margin:12px 0 0">Per Mail an <b>${esc(mailAn())}</b> – die Adresse liegt danach in der Zwischenablage.</p>
     <p class="sup" style="margin:6px 0 0">Schema: ${PDF_SCHEMA} · <button class="btn-text" style="height:auto;padding:0" data-act="pdfStd">Standardname</button></p>`,
     `<button class="btn-text" data-act="cancel">Abbrechen</button><span style="flex:1"></span><button class="btn-text" data-act="pdfMail">Per Mail senden</button><button class="btn-text" data-act="pdfSave">Speichern</button>`);
