@@ -815,6 +815,31 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
   .spick-mi.an{background:color-mix(in srgb,var(--primary) 12%,transparent)}
   .spick-mi > .ic:last-child{color:var(--primary)}
 }
+
+/* iPad/PC: gefüllte Flächen statt feiner Rahmen */
+:root{--feld:#FFFFFF}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--feld:var(--sc-high)}}
+:root[data-theme="dark"]{--feld:var(--sc-high)}
+@media (min-width:744px){
+  .tf input,.tf select,.tf textarea{background:var(--feld)!important;box-shadow:none!important;border-radius:14px!important;padding:24px 16px 8px}
+  .tf textarea{padding-top:26px}
+  .tf input:focus,.tf select:focus,.tf textarea:focus{box-shadow:inset 0 0 0 2px var(--primary)!important}
+  .tf label{background:transparent!important;left:14px;top:16px}
+  .tf :focus + label,.tf input:not(:placeholder-shown) + label,.tf textarea:not(:placeholder-shown) + label,.tf.fl label{top:6px!important;font-size:12px;line-height:16px}
+  .tf input::placeholder,.tf textarea::placeholder{opacity:.75}
+  .mrow .tf input,.mrow .tf select{padding:12px!important;padding-right:42px!important;height:48px}
+  .mrow .tf select{padding-right:36px!important}
+  .mrow[data-state="ok"] .tf input,.mrow[data-state="ok"] .tf select{background:color-mix(in srgb,var(--ok-c) 70%,var(--feld))!important;box-shadow:none!important}
+  .mrow[data-state="bad"] .tf input,.mrow[data-state="bad"] .tf select{background:var(--err-c)!important;color:var(--on-err-c);box-shadow:none!important}
+  .seg{border:0!important;background:var(--feld);padding:3px;border-radius:22px!important;gap:2px;overflow:visible}
+  .seg button{border:0!important;border-radius:19px!important;min-height:38px}
+  .chip{border:0!important;background:var(--feld);border-radius:12px;min-height:36px;color:var(--on-surface)}
+  .chip[aria-pressed="true"]{background:var(--sec-c)}
+  .foto.leer,.foto:not(:has(img)){border:0!important;background:var(--feld)!important;border-radius:20px!important}
+  .spick{border:0!important;border-radius:22px!important;background:var(--sc-high)!important;padding:0 12px 0 16px}
+  .spick:hover,.spick:active{background:var(--sc-highest)!important}
+  .spick:has(.sd.bad){background:var(--err-c)!important;color:var(--on-err-c)}
+}
 </style>
 </head>
 <body class="is-list">
