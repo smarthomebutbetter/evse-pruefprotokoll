@@ -219,6 +219,8 @@ button.pad{width:100%;height:120px;border:0;padding:0;border-radius:12px;backgro
 button.pad span{display:flex;align-items:center;gap:8px}
 button.pad img{max-width:90%;max-height:100px;display:block}
 .sigfull{position:fixed;inset:0;z-index:80;background:var(--surface);display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.sigfull.quer{inset:auto;top:0;left:100vw;width:100vh;height:100vw;transform-origin:top left;transform:rotate(90deg);padding:0}
+.sigfull.quer .sf-body{margin:10px}
 .sf-head{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--outline-v)}
 .sf-head b{flex:1;text-align:center;font-size:17px}
 .btn-filled.sm{height:40px;padding:0 18px;font-size:14px}
@@ -461,20 +463,22 @@ body.is-login .topbar{display:none}
 
 html.standalone .app-weiter{display:none!important}html.standalone a.li.weiter{pointer-events:none}html.standalone a.li.weiter > .ic:last-child{display:none}
 
-@media (max-width:599px){
+@media (max-width:599px),(pointer:coarse){
   .list{background:transparent;border-radius:0;overflow:visible;display:flex;flex-direction:column;gap:8px}
   .list > .li,.list > a.li,.list > .sw > .li{border-top:0!important;border-radius:18px;background:var(--sc-low)}
   .list > .sw{border-radius:18px;overflow:hidden}
   .li{padding:14px;gap:12px;min-height:64px}
-  .av{width:36px;height:36px}.av .ic{width:20px;height:20px}
-  .av.gross{width:56px;height:56px}
   .lt .h,.lt .s{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .lt .st{margin-top:8px}
   .sec-lbl{margin-top:22px}
-  .tb-title{font-size:18px}
   body.fab-klein .fab:not(.fab-rund){width:56px;padding:0;justify-content:center;gap:0}
   body.fab-klein .fab:not(.fab-rund) span{display:none}
   .fab{transition:width .15s}
+}
+@media (max-width:599px){
+  .av{width:36px;height:36px}.av .ic{width:20px;height:20px}
+  .av.gross{width:56px;height:56px}
+  .tb-title{font-size:18px}
   .nav-item{letter-spacing:0;font-size:11.5px}
   .nav-item > span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
 }
@@ -2373,22 +2377,32 @@ function setupSigs(){
     c.addEventListener("pointerup",end); c.addEventListener("pointercancel",end);
   });
 }
-function sigOpen(k){
+async function sigOpen(k){
   const nm=(k==="sigP"?(cur.a.sigPName||cur.p.pruefer):cur.a.sigKName)||"";
   const el=document.createElement("div"); el.className="sigfull";
   el.innerHTML=`<div class="sf-head"><button class="btn-text" data-sf="cancel">Abbrechen</button><b>${k==="sigP"?"Unterschrift Prüfer":"Unterschrift Auftraggeber"}</b><button class="btn-text" data-sf="clear">Löschen</button><button class="btn-filled sm" data-sf="ok">Übernehmen</button></div>
     <div class="sf-body"><canvas></canvas><div class="sf-line"></div><p>${esc(nm)}${nm?" · ":""}mit dem Finger oder Stift unterschreiben</p></div>`;
+  const handy=Math.min(innerWidth,innerHeight)<600; let fs=false, lock=false;
+  if(handy){ try{ if(document.documentElement.requestFullscreen&&!document.fullscreenElement){ await document.documentElement.requestFullscreen({navigationUI:"hide"}); fs=true; } }catch(e){}
+    try{ if(screen.orientation&&screen.orientation.lock){ await screen.orientation.lock("landscape"); lock=true; await new Promise(r=>setTimeout(r,350)); } }catch(e){} }
   document.body.appendChild(el); document.body.style.overflow="hidden";
-  const c=el.querySelector("canvas"), dpr=window.devicePixelRatio||1, rc=c.getBoundingClientRect();
-  c.width=Math.round(rc.width*dpr); c.height=Math.round(rc.height*dpr);
-  const x=c.getContext("2d"); x.lineWidth=2.8*dpr; x.lineCap="round"; x.lineJoin="round"; x.strokeStyle="#14202c"; x.fillStyle="#14202c";
+  const quer=()=>handy&&innerHeight>innerWidth; el.classList.toggle("quer",quer());
+  if(quer()) el.querySelector(".sf-body p").textContent=(nm?nm+" · ":"")+"Handy quer halten und unterschreiben";
+  const c=el.querySelector("canvas"), dpr=window.devicePixelRatio||1;
+  c.width=Math.round(c.offsetWidth*dpr); c.height=Math.round(c.offsetHeight*dpr);
+  const x=c.getContext("2d"); const stil=()=>{ x.lineWidth=2.8*dpr; x.lineCap="round"; x.lineJoin="round"; x.strokeStyle="#14202c"; x.fillStyle="#14202c"; }; stil();
   let ink=false;
+  const neuLayout=()=>{ const alt=document.createElement("canvas"); alt.width=c.width; alt.height=c.height; alt.getContext("2d").drawImage(c,0,0);
+    el.classList.toggle("quer",quer()); c.width=Math.round(c.offsetWidth*dpr); c.height=Math.round(c.offsetHeight*dpr); stil();
+    if(ink){ const r=Math.min(c.width/alt.width,c.height/alt.height); x.drawImage(alt,0,0,alt.width*r,alt.height*r); } };
+  window.addEventListener("resize",neuLayout);
   if(cur.a[k]){ const img=new Image(); img.onload=()=>{ const r=Math.min(c.width*0.8/img.width,c.height*0.6/img.height); x.drawImage(img,(c.width-img.width*r)/2,(c.height-img.height*r)/2,img.width*r,img.height*r); ink=true; }; img.src=cur.a[k]; }
-  let on=false,last=null; const pos=e=>{ const r=c.getBoundingClientRect(); return [(e.clientX-r.left)*dpr,(e.clientY-r.top)*dpr]; };
+  let on=false,last=null; const pos=e=>{ const r=c.getBoundingClientRect(); return el.classList.contains("quer")?[(e.clientY-r.top)*dpr,(r.right-e.clientX)*dpr]:[(e.clientX-r.left)*dpr,(e.clientY-r.top)*dpr]; };
   c.addEventListener("pointerdown",e=>{ on=true; last=pos(e); c.setPointerCapture(e.pointerId); x.beginPath(); x.arc(last[0],last[1],x.lineWidth/2,0,7); x.fill(); ink=true; e.preventDefault(); });
   c.addEventListener("pointermove",e=>{ if(!on) return; const p=pos(e); x.beginPath(); x.moveTo(last[0],last[1]); x.lineTo(p[0],p[1]); x.stroke(); last=p; ink=true; });
   const end=()=>{ on=false; }; c.addEventListener("pointerup",end); c.addEventListener("pointercancel",end);
-  const close=()=>{ el.remove(); document.body.style.overflow=""; };
+  const close=()=>{ window.removeEventListener("resize",neuLayout); el.remove(); document.body.style.overflow="";
+    try{ if(lock) screen.orientation.unlock(); }catch(e){} try{ if(fs&&document.fullscreenElement) document.exitFullscreen(); }catch(e){} };
   el.addEventListener("click",e=>{ const a=e.target.closest("[data-sf]"); if(!a) return;
     if(a.dataset.sf==="cancel") close();
     else if(a.dataset.sf==="clear"){ x.clearRect(0,0,c.width,c.height); ink=false; }
