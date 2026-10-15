@@ -604,6 +604,12 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 .pv-pfeil.l{left:16px}.pv-pfeil.l .ic{transform:rotate(180deg)}.pv-pfeil.r{right:16px}
 @media (hover:hover) and (pointer:fine){.pv.m-seiten .pv-pfeil{display:grid}}
 .pv{isolation:isolate}.pv-seiten{position:relative}
+
+.pv-seiten{padding:12px 12px calc(24px + env(safe-area-inset-bottom,0px));gap:12px}
+.pv-zahl{left:max(16px,env(safe-area-inset-left,0px));top:calc(env(safe-area-inset-top,0px) + 68px);bottom:auto;transform:none;background:rgba(40,40,42,.88);color:#fff;font-size:14px;font-weight:700;padding:6px 14px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:opacity .35s}
+.pv.m-seiten .pv-zahl{opacity:0}.pv.m-seiten .pv-zahl.an{opacity:.95}
+.pv.m-seiten .pv-blatt{padding:12px 12px calc(24px + env(safe-area-inset-bottom,0px))}
+.pv.m-seiten .pv-seite{margin:0 auto!important}
 </style>
 </head>
 <body class="is-list">
@@ -1252,14 +1258,14 @@ function pvSeite(){ const box=$("#pvSeiten"); if(!box) return 1; const bl=[...bo
   const r=box.getBoundingClientRect(); let n=1; bl.forEach((b,i)=>{ if(b.getBoundingClientRect().top<r.top+r.height/2) n=i+1; }); return n; }
 function pvGehe(n,glatt){ const box=$("#pvSeiten"); if(!box||!PV||!PV.doc) return; n=Math.max(1,Math.min(PV.doc.numPages,n)); const bl=box.querySelector(`.pv-blatt[data-s="${n}"]`); if(!bl) return;
   if(PV_MODUS==="seiten") box.scrollTo({left:(n-1)*box.clientWidth,behavior:glatt?"smooth":"auto"}); else box.scrollTo({top:bl.offsetTop-16,behavior:glatt?"smooth":"auto"}); }
-function pvZahl(fest){ const P=PV, z=$("#pvZahl"); if(!P||!P.doc||!z) return; const n=pvSeite(); z.textContent=`${n} / ${P.doc.numPages}`;
+function pvZahl(fest){ const P=PV, z=$("#pvZahl"); if(!P||!P.doc||!z) return; const n=pvSeite(); z.textContent=`${n} von ${P.doc.numPages}`;
   const l=$("#pv .pv-pfeil.l"), r=$("#pv .pv-pfeil.r"); if(l) l.disabled=n<=1; if(r) r.disabled=n>=P.doc.numPages;
-  if(PV_MODUS==="scroll"){ z.classList.add("an"); clearTimeout(P.st); P.st=setTimeout(()=>z.classList.remove("an"),900); } }
+  z.classList.add("an"); clearTimeout(P.st); P.st=setTimeout(()=>z.classList.remove("an"),1500); }
 async function pvZeichnen(){ const P=PV, box=$("#pvSeiten"); if(!P||!P.doc||!box) return; const tok=P.tok=(P.tok||0)+1;
   const seiten=PV_MODUS==="seiten", bw=box.clientWidth, bh=box.clientHeight, dpr=Math.min(window.devicePixelRatio||1,2.5);
   for(let i=1;i<=P.doc.numPages;i++){ if(P.tok!==tok||PV!==P) return;
     const pg=await P.doc.getPage(i), v1=pg.getViewport({scale:1});
-    const breite=(seiten?v1.width*Math.min((bw-32)/v1.width,(bh-64)/v1.height):Math.min(bw-32,900))*P.z, hoehe=breite*v1.height/v1.width;
+    const breite=Math.min(bw-24,1200)*P.z, hoehe=breite*v1.height/v1.width;
     let bl=box.querySelector(`.pv-blatt[data-s="${i}"]`); if(!bl){ bl=document.createElement("div"); bl.className="pv-blatt"; bl.dataset.s=i; bl.innerHTML=`<canvas class="pv-seite"></canvas>`; box.appendChild(bl); }
     const c=bl.firstChild; c.style.width=Math.floor(breite)+"px"; c.style.height=Math.floor(hoehe)+"px";
     const vp=pg.getViewport({scale:breite/v1.width*dpr}), off=document.createElement("canvas"); off.width=Math.floor(vp.width); off.height=Math.floor(vp.height);
