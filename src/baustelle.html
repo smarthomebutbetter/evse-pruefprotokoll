@@ -681,6 +681,32 @@ html,body{overscroll-behavior-y:none}
   body .nav-item,body.rail-open .nav-item{padding:0 13px!important;font-size:15px!important}
   body:not(.is-login) .logo.l-hell,body:not(.is-login) .logo.l-dunkel{display:none!important}
 }
+
+/* iPad/PC: Inhalt im Stil der Apple-Apps */
+@media (min-width:744px){
+  .sk-plus{width:44px;height:44px;padding:0;border-radius:50%;justify-content:center;gap:0}
+  .sk-plus .ic{width:24px;height:24px}
+  .search{height:40px;border-radius:12px;padding:0 12px;gap:8px;margin:0 0 16px;background:var(--sc-high)}
+  .search .ic{width:20px;height:20px}
+  .search input{font-size:16px}
+  .chips{margin-top:-4px!important}
+  .list{background:var(--sc-low)!important;border-radius:16px!important;overflow:hidden!important;display:block!important;gap:0!important}
+  .list > .li,.list > a.li,.list > .sw > .li{border-radius:0!important;background:var(--sc-low)}
+  .list > .sw{border-radius:0!important}
+  .li{position:relative;min-height:60px;padding:10px 16px!important;gap:14px!important;border-top:0!important}
+  .list > .li:not(:first-child)::before,.list > a.li:not(:first-child)::before,.list > .sw:not(:first-child) > .li::before{content:"";position:absolute;top:0;left:70px;right:0;height:1px;background:var(--outline-v);opacity:.7}
+  .li .av{width:40px;height:40px}.li .av .ic{width:22px;height:22px}
+  .lt .h{font-size:16px;font-weight:650;-webkit-line-clamp:1!important}
+  .lt .s{font-size:14px}
+  .lt .st{margin-top:5px!important}
+  .pill{height:22px;font-size:12px;border-radius:7px;padding:0 7px}
+  .li > .ic:last-child{width:20px;height:20px;opacity:.55}
+  .sec-lbl{font-size:13px;margin:24px 16px 6px;text-transform:none;letter-spacing:0;font-weight:650}
+  .narrow > .sec-lbl:first-child,.sk + .narrow > .sec-lbl:first-child{margin-top:4px}
+  .hint{text-align:left;margin:8px 16px 0;font-size:13px}
+}
+
+@media (min-width:744px){.list > .li:not(:has(> .av))::before,.list > a.li:not(:has(> .av))::before,.list > .sw > .li:not(:has(> .av))::before{left:16px}}
 </style>
 </head>
 <body class="is-list">
@@ -1134,9 +1160,9 @@ const KIND_NAME={kunden:"Kunde",standorte:"Standort"};
 function go(n){ nav=n; closeOverlays(); render(); window.scrollTo(0,0); }
 const KOPF_START="Baustellen";
 function seitenKopf(t,s,f){ t=t||(f?KOPF_START:""); if(!t&&!f) return "";
-  const T=pfadTeile(); if(s&&T.length&&s.split(/\s*›\s*/).every(x=>T.some(y=>y[0]===x))) s="";
+  const T=pfadTeile(); if(s==="Kunde"&&T.length) s=""; if(s&&T.length&&s.split(/\s*›\s*/).every(x=>T.some(y=>y[0]===x))) s="";
   const pf=T.length?`<nav class="pfad" aria-label="Pfad">${T.map((x,i)=>`<button class="pf" data-act="crumb" data-i="${i}">${esc(x[0])}</button>`).join('<span class="pf-s">›</span>')}</nav>`:"";
-  return `<div class="sk"><div class="sk-t">${pf}${t?`<h1>${esc(t)}</h1>`:""}${s?`<p>${esc(s)}</p>`:""}</div>${f?`<button class="sk-neu" data-act="${f[0]}">${icon(f[2])}<span>${esc(f[1]||"Neu")}</span></button>`:""}</div>`; }
+  return `<div class="sk"><div class="sk-t">${pf}${t?`<h1>${esc(t)}</h1>`:""}${s?`<p>${esc(s)}</p>`:""}</div>${f?(f[2]==="add"&&!T.length?`<button class="sk-neu sk-plus" data-act="${f[0]}" aria-label="${esc(f[1]?`${f[1]} anlegen`:"Neu anlegen")}" title="${esc(f[1]?`${f[1]} anlegen`:"Neu anlegen")}">${icon("add")}</button>`:`<button class="sk-neu" data-act="${f[0]}">${icon(f[2])}<span>${esc(f[1]||"Neu")}</span></button>`):""}</div>`; }
 function backSetzen(){ const b=$("#backBtn"); if(!b) return; b.innerHTML=icon("back"); }
 function crumbGo(i){ const T=pfadTeile(); if(i>=T.length-1||!T[i][1]) return zurueck(); pfadVerlassen(); go(T[i][1]); }
 const kette=(kid,sid,lid)=>{ const r=[["Kunden",{v:"kunden"}]], k=kid&&kundeOf(kid), s=sid&&standortOf(sid), l=lid&&ladeparkOf(lid);
