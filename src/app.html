@@ -1592,7 +1592,8 @@ function neuePruefung(kundeId,standortId,ladeparkId,st){
   if(meine) ["geraet","geraetSn","kal","adapter"].forEach(f=>p.p[f]=meine.p[f]);   // eigenes Messgerät übernehmen
   const prev=pruefAt(standortId,ladeparkId||null)[0];
   if(prev){ p.s=JSON.parse(JSON.stringify(prev.s)).map(s=>Object.assign(s,{id:uid(),lp:s.lp.map(()=>newLP()),fotos:{}}));
-    p.p.art="Wiederholungsprüfung"; ["netz","standort","umfang"].forEach(f=>p.p[f]=prev.p[f]); p.p.normen=[...prev.p.normen]; p.a.funktion=prev.a.funktion; }
+    p.p.art="Wiederholungsprüfung"; ["netz","standort","umfang"].forEach(f=>p.p[f]=prev.p[f]); p.p.normen=[...prev.p.normen]; p.a.funktion=prev.a.funktion;
+    if(prev.a.fristJ){ p.a.fristJ=prev.a.fristJ; const d=new Date(p.p.datum+"T12:00:00"); d.setFullYear(d.getFullYear()+(+p.a.fristJ)); p.a.naechste=d.toISOString().slice(0,10); } }
   saveRec("pruefungen",p,true); cur=JSON.parse(JSON.stringify(p)); dirtyCur=false;
   go({v:"projekt"}); toast(prev?`${p.s.length} ${p.s.length>1?"Ladestationen":"Ladestation"} aus der Prüfung vom ${deDate(prev.p.datum)} übernommen`:"Neue Prüfung angelegt");
 }

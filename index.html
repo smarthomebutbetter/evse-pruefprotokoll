@@ -1378,7 +1378,7 @@ const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.34 · 15.10.2026";
+const APP_VERSION="1.35 · 15.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -2057,7 +2057,8 @@ function neuePruefung(kundeId,standortId,ladeparkId,st){
   if(meine) ["geraet","geraetSn","kal","adapter"].forEach(f=>p.p[f]=meine.p[f]);   // eigenes Messgerät übernehmen
   const prev=pruefAt(standortId,ladeparkId||null)[0];
   if(prev){ p.s=JSON.parse(JSON.stringify(prev.s)).map(s=>Object.assign(s,{id:uid(),lp:s.lp.map(()=>newLP()),fotos:{}}));
-    p.p.art="Wiederholungsprüfung"; ["netz","standort","umfang"].forEach(f=>p.p[f]=prev.p[f]); p.p.normen=[...prev.p.normen]; p.a.funktion=prev.a.funktion; }
+    p.p.art="Wiederholungsprüfung"; ["netz","standort","umfang"].forEach(f=>p.p[f]=prev.p[f]); p.p.normen=[...prev.p.normen]; p.a.funktion=prev.a.funktion;
+    if(prev.a.fristJ){ p.a.fristJ=prev.a.fristJ; const d=new Date(p.p.datum+"T12:00:00"); d.setFullYear(d.getFullYear()+(+p.a.fristJ)); p.a.naechste=d.toISOString().slice(0,10); } }
   saveRec("pruefungen",p,true); cur=JSON.parse(JSON.stringify(p)); dirtyCur=false;
   go({v:"projekt"}); toast(prev?`${p.s.length} ${p.s.length>1?"Ladestationen":"Ladestation"} aus der Prüfung vom ${deDate(prev.p.datum)} übernommen`:"Neue Prüfung angelegt");
 }
