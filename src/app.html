@@ -1408,12 +1408,12 @@ function katalogListe(){
 function katalogView(){
   return `<div class="narrow">${searchBar("Hersteller, Modell oder Artikelnr. suchen")}<div id="res">${katalogListe()}</div>
     <div class="kat-teilen"><button class="btn-tonal" data-act="katExport">${icon("backup")}Katalog als Datei sichern</button><button class="btn-tonal" data-act="katImport">${icon("upload")}Katalog-Datei laden</button></div>
-    <p class="hint">Nur Modelle, Steckbriefe und Hinweise mit Fotos – keine Kunden oder Prüfungen. Die Datei im Share-Ordner ablegen, andere laden sie dort. Vorhandenes wird ergänzt, nichts geht verloren.</p></div>`;
+    <p class="hint">Nur Modelle, Steckbriefe und Hinweise mit Fotos – keine Kunden oder Prüfungen. Immer erst laden, dann sichern – und im Share-Ordner die vorhandene Datei „EVSE-Katalog“ ersetzen. Beim Laden wird ergänzt, nichts geht verloren.</p></div>`;
 }
 async function katExport(){
   const L=live("katalog"), fotos={}; L.flatMap(katFotoIds).forEach(i=>{ const d=fotoCache.get(i); if(d) fotos[i]=d; });
   const blob=new Blob([JSON.stringify({app:"evse-katalog",version:1,saved:Date.now(),katalog:L.map(r=>{ const o=strip(r); delete o.anhaenge; delete o.bild; return o; }),fotos})],{type:"application/json"});
-  const name=`EVSE-Katalog_${today()}.json`, f=new File([blob],name,{type:"application/json"});
+  const name="EVSE-Katalog.json", f=new File([blob],name,{type:"application/json"});
   if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:name}); return; }catch(e){ if(e&&e.name==="AbortError") return; } }
   saveFile(blob,name); toast(`${L.length} Modelle gesichert`);
 }
