@@ -714,6 +714,11 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
   .stabs-band{position:sticky;top:var(--tbh,72px);z-index:5;background:var(--surface);margin:-8px -12px 12px;padding:4px 12px 8px}
   .stabs{position:static!important;margin:0!important;box-shadow:none!important}
 }
+
+@media (min-width:744px){
+  .sk .stabs{flex:none;margin-top:2px!important;height:48px}
+  .sk:has(.stabs){position:sticky;top:var(--tbh,72px);z-index:5;background:var(--surface);margin:0 -12px 12px!important;padding:12px 12px 8px}
+}
 </style>
 </head>
 <body class="is-list">
@@ -1244,9 +1249,9 @@ const vonText=r=>r&&r.createdBy&&r.createdBy.name?r.createdBy.name:"";
 function go(n){ nav=n; closeOverlays(); render(); window.scrollTo(0,0); }
 const KOPF_START="Prüfprotokolle";
 function seitenKopf(t,s,f){ t=t||(f?KOPF_START:""); if(!t&&!f) return "";
-  const T=pfadTeile(); if(s&&s.includes("›")) s=s.split(/\s*›\s*/).pop(); 
+  const T=pfadTeile(); if(!t&&!f&&typeof skRechts==="function"&&skRechts()) t=KOPF_START; if(s&&s.includes("›")) s=s.split(/\s*›\s*/).pop(); 
   const pf="";
-  return `<div class="sk">${T.length?`<button class="sk-zur" data-act="skZurueck" aria-label="Zurück" title="Zurück">${icon("back")}</button>`:""}<div class="sk-t">${t?`<h1>${esc(t)}</h1>`:""}${s?`<p>${esc(s)}</p>`:""}</div>${f?(f[2]==="add"&&!T.length?`<button class="sk-neu sk-plus" data-act="${f[0]}" aria-label="${esc(f[1]?`${f[1]} anlegen`:"Neu anlegen")}" title="${esc(f[1]?`${f[1]} anlegen`:"Neu anlegen")}">${icon("add")}</button>`:`<button class="sk-neu" data-act="${f[0]}">${icon(f[2])}<span>${esc(f[1]||"Neu")}</span></button>`):""}</div>`; }
+  return `<div class="sk">${T.length?`<button class="sk-zur" data-act="skZurueck" aria-label="Zurück" title="Zurück">${icon("back")}</button>`:""}<div class="sk-t">${t?`<h1>${esc(t)}</h1>`:""}${s?`<p>${esc(s)}</p>`:""}</div>${typeof skRechts==="function"?skRechts():""}${f?(f[2]==="add"&&!T.length?`<button class="sk-neu sk-plus" data-act="${f[0]}" aria-label="${esc(f[1]?`${f[1]} anlegen`:"Neu anlegen")}" title="${esc(f[1]?`${f[1]} anlegen`:"Neu anlegen")}">${icon("add")}</button>`:`<button class="sk-neu" data-act="${f[0]}">${icon(f[2])}<span>${esc(f[1]||"Neu")}</span></button>`):""}</div>`; }
 function backSetzen(){ const b=$("#backBtn"); if(!b) return; b.innerHTML=icon("back"); }
 function crumbGo(i){ const T=pfadTeile(); if(i>=T.length-1||!T[i][1]) return zurueck(); pfadVerlassen(); go(T[i][1]); }
 const kette=(kid,sid,lid)=>{ const r=[["Kunden",{v:"kunden"}]], k=kid&&kundeOf(kid), s=sid&&standortOf(sid), l=lid&&ladeparkOf(lid);
@@ -1426,6 +1431,7 @@ addEventListener("resize",()=>{ if(PV){ clearTimeout(PV.rt); PV.rt=setTimeout(pv
     if(d.an&&d.dx>90) zurueck(); };
   document.addEventListener("touchend",ende); document.addEventListener("touchcancel",ende);
 })();
+const skRechts=()=>nav.v==="saeule"&&cur&&cur.s[nav.si]?`<div class="stabs" role="tablist">${saeuleTabs(cur.s[nav.si])}</div>`:"";
 function render(){
   const app=$("#app"), ed=EDITOR.includes(nav.v);
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1466,7 +1472,7 @@ function render(){
   else { const {s,l}=pfad(cur); title=nav.v==="saeule"?sName(cur.s[nav.si],nav.si):(l?l.name:s?s.name:"Prüfung"); sub=nav.v==="saeule"?pfadText(cur):[deDate(cur.p.datum),cur.p.art].filter(Boolean).join(" · ");
     if(nav.v==="projekt") body=projektView();
     else if(nav.v==="saeulen"){ body=saeulenView(); if(canEdit(cur)) fab=["addS","Ladestation","add"]; }
-    else if(nav.v==="saeule"){ $("#tabs").innerHTML=saeuleTabs(cur.s[nav.si]); body=(WIDE.matches?`<div class="stabs-band"><div class="stabs" role="tablist">${saeuleTabs(cur.s[nav.si])}</div></div>`:"")+saeuleView(); }
+    else if(nav.v==="saeule"){ $("#tabs").innerHTML=saeuleTabs(cur.s[nav.si]); body=saeuleView(); }
     else if(nav.v==="abschluss"){ body=abschlussView(); fab=["pdf","PDF erstellen","pdf"]; }
     if(!canEdit(cur)) body=`<div class="robanner">${icon("lock")}<span>Nur lesen – erstellt von ${esc(vonText(cur)||"jemand anderem")}. Bearbeiten darf nur der Ersteller oder ein Admin.</span></div>`+body;
   }
