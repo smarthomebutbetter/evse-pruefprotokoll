@@ -1068,7 +1068,7 @@ function startView(){
       <div class="kpis">${kpi(bs.filter(b=>(b.status||"aktiv")==="aktiv").length,"aktive Baustellen")}${kpi(inArbeit,"Prüfungen in Arbeit")}
       ${kpi(F.filter(p=>p.a.naechste<=bald).length,"Prüfungen fällig in 3 Monaten",F.some(p=>p.a.naechste<t)?"warn":"")}${kpi(echt("kunden").length,"Kunden")}</div>`;
   }
-  return h+`<p class="hint">${SYNC_ON?"":"Tipp: Nur diese Startseite auf den Home-Bildschirm legen – die Apps öffnen sich darin."}</p></div>`;
+  return h+`<p class="hint">Jede App lässt sich einzeln auf den Home-Bildschirm legen: App öffnen, dann „Teilen“ → „Zum Home-Bildschirm“.</p></div>`;
 }
 function balken(werte){ const max=Math.max(1,...werte.map(w=>w[1]));
   return `<div class="balken">${werte.map(([l,v])=>`<div class="bk"><span class="bk-v">${v||""}</span><span class="bk-b" style="height:${Math.round(v/max*100)}%"></span><span class="bk-l">${l}</span></div>`).join("")}</div>`; }
