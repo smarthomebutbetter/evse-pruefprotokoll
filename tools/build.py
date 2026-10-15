@@ -1,4 +1,4 @@
-import base64, datetime, pathlib, subprocess
+import base64, datetime, pathlib, shutil, subprocess
 
 root = pathlib.Path(__file__).resolve().parent.parent
 b64 = lambda p: base64.b64encode((root / p).read_bytes()).decode()
@@ -32,3 +32,9 @@ baue("src/start.html", "uebersicht/index.html", "uebersicht/icon-180.png")
 baue("src/app.html", "evse/index.html", "evse/icon-180.png")
 baue("src/baustelle.html", "baustelle/index.html", "baustelle/icon-180.png")
 baue("src/echeck.html", "echeck/index.html", "echeck/icon-180.png")
+
+
+for app in ("evse", "uebersicht"):
+    (root / app / "pdfjs").mkdir(exist_ok=True)
+    for f in ("pdf.min.js", "pdf.worker.min.js"):
+        shutil.copyfile(root / "vendor/pdfjs" / f, root / app / "pdfjs" / f)

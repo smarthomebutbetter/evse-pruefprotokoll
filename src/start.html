@@ -632,6 +632,21 @@ html,body{overscroll-behavior-y:none}
 .li.ruhig{cursor:default}
 .bib-dlg p{margin:0 0 6px;font-size:14px}
 .bib-dlg .sup{color:var(--on-sv)}
+
+.pv{position:fixed;inset:0;z-index:80;background:var(--sc-low);display:flex;flex-direction:column}
+.pv-kopf{display:flex;align-items:center;gap:8px;min-height:56px;padding:env(safe-area-inset-top,0px) max(8px,env(safe-area-inset-right,0px)) 0 max(8px,env(safe-area-inset-left,0px));background:var(--surface);flex:none}
+.pv-t{flex:1;min-width:0;text-align:center;display:flex;flex-direction:column}
+.pv-t b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-t span{font-size:12px;color:var(--on-sv);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-kopf .btn-text{min-width:96px;justify-content:flex-start}
+.pv-kopf .icon-btn{margin-left:48px}
+.pv-seiten{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;overscroll-behavior:contain;display:flex;flex-direction:column;align-items:flex-start;gap:16px;padding:16px 16px calc(32px + env(safe-area-inset-bottom,0px))}
+.pv-seite{display:block;margin:0 auto;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);border-radius:2px;flex:none}
+.pv-lade{margin:48px auto;max-width:420px;text-align:center;color:var(--on-sv);font-size:14px;line-height:1.5}
+.pv-zahl{position:absolute;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--sc-highest);color:var(--on-surface);font-size:12px;font-weight:700;padding:4px 10px;border-radius:12px;pointer-events:none;opacity:0;transition:opacity .3s}
+.pv-zahl.an{opacity:.92}
+@media (max-width:599px){.pv-kopf .icon-btn{margin-left:0}.pv-kopf .btn-text{min-width:0}}
+body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dlg{z-index:93}body.pv-offen .snackbar{z-index:94}
 </style>
 </head>
 <body class="is-list">
@@ -852,7 +867,7 @@ const IC={
   baustelle:"M2 18h20v2.5H2zM4 16.5c0-3.9 2.6-7.1 6-8.1V5.6c0-.6.4-1.1 1-1.1h2c.6 0 1 .5 1 1.1v2.8c3.4 1 6 4.2 6 8.1z",
   share:"M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z",
   back:"M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
-  more:"M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z",
+  folder:"M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z",more:"M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z",
   add:"M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z",
   doc:"M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z",
   project:"M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z",
@@ -1215,6 +1230,59 @@ async function bibPdf(id,teilen){ const x=PROT.find(y=>y.id===id); if(!x) return
   if(teilen){ const f=new File([blob],x.name+".pdf",{type:"application/pdf"}); if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:x.name}); }catch(e){} return; } }
   saveFile(blob,x.name+".pdf"); }
 
+const PV_EXTRA=x=>[];
+let pdfjsP=null, PV=null;
+function pdfjsLaden(){ if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if(!pdfjsP) pdfjsP=new Promise((res,rej)=>{ const s=document.createElement("script"); s.src="pdfjs/pdf.min.js";
+    s.onload=()=>{ try{ pdfjsLib.GlobalWorkerOptions.workerSrc="pdfjs/pdf.worker.min.js"; res(pdfjsLib); }catch(e){ rej(e); } }; s.onerror=()=>{ pdfjsP=null; rej(new Error("pdfjs")); }; document.head.appendChild(s); });
+  return pdfjsP; }
+async function pvOeffnen(id){
+  const x=PROT.find(y=>y.id===id); if(!x) return; closeOverlays(); $("#pv")?.remove();
+  document.body.insertAdjacentHTML("beforeend",`<div class="pv" id="pv" role="dialog" aria-modal="true" aria-label="Vorschau"><div class="pv-kopf"><button class="btn-text" data-act="pvZu">Schließen</button><div class="pv-t"><b>${esc(x.titel)}</b><span>${esc([deDate(x.datum),x.art,x.fassung>1?`Fassung ${x.fassung}`:""].filter(Boolean).join(" · "))}</span></div><button class="icon-btn" data-act="pvMenu" aria-label="Aktionen" aria-haspopup="menu">${icon("more")}</button></div><div class="pv-seiten" id="pvSeiten"><p class="pv-lade">PDF wird geladen …</p></div><span class="pv-zahl" id="pvZahl"></span></div>`);
+  document.body.classList.add("pv-offen"); PV={id,z:1,doc:null}; const P=PV; pvGesten();
+  try{ const [lib,blob]=await Promise.all([pdfjsLaden(),protBlob(id)]); if(PV!==P) return; if(!blob) throw new Error("blob");
+    P.blob=blob; P.doc=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise; if(PV!==P) return; $("#pvSeiten").innerHTML=""; await pvZeichnen(); }
+  catch(e){ const s=$("#pvSeiten"); if(s&&PV===P) s.innerHTML=`<p class="pv-lade">Vorschau nicht möglich${navigator.onLine?"":" – beim allerersten Öffnen wird einmal Internet gebraucht"}.<br>Über ⋯ oben rechts lässt sich das PDF trotzdem speichern oder teilen.</p>`; }
+}
+async function pvZeichnen(){ const P=PV, box=$("#pvSeiten"); if(!P||!P.doc||!box) return; const tok=P.tok=(P.tok||0)+1;
+  const basis=Math.min(box.clientWidth-32,900), breite=basis*P.z, dpr=Math.min(window.devicePixelRatio||1,2.5);
+  for(let i=1;i<=P.doc.numPages;i++){ if(P.tok!==tok||PV!==P) return;
+    const pg=await P.doc.getPage(i), v1=pg.getViewport({scale:1}), vp=pg.getViewport({scale:breite/v1.width*dpr});
+    let c=box.querySelector(`canvas[data-s="${i}"]`); if(!c){ c=document.createElement("canvas"); c.className="pv-seite"; c.dataset.s=i; c.style.width=Math.floor(breite)+"px"; c.style.height=Math.floor(breite*v1.height/v1.width)+"px"; box.appendChild(c); }
+    const off=document.createElement("canvas"); off.width=Math.floor(vp.width); off.height=Math.floor(vp.height);
+    await pg.render({canvasContext:off.getContext("2d"),viewport:vp}).promise; if(P.tok!==tok||PV!==P) return;
+    c.width=off.width; c.height=off.height; c.getContext("2d").drawImage(off,0,0); c.style.width=Math.floor(breite)+"px"; c.style.height=Math.floor(breite*v1.height/v1.width)+"px"; }
+}
+function pvZoom(z,cx,cy){ const P=PV, box=$("#pvSeiten"); if(!P||!box) return; z=Math.max(1,Math.min(4,z)); const f=z/P.z; if(Math.abs(f-1)<.01) return;
+  const r=box.getBoundingClientRect(), x=cx-r.left, y=cy-r.top, sl=box.scrollLeft, st=box.scrollTop;
+  box.querySelectorAll(".pv-seite").forEach(c=>{ c.style.width=parseFloat(c.style.width)*f+"px"; c.style.height=parseFloat(c.style.height)*f+"px"; });
+  P.z=z; box.scrollLeft=(sl+x)*f-x; box.scrollTop=(st+y)*f-y; clearTimeout(P.zt); P.zt=setTimeout(pvZeichnen,250); }
+function pvGesten(){ const box=$("#pvSeiten"); let pinch=null, tap=0;
+  const d=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+  box.addEventListener("touchstart",e=>{ if(e.touches.length===2&&PV){ pinch={d:d(e.touches),z:PV.z}; e.preventDefault(); }
+    else if(e.touches.length===1){ const n=Date.now(); if(n-tap<300&&PV){ pvZoom(PV.z>1.2?1:2,e.touches[0].clientX,e.touches[0].clientY); tap=0; e.preventDefault(); } else tap=n; } },{passive:false});
+  box.addEventListener("touchmove",e=>{ if(pinch&&e.touches.length===2){ e.preventDefault(); const m=[(e.touches[0].clientX+e.touches[1].clientX)/2,(e.touches[0].clientY+e.touches[1].clientY)/2]; pvZoom(pinch.z*d(e.touches)/pinch.d,m[0],m[1]); } },{passive:false});
+  box.addEventListener("touchend",e=>{ if(e.touches.length<2) pinch=null; });
+  box.addEventListener("dblclick",e=>{ if(PV) pvZoom(PV.z>1.2?1:2,e.clientX,e.clientY); });
+  box.addEventListener("wheel",e=>{ if(e.ctrlKey&&PV){ e.preventDefault(); pvZoom(PV.z*(e.deltaY<0?1.1:1/1.1),e.clientX,e.clientY); } },{passive:false});
+  box.addEventListener("scroll",()=>{ const P=PV, z=$("#pvZahl"); if(!P||!P.doc||!z) return; const r=box.getBoundingClientRect(), cs=[...box.querySelectorAll(".pv-seite")];
+    let n=1; cs.forEach((c,i)=>{ if(c.getBoundingClientRect().top<r.top+r.height/2) n=i+1; }); z.textContent=`Seite ${n} von ${P.doc.numPages}`; z.classList.add("an"); clearTimeout(P.st); P.st=setTimeout(()=>z.classList.remove("an"),900); },{passive:true});
+}
+function pvZu(){ PV=null; $("#pv")?.remove(); document.body.classList.remove("pv-offen"); closeOverlays(); }
+function pvMenu(){ const x=PV&&PROT.find(y=>y.id===PV.id); if(!x) return;
+  const it=[["pvMail","Per Mail senden","mail"],["pvTeilen","Teilen","share"],["pvSpeichern","Auf dem Gerät speichern","pdf"]].concat(PV_EXTRA(x));
+  $("#menu").innerHTML=it.map(m=>m==="-"?"<hr>":`<button class="mi ${m[3]||""}" role="menuitem" data-act="${m[0]}">${icon(m[2])}<span>${m[1]}</span></button>`).join("");
+  $("#menu").hidden=false; $("#scrim").hidden=false; }
+async function pvAktion(a){ const x=PV&&PROT.find(y=>y.id===PV.id); if(!x) return; const blob=PV.blob||await protBlob(x.id); if(!blob){ toast("PDF nicht gefunden"); return; }
+  const f=new File([blob],x.name+".pdf",{type:"application/pdf"});
+  if(a==="pvSpeichern"){ saveFile(blob,x.name+".pdf"); return; }
+  if(a==="pvTeilen"){ if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:x.name}); }catch(e){} } else saveFile(blob,x.name+".pdf"); return; }
+  const an=mailAn(); try{ navigator.clipboard&&navigator.clipboard.writeText(an); }catch(e){}
+  const text=`Hallo,\n\nanbei das Prüfprotokoll ${x.titel}${x.auftragsnr?`, Auftrag ${x.auftragsnr}`:""} vom ${deDate(x.datum)}.\n\nViele Grüße\n${who().name||x.pruefer||""}${who().mail?"\n"+who().mail:""}`;
+  if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:`Prüfprotokoll ${x.name}`,text}); toast(`Adresse ${an} liegt in der Zwischenablage`); }catch(e){} return; }
+  saveFile(blob,x.name+".pdf"); location.href=`mailto:${an}?subject=${encodeURIComponent("Prüfprotokoll "+x.name)}&body=${encodeURIComponent(text+"\n\n(PDF bitte anhängen)")}`; toast("PDF gespeichert – bitte in der Mail anhängen"); }
+addEventListener("keydown",e=>{ if(e.key==="Escape"&&PV&&$("#menu").hidden&&$("#dlg").hidden) pvZu(); });
+addEventListener("resize",()=>{ if(PV){ clearTimeout(PV.rt); PV.rt=setTimeout(()=>{ if(!PV) return; const box=$("#pvSeiten"); if(box) box.querySelectorAll(".pv-seite").forEach(c=>c.remove()); pvZeichnen(); },200); } });
 function render(){
   const app=$("#app");
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1453,7 +1521,10 @@ document.addEventListener("click",async ev=>{
   switch(a){
   case "crumb": crumbGo(+b.dataset.i); return;
   case "bfilter": BIB_F=b.dataset.v; render(); return;
-  case "bibOpen": bibOpen(b.dataset.id); return;
+  case "bibOpen": pvOeffnen(b.dataset.id); return;
+  case "pvZu": pvZu(); return;
+  case "pvMenu": pvMenu(); return;
+  case "pvMail": case "pvTeilen": case "pvSpeichern": closeOverlays(); pvAktion(a); return;
   case "bibTeilen": closeOverlays(); bibPdf(b.dataset.id,true); return;
   case "bibSpeichern": closeOverlays(); bibPdf(b.dataset.id,false); return;
   case "menu": openMenu(); return;
