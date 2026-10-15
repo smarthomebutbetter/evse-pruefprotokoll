@@ -873,6 +873,17 @@ html,body{overscroll-behavior-y:none}
 .app-k:hover,.app-k:active,.nk:hover{background:var(--sc-high)!important}
 .app-k.geplant{background:var(--sc-low)!important}
 .n-add button{border:0!important;background:var(--feld)!important}
+
+.tl-leute{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:0 0 4px}
+.tl-p{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 12px;border:0;border-radius:16px;background:var(--feld);color:var(--on-surface);font-size:15px;font-weight:650;text-align:left;-webkit-tap-highlight-color:transparent;transition:background .15s,transform .12s}
+.tl-p:hover{background:color-mix(in srgb,var(--on-surface) 6%,var(--feld))}
+.tl-p:active{transform:scale(.97)}
+.tl-p .tl-av{width:36px;height:36px;border-radius:50%;background:var(--pc);color:var(--on-pc);display:grid;place-items:center;font-size:13px;font-weight:800;flex:none}
+.tl-p .tl-av .ic{width:20px;height:20px}
+.tl-andere .tl-av{background:var(--sc-highest);color:var(--on-sv)}
+.tl-p.an{background:var(--sec-c);color:var(--on-sec-c)}
+.tl-p.an .tl-av{background:var(--primary);color:var(--on-primary)}
+.login .lbl{margin:0 0 8px 2px}
 </style>
 </head>
 <body class="is-list">
@@ -1419,6 +1430,7 @@ document.addEventListener("click",()=>setTimeout(segInd,0));
   document.addEventListener("pointerup",ende); document.addEventListener("pointercancel",ende);
   document.addEventListener("click",e=>{ if(e.isTrusted&&Date.now()<sperre&&e.target.closest(".seg")){ sperre=0; e.stopPropagation(); e.preventDefault(); } },true);
 })();
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-tlwahl]"); if(!b) return; e.preventDefault(); const sel=$("#f_tlWer"); if(!sel) return; sel.value=b.dataset.tlwahl; sel.dispatchEvent(new Event("change",{bubbles:true})); });
 function render(){
   const app=$("#app");
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1841,7 +1853,7 @@ function loginView(){
   if(!SYNC_ON){ const wer=team().find(m=>m.mail===tlSel);
     return `<form class="login" id="tlForm" autocomplete="on">${logos}<h2>Baustelle</h2>
     <p>Name wählen und mit dem Firmen-Passwort anmelden.</p>
-    <div class="fg1" style="text-align:left">${sf("tlWer","Name",tlSel||"",[["","Name auswählen"],...team().map(m=>[m.mail,m.name]),["__andere","Andere Person …"]],{form:true})}
+    <div class="fg1" style="text-align:left"><div class="lbl">Wer bist du?</div><div class="tl-leute">${team().map(m=>{ const ini=String(m.name||m.mail).split(/[\s.@]+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join(""); return `<button type="button" class="tl-p${tlSel===m.mail?" an":""}" data-tlwahl="${esc(m.mail)}"><span class="tl-av">${esc(ini)}</span><span>${esc(m.name)}</span></button>`; }).join("")}<button type="button" class="tl-p tl-andere${tlSel==="__andere"?" an":""}" data-tlwahl="__andere"><span class="tl-av">${icon("add")}</span><span>Andere Person</span></button></div><div class="tl-sel" hidden>${sf("tlWer","Name",tlSel||"",[["","Name auswählen"],...team().map(m=>[m.mail,m.name]),["__andere","Andere Person …"]],{form:true})}</div>
       ${wer?`<p class="tl-mail">${esc(wer.mail)}</p>`:""}
       ${tlSel==="__andere"?tf("tlMail","E-Mail",tlAndere,{form:true,type:"email",ph:"name@elektro-irrgang.de"}):""}
       <div class="tf"><input id="f_tlPw" data-f="tlPw" type="password" placeholder=" " autocomplete="current-password"><label for="f_tlPw">Passwort</label></div></div>
