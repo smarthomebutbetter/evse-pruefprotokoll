@@ -909,6 +909,16 @@ html,body{overscroll-behavior-y:none}
 .tl-p.an{background:var(--sec-c);color:var(--on-sec-c)}
 .tl-p.an .tl-av{background:var(--primary);color:var(--on-primary)}
 .login .lbl{margin:0 0 8px 2px}
+
+/* eigene Auswahllisten */
+.tf select{pointer-events:none}
+.tf:has(select){cursor:pointer}
+#pickBg{position:fixed;inset:0;z-index:95}
+.pick{position:fixed;z-index:96;background:var(--sc-high);border-radius:16px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.24),0 2px 6px rgba(0,0,0,.12);overflow:auto;overscroll-behavior:contain;animation:menuAuf .16s cubic-bezier(.2,.8,.2,1);transform-origin:top center}
+.pick-g{font-size:12px;font-weight:700;color:var(--primary);padding:10px 12px 4px}
+.pick-i{display:block;width:100%;min-height:42px;border:0;border-radius:10px;background:transparent;color:var(--on-surface);text-align:left;padding:8px 12px;font-size:15px;font-weight:600}
+.pick-i:hover{background:color-mix(in srgb,var(--on-surface) 8%,transparent)}
+.pick-i.an{background:var(--sec-c);color:var(--on-sec-c)}
 </style>
 </head>
 <body class="is-list">
@@ -1419,6 +1429,25 @@ document.addEventListener("click",e=>{
     m.style.top=(r.bottom+6)+"px"; m.style.left=r.left+"px"; m.style.right="auto"; m.style.width=r.width+"px"; m.style.maxWidth="none"; m.hidden=false; $("#scrim").hidden=false; return; }
   const b=e.target.closest("[data-tlwahl]"); if(!b) return; e.preventDefault(); e.stopPropagation(); closeOverlays(); const m=$("#menu"); ["top","left","right","width","maxWidth"].forEach(k=>m.style[k]="");
   const sel=$("#f_tlWer"); if(!sel) return; sel.value=b.dataset.tlwahl; sel.dispatchEvent(new Event("change",{bubbles:true})); },true);
+(()=>{ let offen=null;
+  const zu=()=>{ $("#pick")?.remove(); $("#pickBg")?.remove(); offen=null; };
+  document.addEventListener("click",e=>{
+    if(e.target.closest("#pickBg")){ zu(); return; }
+    const it=e.target.closest("#pick [data-pv]"); if(it&&offen){ const sel=offen; zu(); sel.value=it.dataset.pv; sel.dispatchEvent(new Event("input",{bubbles:true})); sel.dispatchEvent(new Event("change",{bubbles:true})); return; }
+    const tf=e.target.closest(".tf"); if(!tf||tf.closest(".kat-wahl,.tl-sel")) return; const sel=tf.querySelector("select"); if(!sel||sel.disabled) return;
+    e.preventDefault(); e.stopPropagation(); zu(); offen=sel;
+    const r=tf.getBoundingClientRect(), opts=[]; [...sel.children].forEach(c=>{ if(c.tagName==="OPTGROUP"){ opts.push({g:c.label}); [...c.children].forEach(o=>opts.push({v:o.value,t:o.textContent})); } else opts.push({v:c.value,t:c.textContent}); });
+    const bg=document.createElement("div"); bg.id="pickBg"; document.body.appendChild(bg);
+    const m=document.createElement("div"); m.id="pick"; m.className="pick"; m.setAttribute("role","listbox");
+    m.innerHTML=opts.map(o=>o.g!=null?`<div class="pick-g">${esc(o.g)}</div>`:`<button type="button" class="pick-i${o.v===sel.value?" an":""}" data-pv="${esc(o.v)}" role="option">${esc(o.t||"–")}</button>`).join("");
+    document.body.appendChild(m);
+    const unten=innerHeight-r.bottom-12, oben=r.top-12, h=Math.min(m.scrollHeight,Math.max(unten,oben),innerHeight*.6);
+    m.style.left=Math.max(8,Math.min(r.left,innerWidth-Math.max(r.width,220)-8))+"px"; m.style.width=Math.max(r.width,220)+"px"; m.style.maxHeight=h+"px";
+    if(unten>=Math.min(m.scrollHeight,240)||unten>=oben) m.style.top=(r.bottom+6)+"px"; else m.style.top=(r.top-6-h)+"px";
+    const a=m.querySelector(".an"); if(a) a.scrollIntoView({block:"center"});
+  },true);
+  addEventListener("resize",zu); document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&offen) zu(); });
+})();
 function render(){
   const app=$("#app");
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};

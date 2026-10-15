@@ -880,6 +880,21 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 
 .sicht-k{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}.sicht-k > div{flex:1}.sicht-k p{margin:2px 0 0;color:var(--on-sv);font-size:13px}
 .sicht-alle{display:flex;justify-content:flex-end;margin-top:8px}
+
+.weiter{display:flex;justify-content:flex-end;margin:20px 0 8px}
+.weiter .btn-filled{height:52px;border-radius:26px;padding:0 20px 0 24px;display:inline-flex;align-items:center;gap:8px;font-size:15px}
+.btn-text.inl{height:auto;padding:0 4px;display:inline}
+.offen-k .list{margin-top:4px}
+
+/* eigene Auswahllisten */
+.tf select{pointer-events:none}
+.tf:has(select){cursor:pointer}
+#pickBg{position:fixed;inset:0;z-index:95}
+.pick{position:fixed;z-index:96;background:var(--sc-high);border-radius:16px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.24),0 2px 6px rgba(0,0,0,.12);overflow:auto;overscroll-behavior:contain;animation:menuAuf .16s cubic-bezier(.2,.8,.2,1);transform-origin:top center}
+.pick-g{font-size:12px;font-weight:700;color:var(--primary);padding:10px 12px 4px}
+.pick-i{display:block;width:100%;min-height:42px;border:0;border-radius:10px;background:transparent;color:var(--on-surface);text-align:left;padding:8px 12px;font-size:15px;font-weight:600}
+.pick-i:hover{background:color-mix(in srgb,var(--on-surface) 8%,transparent)}
+.pick-i.an{background:var(--sec-c);color:var(--on-sec-c)}
 </style>
 </head>
 <body class="is-list">
@@ -1034,8 +1049,11 @@ function groupState(g,s,li){
   return rs.some(([r,e])=>!r.pre&&e!=="open")?"wip":"open"; }
 function lpState(s,li){ const st=GROUPS.map(g=>groupState(g,s,li)); return stateOf(st); }
 function saeuleState(s){ return stateOf([sichtState(s),...Array.from({length:s.lps},(_,i)=>lpState(s,i))]); }
-function protoState(p){ return stateOf(p.s.map(saeuleState)); }
-function protoResult(p){ const rs=p.s.map(saeuleResult); return rs.includes("bad")?"bad":rs.includes("open")?"open":"ok"; }
+const imUmfang=(p,s)=>!((p.a&&p.a.pdfOhne)||[]).includes(s.id);
+const umfangS=p=>{ const L=p.s.filter(s=>imUmfang(p,s)); return L.length?L:p.s; };
+const fertigS=s=>{ const st=saeuleState(s); return st==="ok"||st==="bad"; };
+function protoState(p){ return stateOf(umfangS(p).map(saeuleState)); }
+function protoResult(p){ const rs=umfangS(p).map(saeuleResult); return rs.includes("bad")?"bad":rs.includes("open")?"open":"ok"; }
 
 const CONFIG=Object.assign({
   tenantId:"",
@@ -1664,6 +1682,30 @@ document.addEventListener("click",e=>{
   const b=e.target.closest("[data-tlwahl]"); if(!b) return; e.preventDefault(); e.stopPropagation(); closeOverlays(); const m=$("#menu"); ["top","left","right","width","maxWidth"].forEach(k=>m.style[k]="");
   const sel=$("#f_tlWer"); if(!sel) return; sel.value=b.dataset.tlwahl; sel.dispatchEvent(new Event("change",{bubbles:true})); },true);
 function sichtPill(){ if(!cur||nav.v!=="saeule") return; const s=cur.s[nav.si], e=document.querySelector(`[data-sicht="${nav.si}"]`); if(!e||!s) return; const r=sichtState(s); e.className=`pill ${r}`; e.textContent=RES_SHORT[r]; }
+function weiterKnopf(s,st){ const si=nav.si, li=st==="geraet"?-1:+st.slice(2);
+  if(li<s.lps-1) return `<div class="weiter"><button class="btn-filled" data-act="weiterS" data-v="lp${li+1}">Weiter zu Ladepunkt ${li+2}${icon("chev")}</button></div>`;
+  const U=umfangS(cur), idx=U.indexOf(s), nach=[...U.slice(idx+1),...U.slice(0,idx)].find(x=>!fertigS(x));
+  if(nach){ const ni=cur.s.indexOf(nach); return `<div class="weiter"><button class="btn-filled" data-act="weiterS" data-v="${ni}">Weiter zu ${esc(sName(nach,ni))}${icon("chev")}</button></div>`; }
+  return `<div class="weiter"><button class="btn-filled" data-act="weiterS" data-v="abschluss">Zum Abschluss${icon("chev")}</button></div>`; }
+(()=>{ let offen=null;
+  const zu=()=>{ $("#pick")?.remove(); $("#pickBg")?.remove(); offen=null; };
+  document.addEventListener("click",e=>{
+    if(e.target.closest("#pickBg")){ zu(); return; }
+    const it=e.target.closest("#pick [data-pv]"); if(it&&offen){ const sel=offen; zu(); sel.value=it.dataset.pv; sel.dispatchEvent(new Event("input",{bubbles:true})); sel.dispatchEvent(new Event("change",{bubbles:true})); return; }
+    const tf=e.target.closest(".tf"); if(!tf||tf.closest(".kat-wahl,.tl-sel")) return; const sel=tf.querySelector("select"); if(!sel||sel.disabled) return;
+    e.preventDefault(); e.stopPropagation(); zu(); offen=sel;
+    const r=tf.getBoundingClientRect(), opts=[]; [...sel.children].forEach(c=>{ if(c.tagName==="OPTGROUP"){ opts.push({g:c.label}); [...c.children].forEach(o=>opts.push({v:o.value,t:o.textContent})); } else opts.push({v:c.value,t:c.textContent}); });
+    const bg=document.createElement("div"); bg.id="pickBg"; document.body.appendChild(bg);
+    const m=document.createElement("div"); m.id="pick"; m.className="pick"; m.setAttribute("role","listbox");
+    m.innerHTML=opts.map(o=>o.g!=null?`<div class="pick-g">${esc(o.g)}</div>`:`<button type="button" class="pick-i${o.v===sel.value?" an":""}" data-pv="${esc(o.v)}" role="option">${esc(o.t||"–")}</button>`).join("");
+    document.body.appendChild(m);
+    const unten=innerHeight-r.bottom-12, oben=r.top-12, h=Math.min(m.scrollHeight,Math.max(unten,oben),innerHeight*.6);
+    m.style.left=Math.max(8,Math.min(r.left,innerWidth-Math.max(r.width,220)-8))+"px"; m.style.width=Math.max(r.width,220)+"px"; m.style.maxHeight=h+"px";
+    if(unten>=Math.min(m.scrollHeight,240)||unten>=oben) m.style.top=(r.bottom+6)+"px"; else m.style.top=(r.top-6-h)+"px";
+    const a=m.querySelector(".an"); if(a) a.scrollIntoView({block:"center"});
+  },true);
+  addEventListener("resize",zu); document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&offen) zu(); });
+})();
 function render(){
   const app=$("#app"), ed=EDITOR.includes(nav.v);
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1971,9 +2013,12 @@ function loginView(){
     <p class="hint">${navigator.onLine?"":"Für die Anmeldung wird Internet benötigt."}</p></div>`;
 }
 
+function umfangChips(){ return `<div class="chips">${cur.s.map((s,si)=>`<button type="button" class="chip" data-act="pdfIn" data-id="${esc(s.id)}" aria-pressed="${imUmfang(cur,s)}">${icon("check")}${esc(sName(s,si))}</button>`).join("")}</div>`; }
+function umfangDlg(){ dialog("Welche Ladestationen werden geprüft?",`<p class="sup" style="margin:0 0 12px">Nur die gewählten erscheinen unter „Ladestationen“ und im Protokoll. Die anderen stehen im Protokoll als „nicht Bestandteil dieser Prüfung“. Jederzeit unter „Auftrag“ änderbar.</p>${umfangChips()}`,`<button class="btn-text" data-act="umfangAlle">Alle</button><span style="flex:1"></span><button class="btn-text" data-act="umfangOk">Übernehmen</button>`); }
 function projektView(){
   const p=cur.p, {k,s,l}=pfad(cur);
   return `<div class="cols">
+    ${cur.s.length>1?`<section class="card wide"><h3>Umfang dieser Prüfung</h3><p class="sup" style="margin:-8px 0 12px">Heute geprüft werden ${umfangS(cur).length} von ${cur.s.length} Ladestationen. Nicht gewählte stehen im Protokoll als „nicht Bestandteil dieser Prüfung“.</p>${umfangChips()}</section>`:""}
     <section class="card"><h3>Auftrag</h3>
       <div class="ort-zeile">${icon("ort")}<div><b>${esc(k?k.name:"Kein Kunde")}</b><span>${esc([s&&s.name,l&&l.name].filter(Boolean).join(" › ")||"Kein Standort")}</span></div><button class="btn-text" data-act="move">Ändern</button></div>
       <div class="fg">
@@ -1999,12 +2044,13 @@ function projektView(){
   <p class="by-line">Angelegt${cur.createdBy&&cur.createdBy.name?` von ${esc(cur.createdBy.name)}`:""} am ${new Date(cur.created||Date.now()).toLocaleString("de-DE",{dateStyle:"medium",timeStyle:"short"})}${cur.updatedBy&&cur.updatedBy.name&&cur.updated?` · zuletzt geändert von ${esc(cur.updatedBy.name)} am ${new Date(cur.updated).toLocaleString("de-DE",{dateStyle:"medium",timeStyle:"short"})}`:""}</p>`;
 }
 function saeulenView(){
-  const res=cur.s.map(saeuleResult), ok=res.filter(r=>r==="ok").length, bad=res.filter(r=>r==="bad").length;
-  return `<div class="narrow"><p class="meta">${cur.s.length} ${cur.s.length>1?"Ladestationen":"Ladestation"} · ${ok} bestanden${bad?` · ${bad} mit Mängeln`:""}</p><div class="list">${cur.s.map((s,si)=>
+  const U=umfangS(cur), res=U.map(saeuleResult), ok=res.filter(r=>r==="ok").length, bad=res.filter(r=>r==="bad").length, fertig=U.filter(fertigS).length, aus=cur.s.length-U.length;
+  return `<div class="narrow"><p class="meta">${fertig} von ${U.length} ${U.length>1?"Ladestationen":"Ladestation"} geprüft${ok?` · ${ok} bestanden`:""}${bad?` · ${bad} mit Mängeln`:""}</p><div class="list">${cur.s.map((s,si)=>imUmfang(cur,s)||U.length===cur.s.length?
     `<div class="sw" data-id="s${si}" data-si="${si}"><div class="sw-bg"><span class="l"></span><span class="r">Entfernen${icon("del")}</span></div>
     <div class="li" role="button" tabindex="0" data-act="openS" data-si="${si}">${stAv(s)}<span class="lt"><span class="h">${esc(sName(s,si))}</span>
       <span class="s">${esc([/^(Ladesäule|Wallbox) \d+$/.test(sName(s,si))?"":BAUART(s),s.typ,s.ort].filter(Boolean).join(" · ")||"Gerätedaten fehlen")}</span>
-      <span class="lps">${Array.from({length:s.lps},(_,i)=>{const r=lpState(s,i);return pill(r,`Ladepunkt ${i+1}: ${RES_SHORT[r]}`);}).join("")}</span></span>${icon("chev")}</div></div>`).join("")}</div>
+      <span class="lps">${(()=>{ const r=sichtState(s); return s.sicht?pill(r,`Sichtprüfung: ${RES_SHORT[r]}`):""; })()}${Array.from({length:s.lps},(_,i)=>{const r=lpState(s,i);return pill(r,`Ladepunkt ${i+1}: ${RES_SHORT[r]}`);}).join("")}</span></span>${icon("chev")}</div></div>`:"").join("")}</div>
+    ${aus?`<p class="hint">${aus} weitere ${aus>1?"Ladestationen sind":"Ladestation ist"} nicht Teil dieser Prüfung. <button class="btn-text inl" data-act="umfangDlg">Umfang ändern</button></p>`:""}
     ${canEdit(cur)&&cur.s.length>1?`<p class="hint">Nach links wischen: Ladestation entfernen</p>`:""}</div>`;
 }
 function saeuleTabs(s){
@@ -2058,7 +2104,7 @@ function saeuleView(){
         return src?`<button class="foto" data-act="fotoShow" data-k="${k}" aria-label="Foto ${l} ansehen"><img src="${src}" alt=""><span class="fl">${l}</span></button>`
           :id?`<div class="foto leer">${icon("sync")}<span class="fl">${l}</span><span class="fh">wird geladen …</span></div>`
           :`<button class="foto leer" data-act="fotoAdd" data-k="${k}">${icon("cam")}<span class="fl">${l}</span><span class="fh">${hint}</span></button>`; }).join("")}</div></section>
-    </div>`;
+    </div>`+weiterKnopf(s,st);
   }
   const li=+st.slice(2), lp=s.lp[li], lb=`${b}lp.${li}.`;
   let h=`<div class="cols">`;
@@ -2081,15 +2127,14 @@ function saeuleView(){
     h+=`</section>`;
   }
   h+=`<section class="card">${ta(`${lb}bem`,`Bemerkung Ladepunkt ${li+1}`,lp.bem,{ph:"z. B. Abdeckung beschädigt, Kabelhalterung lose"})}</section></div>`;
-  return h;
+  return h+weiterKnopf(s,st);
 }
 function abschlussView(){
-  const a=cur.a, g0=protoState(cur), g=g0==="wip"?"open":g0, nLP=cur.s.reduce((n,s)=>n+s.lps,0);
-  return `<div class="banner ${g}">${icon(g==="ok"?"done":g==="bad"?"warn":"pending")}<div><b>${g==="ok"?"Alle Ladepunkte bestanden":g==="bad"?"Mängel festgestellt":"Noch nicht alle Werte erfasst"}</b><span>${cur.s.length} ${cur.s.length>1?"Ladestationen":"Ladestation"} · ${nLP} Ladepunkt${nLP>1?"e":""}</span></div></div>
+  const a=cur.a, g0=protoState(cur), g=g0==="wip"?"open":g0, US=umfangS(cur), nLP=US.reduce((n,s)=>n+s.lps,0);
+  return `<div class="banner ${g}">${icon(g==="ok"?"done":g==="bad"?"warn":"pending")}<div><b>${g==="ok"?"Alle Ladepunkte bestanden":g==="bad"?"Mängel festgestellt":"Noch nicht alle Werte erfasst"}</b><span>${US.length} ${US.length>1?"Ladestationen":"Ladestation"} · ${nLP} Ladepunkt${nLP>1?"e":""}${US.length<cur.s.length?` · ${cur.s.length-US.length} nicht in dieser Prüfung`:""}</span></div></div>
   ${SYNC_ON?`<p class="by-line" style="margin:0 0 16px">${cur.pdfAblage?`PDF abgelegt in: Prüfprotokolle/${esc(cur.pdfAblage)}`:"„PDF erstellen“ legt das PDF zusätzlich im Kundenordner der Share ab."}</p>`:""}
   <div class="cols">
-    ${cur.s.length>1?`<section class="card"><h3>Im Bericht</h3><p class="sup" style="margin:-8px 0 12px">Abgewählte Ladestationen erscheinen nicht im PDF. Im Prüfumfang wird vermerkt, dass sie nicht Bestandteil dieses Berichts sind.</p>
-      <div class="chips">${cur.s.map((s,si)=>{ const aus=(a.pdfOhne||[]).includes(s.id); return `<button type="button" class="chip" data-act="pdfIn" data-id="${esc(s.id)}" aria-pressed="${!aus}">${icon("check")}${esc(sName(s,si))}</button>`; }).join("")}</div></section>`:""}
+    ${(()=>{ const off=umfangS(cur).map(x=>[x,cur.s.indexOf(x)]).filter(([x])=>!fertigS(x)); return off.length?`<section class="card wide offen-k"><h3>Noch nicht fertig</h3><p class="sup" style="margin:-8px 0 12px">Das Protokoll lässt sich erst erstellen, wenn alle Ladestationen dieser Prüfung durchgeprüft sind.</p><div class="list">${off.map(([x,si])=>`<div class="li" role="button" tabindex="0" data-act="openS" data-si="${si}">${stAv(x)}<span class="lt"><span class="h">${esc(sName(x,si))}</span><span class="s">${esc(RES_TXT[saeuleState(x)]||"offen")}</span></span>${icon("chev")}</div>`).join("")}</div></section>`:""; })()}
     <section class="card"><h3>Bewertung</h3><div class="fg">
       ${ta("a.maengel","Mängel / Maßnahmen",a.maengel,{full:true,ph:"Leer lassen, wenn keine Mängel"})}${ta("a.abweichung","Abweichungen von den Normen (mit Begründung)",a.abweichung,{full:true,ph:"Leer lassen, wenn keine – im Protokoll steht dann „Keine“"})}
       ${ta("a.funktion","Funktionsprüfung mit Prüfadapter",a.funktion,{full:true})}
@@ -2471,11 +2516,11 @@ function neuePruefung(kundeId,standortId,ladeparkId,st,vorlage){
   const meine=live("pruefungen").filter(x=>!SYNC_ON||sameUser(x.createdBy,ME)).sort((a,b)=>(b.created||0)-(a.created||0))[0];
   if(meine) ["geraet","geraetSn","kal","adapter"].forEach(f=>p.p[f]=meine.p[f]);
   const prev=vorlage||pruefAt(standortId,ladeparkId||null)[0];
-  if(prev){ p.s=JSON.parse(JSON.stringify(prev.s)).map(s=>Object.assign(s,{id:uid(),lp:s.lp.map(()=>newLP()),fotos:{}}));
+  if(prev){ p.s=JSON.parse(JSON.stringify(prev.s)).map(s=>Object.assign(s,{id:uid(),lp:s.lp.map(()=>newLP()),fotos:{},sicht:{}}));
     p.p.art="Wiederholungsprüfung"; ["netz","standort","umfang"].forEach(f=>p.p[f]=prev.p[f]); p.p.normen=[...prev.p.normen]; p.a.funktion=prev.a.funktion;
     if(prev.a.fristJ){ p.a.fristJ=prev.a.fristJ; const d=new Date(p.p.datum+"T12:00:00"); d.setFullYear(d.getFullYear()+(+p.a.fristJ)); p.a.naechste=d.toISOString().slice(0,10); } }
   saveRec("pruefungen",p,true); cur=JSON.parse(JSON.stringify(p)); dirtyCur=false;
-  go({v:"projekt"}); toast(prev?`${p.s.length} ${p.s.length>1?"Ladestationen":"Ladestation"} aus der Prüfung vom ${deDate(prev.p.datum)} übernommen`:"Neue Prüfung angelegt");
+  go({v:"projekt"}); if(cur.s.length>1) setTimeout(umfangDlg,150); toast(prev?`${p.s.length} ${p.s.length>1?"Ladestationen":"Ladestation"} aus der Prüfung vom ${deDate(prev.p.datum)} übernommen`:"Neue Prüfung angelegt");
 }
 function oeffne(id){ const p=DB.pruefungen.get(id); if(!p||p.deleted) return; cur=JSON.parse(JSON.stringify(p)); dirtyCur=false; setSub(SYNC_ON?"Abgeglichen":"Gespeichert auf diesem Gerät");
   fotoFetch(cur.s.flatMap(fotoIds)); go({v:"saeulen"}); }
@@ -2614,6 +2659,7 @@ document.addEventListener("input",ev=>{ if(ev.target.id==="kpQ"){ const l=$("#kp
   if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="bibliothek"?bibListe():nav.v==="katalog"?katalogListe():nav.v==="kunden"?kundenListe():nav.v==="pruefungen"?pruefungenListe():(query?suche(query):startListen()); return; }
   const el=ev.target.closest("[data-bind]"); if(!el||!cur) return;
   const path=el.dataset.bind, alt=path==="p.adapter"?cur.p.adapter:null; setPath(path,el.value); scheduleSave();
+  if(path==="p.art"){ const dg=cur.p.normen.includes("DGUV V3"); cur.p.normen=[el.value==="Wiederholungsprüfung"?"DIN VDE 0105-100":"DIN VDE 0100-600","DIN VDE 0100-722",...(dg?["DGUV V3"]:[])]; document.querySelectorAll('[data-act="norm"]').forEach(x=>x.setAttribute("aria-pressed",cur.p.normen.includes(x.dataset.n))); }
   if(path==="p.datum"&&cur.a.fristJ){ const d=new Date((el.value||today())+"T12:00:00"); d.setFullYear(d.getFullYear()+(+cur.a.fristJ)); cur.a.naechste=d.toISOString().slice(0,10); }
   if(path==="p.adapter"&&(cur.a.funktion===defFunktion(alt)||!cur.a.funktion)) cur.a.funktion=defFunktion(el.value.trim());
   if((path==="p.kal"||path==="p.datum")&&$("#kalWarn")) $("#kalWarn").innerHTML=kalWarnHtml(cur);
@@ -2797,10 +2843,10 @@ document.addEventListener("click",ev=>{
   switch(a){
   case "newSame": saveNow(); neuePruefung(cur.kundeId,cur.standortId,cur.ladeparkId); return;
   case "archCur": { const now=archToggle(cur.id); toast(now?"Archiviert – bleibt beim Kunden sichtbar":"Aus dem Archiv geholt"); return; }
-  case "pdf": pdfDialog(); return;
+  case "pdf": { const off=umfangS(cur).filter(x=>!fertigS(x)); if(off.length){ dialog("Noch nicht fertig",`<p class="sup" style="margin:0 0 12px">Diese Ladestationen sind noch nicht durchgeprüft:</p><div class="list">${off.map(x=>{ const si=cur.s.indexOf(x); return `<div class="li" role="button" tabindex="0" data-act="openS" data-si="${si}">${stAv(x)}<span class="lt"><span class="h">${esc(sName(x,si))}</span><span class="s">${esc(RES_TXT[saeuleState(x)]||"offen")}</span></span>${icon("chev")}</div>`; }).join("")}</div><p class="sup" style="margin:12px 0 0">Wird eine Ladestation heute nicht geprüft, unter „Auftrag“ aus dem Umfang nehmen.</p>`,`<button class="btn-text" data-act="umfangDlg">Umfang ändern</button><span style="flex:1"></span><button class="btn-text" data-act="cancel">OK</button>`); return; } pdfDialog(); return; }
   case "pdfSave": case "pdfMail": { const n=fsName(formVals().fname.replace(/\.pdf$/i,"")); closeOverlays(); makePDF(n,a==="pdfMail"); return; }
   case "pdfStd": { const e=$("#f_fname"); if(e) e.value=pdfSchema(cur).name; return; }
-  case "openS": saveNow(); go({v:"saeule",si:+b.dataset.si,st:"geraet"}); return;
+  case "openS": closeOverlays(); saveNow(); go({v:"saeule",si:+b.dataset.si,st:"geraet"}); return;
   case "sub": saveNow(); nav={...nav,st:b.dataset.v}; render(); window.scrollTo(0,0); return;
   case "fotoShow": { const k=b.dataset.k, sl=FOTO_SLOTS.find(x=>x[0]===k), src=fotoCache.get(cur.s[nav.si].fotos[k]), ok=canEdit(cur);
     dialog(sl[1],`<img class="dimg" src="${src}" alt="">`,`${ok?`<button class="btn-text danger" data-act="fotoDel" data-k="${k}">Löschen</button><span style="flex:1"></span><button class="btn-text" data-act="fotoAdd" data-k="${k}">Ersetzen</button>`:""}<button class="btn-text" data-act="cancel">Schließen</button>`); return; }
@@ -2818,8 +2864,12 @@ document.addEventListener("click",ev=>{
     s.freigabe=FREIGABEN.filter(f=>L.includes(f)).join(", "); scheduleSave();
     b.parentElement.querySelectorAll("button").forEach(x=>{ x.setAttribute("aria-pressed",L.includes(x.dataset.v)); x.classList.toggle("dim",x.dataset.v!==FREIGABEN[2]&&L.includes(FREIGABEN[2])); }); return; }
   case "pdfIn": { const L=cur.a.pdfOhne=cur.a.pdfOhne||[], id=b.dataset.id, i=L.indexOf(id);
-    if(i>=0) L.splice(i,1); else { if(cur.s.length-L.length<=1){ toast("Mindestens eine Ladestation muss im Bericht bleiben"); return; } L.push(id); }
-    b.setAttribute("aria-pressed",i>=0); scheduleSave(); return; }
+    if(i>=0) L.splice(i,1); else { if(cur.s.length-L.length<=1){ toast("Mindestens eine Ladestation muss in der Prüfung bleiben"); return; } L.push(id); }
+    b.setAttribute("aria-pressed",i>=0); scheduleSave(); if(!b.closest("#dlg")){ const y=scrollY; render(); scrollTo(0,y); } return; }
+  case "umfangDlg": umfangDlg(); return;
+  case "umfangAlle": cur.a.pdfOhne=[]; scheduleSave(); umfangDlg(); return;
+  case "umfangOk": closeOverlays(); { const y=scrollY; render(); scrollTo(0,y); } return;
+  case "weiterS": { saveNow(); const v=b.dataset.v; if(v==="abschluss") go({v:"abschluss"}); else if(v.startsWith("lp")) { nav={...nav,st:v}; render(); window.scrollTo(0,0); } else go({v:"saeule",si:+v,st:"geraet"}); return; }
   case "frist": { const n=b.dataset.v; if(String(cur.a.fristJ)===n){ delete cur.a.fristJ; cur.a.naechste=""; } else { cur.a.fristJ=n; const d=new Date((cur.p.datum||today())+"T12:00:00"); d.setFullYear(d.getFullYear()+(+n)); cur.a.naechste=d.toISOString().slice(0,10); }
     scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "kAbw": cur.a.kAbwesend=!cur.a.kAbwesend; if(cur.a.kAbwesend){ cur.a.sigK=""; } scheduleSave(); { const y=scrollY; render(); scrollTo(0,y); } return;
@@ -3185,7 +3235,7 @@ function buildPDF(P){
       ["Standort",PF.s?[PF.s.name,adrText(PF.s)].filter(Boolean).join(", "):"-"],["Ladepark",PF.l?PF.l.name:"-"],
       ["Verteiler / Anlage",P.p.standort],["Bezeichnung",P.p.projekt],["Prüfdatum",deDate(P.p.datum)],["Prüfer",P.p.pruefer],
       ["Messgerät",P.p.geraet],["Seriennr.",P.p.geraetSn],["Prüfadapter",P.p.adapter],["Seriennr. Adapter",P.p.adapterSn],["Kal. gültig bis",P.p.kal],["Art der Prüfung",P.p.art],["Netzform",`${P.p.netz} | 230/400 V`],["Protokoll-Nr.",P._nr]]);
-  sec("Prüfumfang"); para(P.p.umfang+(P._ohne&&P._ohne.length?` Nicht Bestandteil dieses Berichts: ${P._ohne.join(", ")}.`:""));
+  sec("Prüfumfang"); para(P.p.umfang+(P._ohne&&P._ohne.length?` Nicht Bestandteil dieser Prüfung: ${P._ohne.join(", ")}.`:""));
   sec("Übersicht Ladestationen");
   d.setFillColor(...NAVY); d.rect(M,y-4,CW,6,"F"); d.setTextColor(255); d.setFontSize(8); d.setFont("helvetica","bold");
   const oc=[M+2,M+42,M+100,M+140]; ["Ladestation","Hersteller / Typ","Seriennummer","Ladepunkte"].forEach((t,i)=>d.text(t,oc[i],y)); d.text("Ergebnis",M+CW-2,y,{align:"right"}); y+=6;
