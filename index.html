@@ -956,7 +956,7 @@ const today = ()=>new Date().toISOString().slice(0,10);
 const deDate = iso=>iso?iso.split("-").reverse().join("."):"";
 
 function newLP(){ return {v:{risov:"500 V"}, bem:""}; }
-function newSaeule(n){ return {id:uid(), bauart:"Wallbox", name:`Wallbox ${n}`, typ:"", sn:"", ort:"", fw:"", absTyp:"LS B", absIn:"16", zsMan:"", inenn:"", rcd:RCD_TYPES[0], idn:"30", freigabe:"", phasen:3, lps:1, lp:[newLP(),newLP()], fotos:{}}; }
+function newSaeule(n,bauart="Wallbox"){ return {id:uid(), bauart, name:`${bauart} ${n}`, typ:"", sn:"", ort:"", fw:"", absTyp:"LS B", absIn:"16", zsMan:"", inenn:"", rcd:RCD_TYPES[0], idn:"30", freigabe:"", phasen:3, lps:bauart==="Ladesäule"?2:1, lp:[newLP(),newLP()], fotos:{}}; }
 const BAUART=s=>s.bauart||"Ladesäule";   // alte Daten ohne Angabe waren als „Ladesäule“ angelegt
 const BAUARTEN=[["Wallbox","Wallbox","an der Wand"],["Ladesäule","Ladesäule","freistehend"]];
 function newProto(){
@@ -1378,7 +1378,7 @@ const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.33 · 15.10.2026";
+const APP_VERSION="1.34 · 15.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -2024,9 +2024,35 @@ function pickResolve(){
 let nachName=null;
 function nameFehlt(weiter){ if(SYNC_ON||META.profil.name) return false; nachName=weiter;
   dialog("Wie heißt du?",`<div class="fg1">${tf("name","Dein Name",``,{form:true})}</div><p class="sup" style="margin:12px 0 0">Erscheint als Prüfer und Ersteller. Einmalig pro Gerät, änderbar über das Symbol oben rechts.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveName">Weiter</button>`); return true; }
+// Was wird geprüft? Bauart und Anzahl gleich beim Anlegen
+let stDlg=null;
+function stDialog(o){
+  if(o) stDlg=Object.assign({bauart:"Wallbox",n:"1"},stDlg&&!o.mode?stDlg:{},o);
+  const D=stDlg;
+  dialog(D.mode==="neu"?"Was wird geprüft?":"Ladestationen hinzufügen",`<div class="fg1">
+    <div><div class="lbl">Bauart</div>${seg("stBauart",D.bauart,BAUARTEN.map(([v,t,z])=>[v,`${t} · ${z}`]))}</div>
+    ${tf("n","Anzahl",D.n,{form:true,im:"numeric",sfx:"Stück"})}</div>
+    <p class="sup" style="margin:12px 0 0">${D.mode==="neu"?"Weitere Stationen, auch mit anderer Bauart, kannst du später unter „Ladestationen“ ergänzen.":"Einstellungen wie Schutzeinrichtung und Leitung werden von der letzten Station gleicher Bauart übernommen."}</p>`,
+    `<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="stOk">${D.mode==="neu"?"Prüfung anlegen":"Hinzufügen"}</button>`);
+}
+function stAnlegen(){
+  const D=stDlg, n=Math.max(1,Math.min(50,parseInt(formVals().n,10)||1)); stDlg=null; closeOverlays();
+  if(D.mode==="neu"){ neuePruefung(D.k,D.s,D.l,{bauart:D.bauart,n}); return; }
+  const vor=[...cur.s].reverse().find(x=>BAUART(x)===D.bauart), start=cur.s.length;
+  for(let i=0;i<n;i++){ const s=newSaeule(cur.s.length+1,D.bauart); s.name="";
+    if(vor) ["typ","absTyp","absIn","zsMan","lsIcn","lsTyp","rcd","rcdTyp","rdc","idn","rcdIn","rcdHT","inenn","freigabe","phasen","lps","leitung"].forEach(k=>s[k]=vor[k]);
+    cur.s.push(s); }
+  nummeriere(); commit();
+  if(n===1){ go({v:"saeule",si:start,st:"geraet"}); toast(`${cur.s[start].name} angelegt`); }
+  else { go({v:"saeulen"}); toast(`${n} Ladestationen angelegt (${cur.s[start].name} bis ${cur.s[cur.s.length-1].name})`); }
+}
+
 // Neue Prüfung: übernimmt die Ladesäulen der letzten Prüfung am selben Ort (ohne Messwerte, Fotos, Unterschriften)
-function neuePruefung(kundeId,standortId,ladeparkId){
-  const p=newProto(); p.kundeId=kundeId; p.standortId=standortId; p.ladeparkId=ladeparkId||null; p.p.pruefer=who().name;
+function neuePruefung(kundeId,standortId,ladeparkId,st){
+  const prev0=pruefAt(standortId,ladeparkId||null)[0];
+  if(!prev0&&!st){ stDialog({mode:"neu",k:kundeId,s:standortId,l:ladeparkId}); return; }
+  const p=newProto();
+  if(st){ p.s=Array.from({length:st.n},(_,i)=>newSaeule(i+1,st.bauart)); nummeriere(p.s); } p.kundeId=kundeId; p.standortId=standortId; p.ladeparkId=ladeparkId||null; p.p.pruefer=who().name;
   const meine=live("pruefungen").filter(x=>!SYNC_ON||sameUser(x.createdBy,ME)).sort((a,b)=>(b.created||0)-(a.created||0))[0];
   if(meine) ["geraet","geraetSn","kal","adapter"].forEach(f=>p.p[f]=meine.p[f]);   // eigenes Messgerät übernehmen
   const prev=pruefAt(standortId,ladeparkId||null)[0];
@@ -2103,7 +2129,7 @@ function locLoeschen(kind,id){
   toast(`${r.name} gelöscht`,"Rückgängig",()=>{ alle.forEach(([k,x])=>{ x.deleted=false; saveRec(k,x); }); softRender(); });
 }
 // Ladesäule aus der Prüfung entfernen (mit Rückgängig); Standardnamen „Ladesäule N“ werden neu durchnummeriert
-function nummeriere(){ const n={}; cur.s.forEach(s=>{ const b=BAUART(s); n[b]=(n[b]||0)+1; if(!s.name||/^(Ladesäule|Wallbox) \d+$/.test(s.name)) s.name=`${b} ${n[b]}`; }); }
+function nummeriere(arr){ const n={}; (arr||cur.s).forEach(s=>{ const b=BAUART(s); n[b]=(n[b]||0)+1; if(!s.name||/^(Ladesäule|Wallbox) \d+$/.test(s.name)) s.name=`${b} ${n[b]}`; }); }
 function saeuleEntfernen(si){
   if(!cur||!cur.s[si]) return;
   const vorher=JSON.parse(JSON.stringify(cur.s)), name=cur.s[si].name;
@@ -2166,7 +2192,7 @@ document.addEventListener("click",ev=>{
     document.body.insertAdjacentHTML("beforeend",`<div id="fabm" class="fabm"><div class="fabm-scrim" data-act="fabClose"></div><div class="fabm-list">${it("newAny","doc","Neue Prüfung")}${it("newKunde","firma","Neuer Kunde")}</div></div>`);
     return; }
   case "fabClose": return;
-  case "cancel": closeOverlays(); pick=null; locForm=null; return;
+  case "cancel": closeOverlays(); pick=null; locForm=null; stDlg=null; return;
   case "nav": { const v=b.dataset.v; if(v!==nav.v) query=""; saveNow(); if(EDITOR.includes(nav.v)) cur=null; go(b.dataset.id?{v,id:b.dataset.id}:{v}); return; }
   case "login": Auth.login(); return;
   case "relogin": Auth.relogin(); return;
@@ -2212,6 +2238,8 @@ document.addEventListener("click",ev=>{
     if(kind==="standorte") neuePruefung(r.kundeId,r.id,null); else { const s=standortOf(r.standortId); neuePruefung(s.kundeId,s.id,r.id); } return; }
   case "open": oeffne(b.dataset.id); return;
   case "katNeu": katDialog(null); return;
+  case "stBauart": stDlg.n=formVals().n||stDlg.n; stDlg.bauart=b.dataset.v; stDialog(); return;
+  case "stOk": if(!stDlg) return; if(stDlg.mode==="add"&&!canEdit(cur)) return; stAnlegen(); return;
   case "katEdit": katDialog(DB.katalog.get(nav.id)); return;
   case "katSave": katSave(); return;
   case "katDelAsk": confirmDlg("Modell löschen?",`„${katName(DB.katalog.get(nav.id))}“ mit allen Hinweisen und Fotos aus dem Katalog entfernen?`,"Löschen","katDel"); return;
@@ -2262,7 +2290,8 @@ document.addEventListener("click",ev=>{
     scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "kAbw": cur.a.kAbwesend=!cur.a.kAbwesend; if(cur.a.kAbwesend){ cur.a.sigK=""; } scheduleSave(); { const y=scrollY; render(); scrollTo(0,y); } return;
   case "norm": { const n=b.dataset.n, L=cur.p.normen, i=L.indexOf(n); if(i>=0) L.splice(i,1); else L.push(n); b.setAttribute("aria-pressed",i<0); scheduleSave(); return; }
-  case "addS": { const prev=cur.s[cur.s.length-1], s=newSaeule(cur.s.length+1);
+  case "addS": stDialog({mode:"add",bauart:BAUART(cur.s[cur.s.length-1]||{})}); return;
+  case "addS_": { const prev=cur.s[cur.s.length-1], s=newSaeule(cur.s.length+1);
     if(prev) ["bauart","typ","absTyp","absIn","zsMan","lsIcn","lsTyp","rcd","rcdTyp","rdc","idn","rcdIn","rcdHT","inenn","freigabe","phasen","lps","leitung"].forEach(k=>s[k]=prev[k]);
     s.name=""; cur.s.push(s); nummeriere(); commit(); go({v:"saeule",si:cur.s.length-1,st:"geraet"}); toast(`${s.name} angelegt`); return; }
   case "dupAsk": { const src=cur.s[nav.si];
