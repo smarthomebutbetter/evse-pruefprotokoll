@@ -724,6 +724,16 @@ html,body{overscroll-behavior-y:none}
   #app{transition:transform .25s cubic-bezier(.3,.7,.2,1)}
   #app.wischt{transition:none}
 }
+
+/* Titelzeile überall gleich hoch: 52 px, Knöpfe oben bündig darin zentriert */
+@media (min-width:744px){
+  .sk{align-items:flex-start!important;margin:12px 0 20px!important}
+  .sk h1{line-height:52px!important}
+  .sk-zur{margin-top:4px}
+  .sk-neu{height:48px;margin-top:2px}
+  .sk-neu.sk-plus{height:52px;width:52px;margin-top:0}
+  .gruss{line-height:52px!important;margin:12px 0 20px!important}
+}
 </style>
 </head>
 <body class="is-list">

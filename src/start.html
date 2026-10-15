@@ -747,6 +747,16 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
   #app{transition:transform .25s cubic-bezier(.3,.7,.2,1)}
   #app.wischt{transition:none}
 }
+
+/* Titelzeile überall gleich hoch: 52 px, Knöpfe oben bündig darin zentriert */
+@media (min-width:744px){
+  .sk{align-items:flex-start!important;margin:12px 0 20px!important}
+  .sk h1{line-height:52px!important}
+  .sk-zur{margin-top:4px}
+  .sk-neu{height:48px;margin-top:2px}
+  .sk-neu.sk-plus{height:52px;width:52px;margin-top:0}
+  .gruss{line-height:52px!important;margin:12px 0 20px!important}
+}
 </style>
 </head>
 <body class="is-list">
@@ -1432,7 +1442,7 @@ function render(){
   let title="", sub="", fab=null, body="";
   if(login) body=loginView();
   else if(nav.v==="start") body=startView();
-  else if(nav.v==="uebersicht"){ title="Statistik"; sub=SYNC_ON?"":"Daten auf diesem Gerät"; body=uebersichtView(); }
+  else if(nav.v==="uebersicht"){ title="Statistik"; body=uebersichtView()+(SYNC_ON?"":`<p class="hint">Daten auf diesem Gerät – mit der Microsoft-Anbindung kommen die Daten aller Mitarbeiter dazu.</p>`); }
   else if(nav.v==="kunden"){ title="Kunden"; body=kundenView(); fab=ME.admin?["newKunde","Kunde","add"]:null; }
   else if(nav.v==="bibliothek"){ title="Bibliothek"; body=bibliothekView(); }
   else if(nav.v==="mehr"){ title="Mehr"; body=mehrView(); }
