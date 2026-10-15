@@ -7,7 +7,7 @@ Stand 15.10.2026 · erstellt von M. Pevec
 | Frage | Optionen |
 |---|---|
 | Wo sollen die Apps liegen? | **A** GitHub-Firmenkonto (kostenlos, Code öffentlich) · **B** Azure Static Web Apps (Microsoft, EU-Rechenzentrum, Anmeldung vor dem Laden möglich, für „nur Firmenkonten“ vermutlich Standard-Tarif ca. 9 $/Monat) · **C** Webspace beim Anbieter von elektro-irrgang.de |
-| Eigene Adresse? | z. B. `apps.elektro-irrgang.de` (DNS-Eintrag beim Domain-Anbieter) |
+| Eigene Adressen | **eine Subdomain pro App** (Empfehlung von Google, Android installiert sonst nicht zuverlässig mehrere Apps): `apps.`, `evse.`, `baustelle.`, `echeck.elektro-irrgang.de` – je ein DNS-Eintrag. Erst zusammen mit der Microsoft-Anbindung umstellen, weil die Apps dann keinen gemeinsamen Gerätespeicher mehr haben. |
 | Microsoft-Registrierung | **eine** Registrierung „Elektro Irrgang Apps“ für alle Apps, Umleitungsadressen siehe `EINRICHTUNG-MICROSOFT.md` |
 | Rechte | `User.Read`, `Files.ReadWrite.All` (gemeinsamer Ordner `_App-Daten` und persönliche Notizen im eigenen OneDrive), optional `Mail.Send` |
 | Benutzerverwaltung | J. Irrgang bekommt die Rolle **Benutzeradministrator** in Microsoft 365 und legt Konten selbst an. Kein `User.ReadWrite.All` für die Apps. |
