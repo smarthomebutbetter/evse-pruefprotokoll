@@ -1,4 +1,6 @@
-# EVSE-Prüfprotokoll – Anbindung an Microsoft 365
+# Irrgang Apps – Anbindung an Microsoft 365
+
+Gilt für alle Apps (Startseite, EVSE Mobility, Baustellenübergabe, später Hausinstallation): **eine** App-Registrierung, **ein** freigegebener Ordner.
 
 Die App ist eine Web-App (eine HTML-Datei, läuft offline auf den iPads). Damit die Prüfprotokolle aller Mitarbeiter in einem gemeinsamen Ordner der Firma landen, meldet sich jeder Nutzer einmal mit seinem Microsoft-Mitarbeiterkonto an. Die App liest und schreibt dann über **Microsoft Graph** direkt in den freigegebenen Ordner. Ein eigener Server ist nicht nötig.
 
@@ -52,11 +54,17 @@ In der App gilt: Jeder bearbeitet nur seine eigenen Prüfungen, sieht aber alle.
 Die App legt darin an:
 
 ```
-Prüfprotokolle/
-  <Kunde>/<Standort>/[<Ladepark>/]<Datum> <Prüfart> <Auftragsnr>.pdf   ← lesbare PDFs
-  _App-Daten/                                                        ← Daten der App, bitte nicht ändern
-    kunden/  standorte/  ladeparks/  pruefungen/  fotos/
+<freigegebener Ordner>/
+  <Kunde>/<Standort>/[<Ladepark>/]<Auftragsnr>_<Prüfart>_….pdf   ← lesbare PDFs aus EVSE
+  _App-Daten/                                                   ← Daten der Apps, bitte nicht von Hand ändern
+    kunden/ standorte/                ← gemeinsame Kundendatenbank aller Apps
+    ladeparks/ pruefungen/ katalog/   ← EVSE Mobility
+    baustellen/ eintraege/            ← Baustellenübergabe
+    einstellungen/                    ← Mitarbeiterliste, Protokoll-Empfänger
+    fotos/ dateien/                   ← Fotos, Kunden-Ablage
 ```
+
+Persönliche Notizen („nur ich“) kommen **nicht** in diesen Ordner, sondern in den eigenen OneDrive des Mitarbeiters (App-Ordner). So kann sie auch niemand mit Ordnerrechten lesen.
 
 Empfehlung: Ordner auf einer SharePoint-Teamwebsite statt im persönlichen OneDrive, damit die Daten nicht an ein einzelnes Benutzerkonto gebunden sind.
 
@@ -69,6 +77,24 @@ Empfehlung: Ordner auf einer SharePoint-Teamwebsite statt im persönlichen OneDr
 | **Freigabe-Link des Ordners** | Ordner → Teilen → Link kopieren |
 
 Diese drei Werte werden in der App eingetragen (`CONFIG` am Anfang von `src/app.html`). Geheim sind sie nicht – es sind keine Passwörter.
+
+## So funktioniert der Abgleich
+
+Es gibt **keinen eigenen Server**. Die App spricht direkt mit Microsoft Graph – immer im Namen und mit den Rechten der angemeldeten Person.
+
+1. **Jedes Gerät hat eine vollständige Kopie** im Browser-Speicher. Die Apps funktionieren dadurch auch ohne Netz (Keller, Tiefgarage).
+2. **Jeder Datensatz ist eine kleine Datei** (`<id>.json`, wenige KB) im passenden Unterordner von `_App-Daten`. Eine Prüfung = eine Datei, ein Kunde = eine Datei.
+3. **Hochladen:** Änderungen werden auf dem Gerät markiert und ca. 2 Sekunden später hochgeladen. Ohne Netz bleiben sie in der Warteschlange, bis wieder Verbindung besteht.
+4. **Herunterladen:** beim Öffnen der App, beim Zurückkehren in die App, alle 2 Minuten während sie offen ist und über „Jetzt abgleichen“. Es werden nur Dateien geladen, deren Versionskennung (eTag) sich geändert hat.
+5. **Gleichzeitige Änderung:** Beim Hochladen prüft SharePoint die Version (`If-Match`). Hat jemand dieselbe Datei inzwischen geändert, gewinnt die **neuere** Änderung; die App zeigt dann einen Hinweis. Zusammengeführt wird nicht feldweise. Da Prüfungen und Übergaben nur der Ersteller (oder ein Admin) bearbeitet, kommt das praktisch kaum vor.
+6. **Löschen:** Datensätze werden als gelöscht markiert statt entfernt, damit alle Geräte davon erfahren.
+7. **Fotos und PDFs** laufen über eine eigene Warteschlange. Fotos werden vorher verkleinert. PDFs über 3,5 MB werden in Teilen hochgeladen.
+
+**Wer was sehen darf, regelt SharePoint:** Wer Rechte auf den freigegebenen Ordner hat, kann die Apps nutzen. Wer sie verliert (z. B. ausgeschieden), bekommt keine Daten mehr – auch nicht, wenn die App noch auf seinem Gerät liegt. Daten, die schon auf seinem Gerät liegen, bleiben dort, bis die App gelöscht wird; deshalb Firmengeräte bei Austritt zurücksetzen bzw. die App entfernen.
+
+**Mengengerüst:** einige hundert bis tausend kleine JSON-Dateien pro Jahr plus Fotos (je ca. 0,2–0,5 MB) und PDFs. Für SharePoint unkritisch.
+
+**Stand:** Der Abgleich ist gegen eine nachgebaute Microsoft-Schnittstelle getestet (drei Geräte, Konflikte, PDF-Ablage, Katalog), noch nicht gegen den echten Mandanten. Der erste echte Test folgt direkt nach der Einrichtung.
 
 ## Optional: eigene Adresse
 
