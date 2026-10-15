@@ -460,6 +460,24 @@ body.is-login .topbar{display:none}
 .akte-tab td.leer{color:var(--outline)}
 
 html.standalone .app-weiter{display:none!important}html.standalone a.li.weiter{pointer-events:none}html.standalone a.li.weiter > .ic:last-child{display:none}
+
+@media (max-width:599px){
+  .list{background:transparent;border-radius:0;overflow:visible;display:flex;flex-direction:column;gap:8px}
+  .list > .li,.list > a.li,.list > .sw > .li{border-top:0!important;border-radius:18px;background:var(--sc-low)}
+  .list > .sw{border-radius:18px;overflow:hidden}
+  .li{padding:14px;gap:12px;min-height:64px}
+  .av{width:36px;height:36px}.av .ic{width:20px;height:20px}
+  .av.gross{width:56px;height:56px}
+  .lt .h,.lt .s{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .lt .st{margin-top:8px}
+  .sec-lbl{margin-top:22px}
+  .tb-title{font-size:18px}
+  body.fab-klein .fab:not(.fab-rund){width:56px;padding:0;justify-content:center;gap:0}
+  body.fab-klein .fab:not(.fab-rund) span{display:none}
+  .fab{transition:width .15s}
+  .nav-item{letter-spacing:0;font-size:11.5px}
+  .nav-item > span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+}
 </style>
 </head>
 <body class="is-list">
@@ -1099,7 +1117,7 @@ function suche(q){
 function startView(){
   const all=live("pruefungen"), empty=!all.length&&!live("kunden").length;
   if(empty) return `<div class="empty">${icon("doc")}<h2>Noch keine Prüfungen</h2><p>Lege mit „Neue Prüfung“ die erste an – Kunde und Standort werden dabei gleich mit angelegt. Zum Ausprobieren gibt es Beispieldaten.</p><button class="btn-tonal" data-act="demo">Beispieldaten laden</button></div>`;
-  let h=`<div class="narrow">${searchBar("Kunde, Standort, Auftragsnr. oder Seriennr. suchen")}<div id="res">`;
+  let h=`<div class="narrow">${searchBar("Kunde, Ort, Auftrag oder SN suchen")}<div id="res">`;
   h+=query?suche(query):startListen();
   return h+`</div></div>`;
 }
@@ -1167,7 +1185,7 @@ function pruefungenListe(){
   return L.length?listOf(L.map(p=>pItem(p,true))):`<p class="meta">Keine Prüfungen${f!=="alle"?" in diesem Filter":""}.</p>`;
 }
 function pruefungenView(){
-  return `<div class="narrow">${searchBar("Kunde, Ort, Auftragsnr. oder Prüfer suchen")}
+  return `<div class="narrow">${searchBar("Kunde, Ort, Auftrag oder Prüfer")}
     <div class="chips" style="margin:4px 0 12px">${PFILTER.map(([v,t])=>`<button class="chip" data-act="pfilter" data-v="${v}" aria-pressed="${(META.pfilter||"alle")===v}">${icon("check")}${t}</button>`).join("")}</div>
     <div id="res">${pruefungenListe()}</div></div>`;
 }
@@ -1181,7 +1199,7 @@ function faelligView(){
   if(!L.length) return `<div class="empty">${icon("pending")}<h2>Keine Termine</h2><p>Hier erscheinen die Wiederholungsprüfungen, sobald im Abschluss „Nächste Prüfung in … Jahren“ gewählt ist.</p></div>`;
   const item=(p,kl,txt)=>{ const {s,l}=pfad(p);
     return `<div class="li" role="button" tabindex="0" data-act="nav" data-v="${l?"ladepark":"standort"}" data-id="${esc(l?l.id:s&&s.id)}"><span class="av">${icon(l?"ev":"ort")}</span>
-      <span class="lt"><span class="h">${esc(pfadText(p))}</span><span class="s">Fällig ${esc(deDate(p.a.naechste))} · letzte Prüfung ${esc(deDate(p.p.datum))}</span><span class="st">${pill(kl,txt)}</span></span>${icon("chev")}</div>`; };
+      <span class="lt"><span class="h">${esc((l||s||{}).name||pfadText(p))}</span><span class="s">${esc([(kundeOf(p.kundeId)||{}).name,l&&s&&s.name].filter(Boolean).join(" › "))}</span><span class="s">Fällig ${esc(deDate(p.a.naechste))} · letzte Prüfung ${esc(deDate(p.p.datum))}</span><span class="st">${pill(kl,txt)}</span></span>${icon("chev")}</div>`; };
   const g1=L.filter(p=>p.a.naechste<t), g2=L.filter(p=>p.a.naechste>=t&&p.a.naechste<=bald), g3=L.filter(p=>p.a.naechste>bald);
   return `<div class="narrow">${g1.length?`<div class="sec-lbl">Überfällig</div>${listOf(g1.map(p=>item(p,"bad","überfällig")))}`:""}
     ${g2.length?`<div class="sec-lbl">In den nächsten 3 Monaten</div>${listOf(g2.map(p=>item(p,"wip","bald fällig")))}`:""}
@@ -1498,7 +1516,7 @@ function katKachel(r){
     ${!r.quelle||nh?`<span class="ktile-p">${!r.quelle?pill("wip","Angaben prüfen"):""}${nh?pill("open",`${nh} Hinweis${nh>1?"e":""}`):""}</span>`:""}</span></button>`;
 }
 function katalogView(){
-  return `<div class="narrow">${searchBar("Hersteller, Modell oder Artikelnr. suchen")}<div id="res">${katalogListe()}</div>
+  return `<div class="narrow">${searchBar("Hersteller, Modell, Art.-Nr.")}<div id="res">${katalogListe()}</div>
     <div class="kat-teilen"><button class="btn-tonal" data-act="katExport">${icon("backup")}Katalog als Datei sichern</button><button class="btn-tonal" data-act="katImport">${icon("upload")}Katalog-Datei laden</button></div>
     <p class="hint">Nur Modelle, Steckbriefe und Hinweise mit Fotos – keine Kunden oder Prüfungen. Immer erst laden, dann sichern – und im Share-Ordner die vorhandene Datei „EVSE-Katalog“ ersetzen. Beim Laden wird ergänzt, nichts geht verloren.</p></div>`;
 }
@@ -2156,7 +2174,7 @@ document.addEventListener("click",ev=>{
 });
 $("#backBtn").addEventListener("click",zurueck);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeOverlays(); if(e.key==="Enter"&&e.target.matches(".li[role=button]")) e.target.click(); });
-window.addEventListener("scroll",()=>$("#topbar").classList.toggle("scrolled",scrollY>4),{passive:true});
+window.addEventListener("scroll",()=>{ $("#topbar").classList.toggle("scrolled",scrollY>4); document.body.classList.toggle("fab-klein",scrollY>60); },{passive:true});
 async function fotoAufnehmen(el){
   const f=el.files[0], t=fotoTarget; el.value="";
   if(f&&t&&t.kat) return katFotoAufnehmen(f,t);
