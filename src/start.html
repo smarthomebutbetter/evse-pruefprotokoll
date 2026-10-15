@@ -1008,11 +1008,11 @@ WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) rende
 const APP_VERSION="<!--VERSION-->";
 const APPS=[
   {name:"EVSE",text:"Prüfung von Wallboxen und Ladesäulen",href:"evse/",ic:"<!--ICON_EVSE-->"},
-  {name:"Baustellenübergabe",text:"Tagesstand, offene Punkte und Material",href:"baustelle/",ic:"<!--ICON_BAU-->"},
+  {name:"Baustelle",text:"Tagesstand, offene Punkte und Material",href:"baustelle/",ic:"<!--ICON_BAU-->"},
   {name:"E-Check",text:"Hausinstallation und Geräte · in Vorbereitung",href:"echeck/",ic:"<!--ICON_ECHECK-->"}];
 const ENTWICKLUNG=[
   {t:"EVSE",st:"ok",s:"Im Testbetrieb",d:"Prüfablauf, PDF-Protokoll, Wallbox-Katalog, Wiederholungsprüfung, Plausibilitätsprüfung."},
-  {t:"Baustellenübergabe",st:"ok",s:"Im Testbetrieb",d:"Seit 15.10.2026. Übergaben mit Stand, offenen Punkten, Material und Fotos."},
+  {t:"Baustelle",st:"ok",s:"Im Testbetrieb",d:"Seit 15.10.2026. Übergaben mit Stand, offenen Punkten, Material und Fotos."},
   {t:"Übersicht (Startseite)",st:"ok",s:"Im Testbetrieb",d:"Seit 15.10.2026. Alle Apps an einem Ort, Statistiken, Kundendatenbank mit Ablage, Mitarbeiter."},
   {t:"Microsoft-365-Anbindung",st:"open",s:"Wartet auf EDV Achenbach",d:"Erst damit landen alle Daten in der Firmen-Ablage und jeder sieht die Einträge der Kollegen. Bis dahin bleibt alles auf dem jeweiligen Gerät."},
   {t:"Firmenadresse",st:"open",s:"Geplant",d:"Umzug auf ein Firmenkonto bei GitHub und ggf. eine eigene Adresse unter elektro-irrgang.de."},
@@ -1122,7 +1122,7 @@ function kundenListe(){
   return ks.length?listOf(ks.map(k=>locItem("kunden",k))):`<p class="meta">Kein Kunde gefunden.</p>`;
 }
 function kundenView(){
-  if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Kunden aus EVSE und der Baustellenübergabe erscheinen hier automatisch.</p></div>`;
+  if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Kunden aus EVSE und der Baustelle erscheinen hier automatisch.</p></div>`;
   return `<div class="narrow">${searchBar("Kunde, Ort, Ansprechpartner suchen")}<div id="res">${kundenListe()}</div><p class="hint">Eine Kundendatenbank für alle Apps.${ME.admin?"":" Ändern können Admins."}</p></div>`;
 }
 function bezugListen(kind,id){

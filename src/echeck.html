@@ -1022,7 +1022,7 @@ function kundenListe(){
   return ks.length?listOf(ks.map(k=>locItem("kunden",k))):`<p class="meta">Kein Kunde gefunden.</p>`;
 }
 function kundenView(){
-  if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Kunden und Standorte sind dieselben wie in EVSE und der Baustellenübergabe.</p></div>`;
+  if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Kunden und Standorte sind dieselben wie in EVSE und der Baustelle.</p></div>`;
   return `<div class="narrow">${searchBar("Kunde, Kundennr. oder Ort suchen")}<div id="res">${kundenListe()}</div><p class="hint">Gemeinsame Kundendatenbank aller Apps.</p></div>`;
 }
 function kundeView(k){ const ss=standorteVon(k.id); return `<div class="narrow">${infoKarte(k,"kunden")}<div class="sec-lbl">Standorte</div>${ss.length?listOf(ss.map(s=>locItem("standorte",s))):`<p class="meta">Noch kein Standort – über „Standort“ anlegen.</p>`}</div>`; }
@@ -1045,7 +1045,7 @@ function mehrView(){
       ${!SYNC_ON&&TEST_LOGIN.an&&META.angemeldet?row("testLogout","logout","Abmelden",esc(`Angemeldet: ${META.angemeldet.mail}`)):""}
       ${row("nav:team","person","Mitarbeiter",esc(META.profil.name||""))}
       ${row("theme","theme","Darstellung",TH_LABEL[theme])}</div>
-    <div class="sec-lbl">Apps</div><div class="list">${link("../","home","Übersicht","Startseite mit Statistik und Kunden")}${link("../evse/","ev","EVSE","Prüfung von Wallboxen und Ladesäulen")}${link("../baustelle/","baustelle","Baustellenübergabe","Tagesstand, offene Punkte und Material")}</div>
+    <div class="sec-lbl">Apps</div><div class="list">${link("../","home","Übersicht","Startseite mit Statistik und Kunden")}${link("../evse/","ev","EVSE","Prüfung von Wallboxen und Ladesäulen")}${link("../baustelle/","baustelle","Baustelle","Tagesstand, offene Punkte und Material")}</div>
     <div class="sec-lbl">Rechtliches und Info</div><div class="list">
       ${row("nav:impressum","paragraph","Impressum","")}
       ${row("nav:about","info","Über die App",`Version ${APP_VERSION}`)}</div></div>`;

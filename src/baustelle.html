@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="<!--ICON-->">
 <link rel="icon" href="<!--ICON-->">
-<title>Baustellenübergabe · Elektro Irrgang</title>
+<title>Baustelle · Elektro Irrgang</title>
 <style>
 @font-face{font-family:"Manrope";font-weight:400;font-display:swap;src:url(data:font/woff2;base64,<!--F400-->) format("woff2")}
 @font-face{font-family:"Manrope";font-weight:600;font-display:swap;src:url(data:font/woff2;base64,<!--F600-->) format("woff2")}
@@ -1396,7 +1396,7 @@ function mehrView(){
     <div class="sec-lbl">Rechtliches und Info</div><div class="list">
       ${row("nav:impressum","paragraph","Impressum","")}
       ${row("nav:about","info","Über die App",`Version ${APP_VERSION}`)}</div>
-    <p class="hint">Baustellenübergabe · Version ${APP_VERSION}${nf?` · ${nf} abgeschlossene Baustelle${nf>1?"n":""} unter „Abgeschlossen“`:""}</p></div>`;
+    <p class="hint">Baustelle · Version ${APP_VERSION}${nf?` · ${nf} abgeschlossene Baustelle${nf>1?"n":""} unter „Abgeschlossen“`:""}</p></div>`;
 }
 function teamView(){
   const T=team(), ich=(META.profil.mail||"").toLowerCase();
@@ -1406,7 +1406,7 @@ function teamView(){
 function aboutView(){
   const ic=(document.querySelector('link[rel="apple-touch-icon"]')||{}).href||"";
   return `<div class="narrow"><section class="card about">
-    <img class="app-ic" src="${ic}" alt=""><h2>Baustellenübergabe</h2><p class="ver">Version ${APP_VERSION}</p>
+    <img class="app-ic" src="${ic}" alt=""><h2>Baustelle</h2><p class="ver">Version ${APP_VERSION}</p>
     <p>Kurze Übergaben am Ende des Tages: Stand, was offen ist, welches Material gebraucht wird und Fotos – damit jeder Kollege auf dem gleichen Stand ist.</p>
     <div class="logos"><img class="lg-firma l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"></div>
     <p class="note-doc">${FIRMA.name} · ${FIRMA.strasse} · ${FIRMA.ort}</p>
@@ -1416,7 +1416,7 @@ function aboutView(){
 function loginView(){
   const logos=`<img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><img class="logo-big l-dunkel" src="${$(".logo.l-dunkel").src}" alt="Elektro Irrgang">`;
   if(!SYNC_ON){ const wer=team().find(m=>m.mail===tlSel);
-    return `<form class="login" id="tlForm" autocomplete="on">${logos}<h2>Baustellenübergabe</h2>
+    return `<form class="login" id="tlForm" autocomplete="on">${logos}<h2>Baustelle</h2>
     <p>Name wählen und mit dem Firmen-Passwort anmelden.</p>
     <div class="fg1" style="text-align:left">${sf("tlWer","Name",tlSel||"",[["","Name auswählen"],...team().map(m=>[m.mail,m.name]),["__andere","Andere Person …"]],{form:true})}
       ${wer?`<p class="tl-mail">${esc(wer.mail)}</p>`:""}
@@ -1424,7 +1424,7 @@ function loginView(){
       <div class="tf"><input id="f_tlPw" data-f="tlPw" type="password" placeholder=" " autocomplete="current-password"><label for="f_tlPw">Passwort</label></div></div>
     <button class="btn-filled" type="submit" style="margin-top:20px">${icon("person")}Anmelden</button>
     <p class="login-ver">Version ${APP_VERSION}</p></form>`; }
-  return `<div class="login">${logos}<h2>Baustellenübergabe</h2>
+  return `<div class="login">${logos}<h2>Baustelle</h2>
     <p>Melde dich mit deinem Microsoft-Mitarbeiterkonto an.</p>
     <button class="btn-filled" data-act="login">${icon("person")}Mit Microsoft anmelden</button>
     <p class="hint">${navigator.onLine?"":"Für die Anmeldung wird Internet benötigt."}</p></div>`;
@@ -1468,7 +1468,7 @@ function zurueck(){
 function exportBackup(){
   const daten={}; [...KINDS,"notizen"].forEach(k=>daten[k]=[...DB[k].values()].map(strip));
   const fotos={}; [...live("eintraege").flatMap(e=>e.fotos||[]),...notizFotos()].forEach(i=>{ const d=fotoCache.get(i); if(d) fotos[i]=d; });
-  saveFile(new Blob([JSON.stringify({app:"baustellenuebergabe",version:1,saved:Date.now(),daten,fotos})],{type:"application/json"}),`Baustellenübergabe_Sicherung_${today()}.json`);
+  saveFile(new Blob([JSON.stringify({app:"baustellenuebergabe",version:1,saved:Date.now(),daten,fotos})],{type:"application/json"}),`Baustelle_Sicherung_${today()}.json`);
   toast(`${live("baustellen").length} Baustelle(n) gesichert`);
 }
 async function importBackup(el){

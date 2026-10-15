@@ -1,6 +1,6 @@
 # Irrgang Apps – Anbindung an Microsoft 365
 
-Gilt für alle Apps (Startseite, EVSE, Baustellenübergabe, später Hausinstallation): **eine** App-Registrierung, **ein** freigegebener Ordner.
+Gilt für alle Apps (Startseite, EVSE, Baustelle, später Hausinstallation): **eine** App-Registrierung, **ein** freigegebener Ordner.
 
 Die App ist eine Web-App (eine HTML-Datei, läuft offline auf den iPads). Damit die Prüfprotokolle aller Mitarbeiter in einem gemeinsamen Ordner der Firma landen, meldet sich jeder Nutzer einmal mit seinem Microsoft-Mitarbeiterkonto an. Die App liest und schreibt dann über **Microsoft Graph** direkt in den freigegebenen Ordner. Ein eigener Server ist nicht nötig.
 
@@ -59,7 +59,7 @@ Die App legt darin an:
   _App-Daten/                                                   ← Daten der Apps, bitte nicht von Hand ändern
     kunden/ standorte/                ← gemeinsame Kundendatenbank aller Apps
     ladeparks/ pruefungen/ katalog/   ← EVSE
-    baustellen/ eintraege/            ← Baustellenübergabe
+    baustellen/ eintraege/            ← Baustelle
     einstellungen/                    ← Mitarbeiterliste, Protokoll-Empfänger
     fotos/ dateien/                   ← Fotos, Kunden-Ablage
 ```
