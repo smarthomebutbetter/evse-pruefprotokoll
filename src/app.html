@@ -410,7 +410,11 @@ details.optrows .mrow:first-of-type{border-top:0}
 .login .tf label{background:var(--surface)}
 body.is-login .logo{display:none!important}
 .login .fg1{margin-top:16px}
-.tl-wahl{margin-top:20px;max-height:44vh}
+.tl-mail{margin:-4px 4px 0;font-size:13px;color:var(--on-sv)}
+body.is-login .topbar{display:none}
+.login .logo-big.l-dunkel{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .login .logo-big.l-hell{display:none}:root:not([data-theme="light"]) .login .logo-big.l-dunkel{display:block}}
+:root[data-theme="dark"] .login .logo-big.l-hell{display:none}:root[data-theme="dark"] .login .logo-big.l-dunkel{display:block}
 .login p{color:var(--on-sv);margin:0 0 24px}
 .btn-filled{height:48px;border:0;border-radius:24px;background:var(--fab);color:var(--on-fab);font-size:15px;font-weight:700;padding:0 24px 0 18px;display:inline-flex;align-items:center;gap:10px;box-shadow:var(--e1)}
 @media (prefers-reduced-motion:no-preference){#app{animation:fade .18s ease-out}@keyframes fade{from{opacity:.6}to{opacity:1}}}
@@ -1223,14 +1227,17 @@ function aboutView(){
   </section></div>`;
 }
 function loginView(){
-  if(!SYNC_ON) return `<form class="login" id="tlForm" autocomplete="on"><img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><h2>EVSE Mobility</h2>
+  const logos=`<img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><img class="logo-big l-dunkel" src="${$(".logo.l-dunkel").src}" alt="Elektro Irrgang">`;
+  if(!SYNC_ON){ const wer=team().find(m=>m.mail===tlSel);
+    return `<form class="login" id="tlForm" autocomplete="on">${logos}<h2>EVSE Mobility</h2>
     <p>Anmeldung mit deiner Arbeitsadresse und dem Firmen-Passwort.</p>
-    <div class="list wahl tl-wahl" style="text-align:left">${[...team(),{name:"Andere Adresse …",mail:"__andere"}].map(m=>`<div class="li${tlSel===m.mail?" sel":""}" role="button" tabindex="0" data-act="tlWahl" data-mail="${esc(m.mail)}"><span class="rb${tlSel===m.mail?" on":""}"></span><span class="lt"><span class="h">${esc(m.name)}</span>${m.mail!=="__andere"?`<span class="s">${esc(m.mail)}</span>`:""}</span></div>`).join("")}</div>
-    <div class="fg1" style="text-align:left">${tlSel==="__andere"?tf("tlMail","E-Mail",tlAndere,{form:true,type:"email",ph:"name@elektro-irrgang.de"}):""}
+    <div class="fg1" style="text-align:left">${sf("tlWer","Name",tlSel||"",[["","Name auswählen"],...team().map(m=>[m.mail,m.name]),["__andere","Andere Person …"]],{form:true})}
+      ${wer?`<p class="tl-mail">${esc(wer.mail)}</p>`:""}
+      ${tlSel==="__andere"?tf("tlMail","E-Mail",tlAndere,{form:true,type:"email",ph:"name@elektro-irrgang.de"}):""}
       <div class="tf"><input id="f_tlPw" data-f="tlPw" type="password" placeholder=" " autocomplete="current-password"><label for="f_tlPw">Passwort</label></div></div>
     <button class="btn-filled" type="submit" style="margin-top:20px">${icon("person")}Anmelden</button>
-    <p class="hint">Testphase – später meldet ihr euch hier mit dem Microsoft-Konto an.</p><p class="hint">Version ${APP_VERSION}</p></form>`;
-  return `<div class="login"><img class="logo-big l-hell" src="${LOGO_PDF}" alt="Elektro Irrgang"><h2>EVSE Mobility</h2>
+    <p class="hint">Testphase – später meldet ihr euch hier mit dem Microsoft-Konto an.</p><p class="hint">Version ${APP_VERSION}</p></form>`; }
+  return `<div class="login">${logos}<h2>EVSE Mobility</h2>
     <p>Melde dich mit deinem Microsoft-Mitarbeiterkonto an. Danach siehst du alle Prüfungen der Firma, deine eigenen kannst du bearbeiten.</p>
     <button class="btn-filled" data-act="login">${icon("person")}Mit Microsoft anmelden</button>
     <p class="hint">${navigator.onLine?"":"Für die Anmeldung wird Internet benötigt."}</p></div>`;
@@ -1753,6 +1760,7 @@ document.addEventListener("change",ev=>{
   const el=ev.target;
   if(el.id==="importFile"){ importBackup(el); return; }
   if(el.id==="fotoFile"){ fotoAufnehmen(el); return; }
+  if(el.id==="f_tlWer"){ const pw=($("#f_tlPw")||{}).value||""; tlSel=el.value||null; render(); const e=$("#f_tlPw"); if(e){ e.value=pw; } (tlSel==="__andere"?$("#f_tlMail"):e)?.focus(); return; }
   if(el.id==="dateiFile"){ katDateiAufnehmen(el); return; }
   if(el.matches("#dlg select[data-f]")&&pick){ Object.assign(pick,formVals()); if(el.dataset.f==="k"){ pick.s=""; pick.l=""; } if(el.dataset.f==="s") pick.l=""; pickDialog(); return; }
   if(!el.matches("select[data-bind]")||!cur) return;
