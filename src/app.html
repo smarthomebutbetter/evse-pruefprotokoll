@@ -633,6 +633,20 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 .pv.kompakt .pv-zahl{top:calc(env(safe-area-inset-top,0px) + 48px)!important}
 
 @media (min-width:744px){.sk{align-items:flex-start}.sk h1{line-height:40px}.sk p{margin-top:0}}
+
+/* Tab-Leiste und Avatar etwas kräftiger (Maß: App Store iPad) */
+@media (min-width:744px){
+  .tb-row{height:72px}
+  body .navbar,body.rail-open .navbar{height:48px!important;padding:4px!important;border-radius:24px!important}
+  body .nav-item,body.rail-open .nav-item{height:40px!important;padding:0 18px!important;border-radius:20px!important;font-size:16px!important;font-weight:650}
+  .nav-ind{top:4px;height:40px;border-radius:20px}
+  #avBtn.avatar{width:48px;height:48px;font-size:16px;margin:0}
+}
+@media (min-width:744px) and (max-width:959.98px){
+  body .navbar,body.rail-open .navbar{left:50%!important;transform:translateX(-50%)!important}
+  body .nav-item,body.rail-open .nav-item{padding:0 13px!important;font-size:15px!important}
+  body:not(.is-login) .logo.l-hell,body:not(.is-login) .logo.l-dunkel{display:none!important}
+}
 </style>
 </head>
 <body class="is-list">
