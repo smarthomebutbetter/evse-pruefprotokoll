@@ -12,7 +12,6 @@
 <link rel="icon" href="<!--ICON-->">
 <title>EVSE Mobility · Elektro Irrgang</title>
 <style>
-/* Material 3 mit Elektro-Irrgang-Farben (Rot #E11D2F, neutrale Grautöne), Schrift Manrope */
 @font-face{font-family:"Manrope";font-weight:400;font-display:swap;src:url(data:font/woff2;base64,<!--F400-->) format("woff2")}
 @font-face{font-family:"Manrope";font-weight:600;font-display:swap;src:url(data:font/woff2;base64,<!--F600-->) format("woff2")}
 @font-face{font-family:"Manrope";font-weight:700;font-display:swap;src:url(data:font/woff2;base64,<!--F700-->) format("woff2")}
@@ -51,8 +50,6 @@ button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 .ic{width:24px;height:24px;fill:currentColor;flex:none;display:block}
 :focus-visible{outline:2px solid var(--primary);outline-offset:2px}
-
-/* Top App Bar */
 .topbar{position:sticky;top:0;z-index:20;background:var(--surface);padding-top:env(safe-area-inset-top,0px);transition:background .2s}
 .topbar.scrolled{background:var(--sc)}
 .tb-row{display:flex;align-items:center;gap:4px;height:64px;padding:0 max(4px,env(safe-area-inset-right,0px)) 0 max(4px,env(safe-area-inset-left,0px))}
@@ -65,8 +62,6 @@ body.is-list .logo.l-hell{display:block}
 :root[data-theme="dark"] body.is-list .logo.l-hell{display:none}
 :root[data-theme="dark"] body.is-list .logo.l-dunkel{display:block}
 body.is-list .tb-title{visibility:hidden}
-
-/* Primary Tabs (nur in der Ladesäule) */
 .tabs{display:flex;border-bottom:1px solid var(--outline-v)}
 .tab{flex:1;max-width:200px;height:48px;border:0;background:transparent;color:var(--on-sv);font-weight:600;font-size:14px;display:flex;justify-content:center;position:relative}
 .tab .tl{display:flex;align-items:center;gap:6px;height:100%;position:relative}
@@ -74,8 +69,6 @@ body.is-list .tb-title{visibility:hidden}
 .tab[aria-selected="true"] .tl::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--primary)}
 .sd{width:8px;height:8px;border-radius:50%;background:var(--outline-v);display:inline-block}
 .sd.ok{background:var(--ok)} .sd.bad{background:var(--err)} .sd.wip{background:var(--wip)}
-
-/* Navigation Bar (Handy) / Navigation Rail (ab 840 px) */
 .navbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;background:var(--sc);padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 .nav-item{flex:1;height:80px;border:0;background:transparent;color:var(--on-sv);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:600;letter-spacing:.02em}
 .nav-item .ind{width:64px;height:32px;border-radius:16px;display:grid;place-items:center;transition:background .2s}
@@ -90,7 +83,6 @@ body.is-list .tb-title{visibility:hidden}
   .nav-item .ind{width:56px}
   .nav-item.nav-end{margin-top:auto}
   body.has-nav .topbar, body.has-nav main{margin-left:88px;transition:margin-left .2s}
-  /* aufgeklappt: Beschriftung neben dem Symbol */
   body.rail-open .navbar{width:232px;gap:4px}
   body.rail-open .nav-head{justify-content:flex-start;padding-left:16px}
   body.rail-open .nav-head .nav-logo.l-hell{display:block}
@@ -104,8 +96,6 @@ body.is-list .tb-title{visibility:hidden}
 @media (max-width:839.98px){.nav-head{display:none}}
 @media (min-width:840px){@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) body.rail-open .nav-head .nav-logo.l-hell{display:none}:root:not([data-theme="light"]) body.rail-open .nav-head .nav-logo.l-dunkel{display:block}}
 :root[data-theme="dark"] body.rail-open .nav-head .nav-logo.l-hell{display:none}:root[data-theme="dark"] body.rail-open .nav-head .nav-logo.l-dunkel{display:block}}
-
-/* Inhalt */
 main{padding:8px max(16px,env(safe-area-inset-right,0px)) calc(104px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 @media (min-width:600px){main{padding-left:24px;padding-right:24px}}
@@ -117,7 +107,6 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .hl{font-size:24px;font-weight:700;margin:8px 0 16px;letter-spacing:-.01em}
 .meta{margin:0 0 12px;color:var(--on-sv);font-size:14px}
 .cols{display:grid;gap:16px;align-items:start}
-/* Breite Bildschirme: eine Kachel pro Bereich über die volle Breite, Inhalt darin nebeneinander */
 @media (min-width:1000px){
   .fg{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
   .mgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:40px}
@@ -131,8 +120,6 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .lbl{font-size:12px;font-weight:600;color:var(--on-sv);margin:0 0 6px 4px}
 .sup{font-size:12px;color:var(--on-sv);margin:4px 16px 0}
 .calc{font-size:12px;color:var(--on-sv);background:var(--sc-high);border-radius:8px;padding:8px 12px;margin:0;overflow-x:auto;white-space:nowrap;font-variant-numeric:tabular-nums}
-
-/* Outlined Text Field */
 .tf{position:relative;min-width:0}
 .tf input,.tf select,.tf textarea{display:block;width:100%;height:56px;border:0;border-radius:8px;background:transparent;box-shadow:inset 0 0 0 1px var(--outline);padding:16px;font-size:16px;color:var(--on-surface);-webkit-appearance:none;appearance:none}
 .tf textarea{height:auto;min-height:112px;resize:vertical;line-height:1.45;padding-top:18px}
@@ -145,8 +132,6 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .tf.has-sfx input{padding-right:46px}
 .tf .arr{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--on-sv);pointer-events:none}
 .tf input[type="date"]{min-height:56px}
-
-/* Chips & Segmented Buttons */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{height:32px;border-radius:8px;border:1px solid var(--outline);background:transparent;color:var(--on-sv);padding:0 16px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
 .chip .ic{width:18px;height:18px;display:none}
@@ -160,15 +145,11 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .seg button[aria-pressed="true"] .ic{display:block}
 .seg.ev button[aria-pressed="true"][data-v="ok"]{background:var(--ok-c);color:var(--on-ok-c)}
 .seg.ev button[aria-pressed="true"][data-v="nok"]{background:var(--err-c);color:var(--on-err-c)}
-
-/* Status */
 .pill{display:inline-flex;align-items:center;height:24px;border-radius:8px;padding:0 8px;font-size:12px;font-weight:700;white-space:nowrap;flex:none}
 .pill.ok{background:var(--ok-c);color:var(--on-ok-c)}
 .pill.bad{background:var(--err-c);color:var(--on-err-c)}
 .pill.open{background:var(--sc-highest);color:var(--on-sv)}
 .pill.wip{background:var(--wip-c);color:var(--on-wip-c)}
-
-/* Listen */
 .list{background:var(--sc-low);border-radius:20px;overflow:hidden}
 .li{display:flex;align-items:center;gap:16px;width:100%;min-height:72px;padding:12px 16px;border:0;border-top:1px solid var(--outline-v);background:transparent;text-align:left;color:var(--on-surface);cursor:pointer}
 .li:first-child,.sw:first-child .li{border-top:0}
@@ -199,8 +180,6 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .empty .ic{width:48px;height:48px;margin:0 auto 12px;color:var(--outline)}
 .empty h2{font-size:22px;color:var(--on-surface);margin:0 0 8px}
 .empty p{margin:0 auto 16px;max-width:380px}
-
-/* Messzeilen */
 .gh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px}
 .gh h3{margin:0}
 .gh p{margin:2px 0 0;font-size:13px;color:var(--on-sv)}
@@ -220,8 +199,6 @@ body.has-nav main{padding-bottom:calc(184px + env(safe-area-inset-bottom,0px))}
 .mrow[data-state="bad"] .sfx,.mrow[data-state="bad"] .s{color:var(--err)}
 .mrow .seg{height:40px}
 @media (max-width:380px){.mrow .ctl{width:116px}.mrow .ctl.wide{width:144px}.seg button{padding:0 8px}}
-
-/* Abschluss */
 .banner{display:flex;align-items:center;gap:16px;border-radius:16px;padding:16px;margin-bottom:16px}
 .banner.ok{background:var(--ok-c);color:var(--on-ok-c)}
 .banner.bad{background:var(--err-c);color:var(--on-err-c)}
@@ -245,8 +222,6 @@ canvas.pad{width:100%;height:168px;border-radius:12px;background:var(--surface);
 .btn-text{white-space:nowrap;height:40px;border:0;border-radius:20px;background:transparent;color:var(--primary);font-size:14px;font-weight:700;padding:0 12px}
 .btn-text:hover{background:color-mix(in srgb,var(--primary) 8%,transparent)}
 .btn-tonal{height:40px;border:0;border-radius:20px;background:var(--sec-c);color:var(--on-sec-c);font-size:14px;font-weight:700;padding:0 24px}
-
-/* Extended FAB */
 .fab{position:fixed;z-index:25;right:max(16px,calc(env(safe-area-inset-right,0px) + 16px));bottom:calc(16px + env(safe-area-inset-bottom,0px));height:56px;border:0;border-radius:16px;background:var(--fab);color:var(--on-fab);display:flex;align-items:center;gap:12px;padding:0 20px 0 16px;font-size:15px;font-weight:700;box-shadow:var(--e3)}
 .fab-rund{width:56px;padding:0;justify-content:center}
 .fabm{position:fixed;inset:0;z-index:24}
@@ -255,8 +230,6 @@ canvas.pad{width:100%;height:168px;border-radius:12px;background:var(--surface);
 .fabm-it{height:56px;border:0;border-radius:28px;background:var(--pri-c,var(--sec-c));color:var(--on-pri-c,var(--on-sec-c));display:flex;align-items:center;gap:12px;padding:0 20px 0 16px;font-size:15px;font-weight:700;box-shadow:var(--e2,var(--e3))}
 body.has-nav .fab{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 @media (min-width:840px){.fab{right:24px;bottom:24px!important}}
-
-/* Menü, Dialog, Snackbar */
 .scrim{position:fixed;inset:0;z-index:40;background:transparent}
 .scrim.dim{background:var(--scrim)}
 .menu{position:fixed;z-index:41;top:calc(env(safe-area-inset-top,0px) + 56px);right:max(8px,env(safe-area-inset-right,0px));min-width:224px;max-width:300px;background:var(--sc);border-radius:4px;box-shadow:var(--e3);padding:8px 0}
@@ -401,7 +374,6 @@ details.optrows .mrow:first-of-type{border-top:0}
 .kath-t{white-space:pre-wrap;margin:4px 0 10px}
 .kath-f{margin:8px 0 8px}
 .kath-f .foto{aspect-ratio:4/3}
-
 .fg1{display:grid;gap:16px;--fbg:var(--sc-high);padding-top:6px}
 .dlg{max-height:calc(100vh - 48px);overflow:auto}
 .konto{display:flex;gap:16px;align-items:center}
@@ -453,7 +425,6 @@ body.is-login .topbar{display:none}
 <script>
 (() => {
 "use strict";
-// ================= Prüfpunkte =================
 const GROUPS = [
   {id:"frei", ps:"Helfer: LS aus", t:"Spannungsfrei", sub:"Helfer schaltet den LS der Ladestation aus", how:[
     "Spannungsfreiheit feststellen, FEV300 in die Ladedose stecken.",
@@ -507,7 +478,6 @@ const DEF_FUNKTION = defFunktion("Fluke FEV300");
 const RES_TXT = {ok:"bestanden", bad:"nicht bestanden", open:"offen", wip:"in Arbeit"};
 const RES_SHORT = {ok:"i.O.", bad:"n.i.O.", open:"offen", wip:"in Arbeit"};
 
-// ================= Hilfen =================
 const $ = (s,r=document)=>r.querySelector(s);
 const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const num = s=>{ if(s==null) return NaN; const m=String(s).replace(",",".").replace(/[^0-9.\-]/g,""); return m===""?NaN:parseFloat(m); };
@@ -518,7 +488,7 @@ const deDate = iso=>iso?iso.split("-").reverse().join("."):"";
 
 function newLP(){ return {v:{risov:"500 V"}, bem:""}; }
 function newSaeule(n,bauart="Wallbox"){ return {id:uid(), bauart, name:`${bauart} ${n}`, typ:"", sn:"", ort:"", fw:"", absTyp:"LS B", absIn:"16", zsMan:"", inenn:"", rcd:RCD_TYPES[0], idn:"30", freigabe:"", phasen:3, lps:bauart==="Ladesäule"?2:1, lp:[newLP(),newLP()], fotos:{}}; }
-const BAUART=s=>s.bauart||"Ladesäule";   // alte Daten ohne Angabe waren als „Ladesäule“ angelegt
+const BAUART=s=>s.bauart||"Ladesäule";
 const BAUARTEN=[["Wallbox","Wallbox","an der Wand"],["Ladesäule","Ladesäule","freistehend"]];
 function newProto(){
   return {id:uid(), kundeId:null, standortId:null, ladeparkId:null,
@@ -539,7 +509,6 @@ function sollOf(r,s){
   if(r.ria){ const i=num(s.idn)||30; return `${fmt(0.5*i)} – ${fmt(i)} mA`; }
   return r.soll||"";
 }
-// RCD: Typ + DC-Fehlerstromerkennung 6 mA in der Wallbox (kompatibel zu älteren Texten in s.rcd)
 const RCD_TYPEN=["A","A-EV","F","B"];
 function rcdInfo(s){ const r=String(s.rcd||""), t=s.rcdTyp||(/^B/.test(r)?"B":/A-EV/.test(r)?"A-EV":/^F/.test(r)?"F":"A"); return {t, dc:(t==="A"||t==="F")&&(s.rdc!==undefined?!!s.rdc:/RDC-DD/.test(r))}; }
 function setRcd(s,t,dc){ if(t==="B"||t==="A-EV") dc=false; s.rcdTyp=t; s.rdc=dc; s.rcd=`${t}${dc?" + RDC-DD 6 mA":""}`; }
@@ -557,7 +526,6 @@ function evalRow(r,val,s){
 function groupResult(g,s,li){ let o=0,b=0; for(const r of g.rows){ if(!rowVisible(r,s)) continue; const e=evalRow(r,s.lp[li].v[r.k],s); if(e==="bad")b++; else if(e==="open")o++; } return b?"bad":o?"open":"ok"; }
 function lpResult(s,li){ const rs=GROUPS.map(g=>groupResult(g,s,li)); return rs.includes("bad")?"bad":rs.includes("open")?"open":"ok"; }
 function saeuleResult(s){ const rs=[]; for(let i=0;i<s.lps;i++) rs.push(lpResult(s,i)); return rs.includes("bad")?"bad":rs.includes("open")?"open":"ok"; }
-// Anzeige-Status in der App: open = noch nichts, wip = angefangen, bad = Fehler, ok = fertig und in Ordnung
 function stateOf(list){ if(list.includes("bad")) return "bad"; if(list.every(x=>x==="ok"||x==="skip")) return "ok"; return list.some(x=>x==="ok"||x==="wip")?"wip":"open"; }
 function groupState(g,s,li){
   const rs=g.rows.filter(r=>rowVisible(r,s)).map(r=>[r,evalRow(r,s.lp[li].v[r.k],s)]).filter(x=>x[1]!=="skip"), es=rs.map(x=>x[1]);
@@ -568,22 +536,19 @@ function saeuleState(s){ return stateOf(Array.from({length:s.lps},(_,i)=>lpState
 function protoState(p){ return stateOf(p.s.map(saeuleState)); }
 function protoResult(p){ const rs=p.s.map(saeuleResult); return rs.includes("bad")?"bad":rs.includes("open")?"open":"ok"; }
 
-// ================= Konfiguration Microsoft 365 =================
-// Wird nach der App-Registrierung durch die IT ausgefüllt. Solange leer, arbeitet die App nur auf dem Gerät.
 const CONFIG=Object.assign({
-  tenantId:"",              // Verzeichnis-ID (Mandant) aus Microsoft Entra
-  clientId:"",              // Anwendungs-ID der App-Registrierung „EVSE-Prüfprotokoll“
-  shareUrl:"",              // Freigabe-Link des Ordners „Prüfprotokolle“ (OneDrive/SharePoint)
-  admins:[],                // optional: E-Mail-Adressen mit Admin-Rechten (zusätzlich zur App-Rolle „Admin“)
-  dataFolder:"_App-Daten",  // Unterordner für die Daten der App
+  tenantId:"",
+  clientId:"",
+  shareUrl:"",
+  admins:[],
+  dataFolder:"_App-Daten",
 }, window.__EVSE_CONFIG__||{});
 const SYNC_ON=!!(CONFIG.tenantId&&CONFIG.clientId&&CONFIG.shareUrl);
 
-// ================= Speicher (IndexedDB) =================
 const TH_KEY="evse_theme", OLD_KEY="evse_protos_v1";
 const KINDS=["kunden","standorte","ladeparks","pruefungen","katalog"];
 const DB={kunden:new Map(),standorte:new Map(),ladeparks:new Map(),pruefungen:new Map(),katalog:new Map()};
-let META={profil:{name:""},pins:[],archiv:[],filter:"alle",sync:{}};   // nur auf diesem Gerät, wird nicht abgeglichen
+let META={profil:{name:""},pins:[],archiv:[],filter:"alle",sync:{}};
 let cur=null, nav={v:"start"}, saveTimer=null, dirtyCur=false, dataDB=null, query="";
 let ME={name:"",mail:"",admin:false,signedIn:false};
 
@@ -624,12 +589,10 @@ function toast(t,action,fn){ const el=$("#toast"); el.innerHTML=`<span>${esc(t)}
   if(action) el.querySelector("button").onclick=()=>{ el.hidden=true; fn(); };
   clearTimeout(toast._t); toast._t=setTimeout(()=>el.hidden=true,action?6000:2800); }
 
-// Rechte: jeder bearbeitet nur seine eigenen Einträge, Admin (Chef) darf alles
 const sameUser=(a,b)=>!!(a&&b&&a.mail&&b.mail&&a.mail.toLowerCase()===b.mail.toLowerCase());
 function canEdit(rec){ if(!rec) return false; if(!SYNC_ON||rec.demo) return true; if(!ME.signedIn) return false;
   return ME.admin||!rec.createdBy||!rec.createdBy.mail||sameUser(rec.createdBy,ME); }
 
-// Hierarchie: Kunde › Standort › (Ladepark) › Prüfungen
 const kundeOf=id=>DB.kunden.get(id), standortOf=id=>DB.standorte.get(id), ladeparkOf=id=>id?DB.ladeparks.get(id):null;
 function pfad(p){ return {k:kundeOf(p.kundeId), s:standortOf(p.standortId), l:ladeparkOf(p.ladeparkId)}; }
 function pfadText(p,sep=" › "){ const {k,s,l}=pfad(p); return [k&&k.name,s&&s.name,l&&l.name].filter(Boolean).join(sep); }
@@ -638,14 +601,12 @@ const pruefAt=(sid,lid)=>live("pruefungen").filter(p=>p.standortId===sid&&(p.lad
 const pruefUnter=(kind,id)=>live("pruefungen").filter(p=>kind==="kunden"?p.kundeId===id:kind==="standorte"?p.standortId===id:p.ladeparkId===id).sort(byDate);
 const standorteVon=kid=>live("standorte").filter(s=>s.kundeId===kid).sort((a,b)=>a.name.localeCompare(b.name,"de"));
 const ladeparksVon=sid=>live("ladeparks").filter(l=>l.standortId===sid).sort((a,b)=>a.name.localeCompare(b.name,"de"));
-// Adresse: Straße, PLZ, Ort (ältere Einträge haben nur „adresse“ als Text)
 function adrText(r){ if(!r) return ""; const z=[r.strasse,[r.plz,r.ort].filter(Boolean).join(" ")].filter(Boolean).join(", "); return z||r.adresse||""; }
 function adrSplit(r){ if(r.strasse||r.plz||r.ort||!r.adresse) return; const m=r.adresse.match(/^(.*?),\s*(\d{5})\s+(.+)$/); if(m){ r.strasse=m[1]; r.plz=m[2]; r.ort=m[3]; } else r.strasse=r.adresse; }
 const FREIGABEN=["Ladekarte","App","Frei (ohne Freigabe)"];
 const freigabeListe=s=>String(s.freigabe||"").split(/\s*[,/+]\s*|\s+und\s+/).map(x=>x.trim()).filter(Boolean).map(x=>/^frei/i.test(x)?FREIGABEN[2]:/karte|rfid/i.test(x)?"Ladekarte":/app/i.test(x)?"App":x);
 const pTitel=p=>`${deDate(p.p.datum)||"ohne Datum"} · ${p.p.art}`;
 
-// Übernahme alter Protokolle (vor der Kunden-Gliederung) und alter Sicherungen
 function importLegacy(list){
   let n=0;
   for(const o of list){ if(!o||!o.p||!Array.isArray(o.s)||DB.pruefungen.has(o.id)) continue;
@@ -659,7 +620,6 @@ function importLegacy(list){
   return n;
 }
 
-// ================= Microsoft 365: Anmeldung =================
 const SCOPES=["User.Read","Files.ReadWrite.All"];
 const Auth={pca:null,account:null,test:null,
   async init(){
@@ -690,11 +650,9 @@ function setMe(){
   if(!a){ ME={name:META.profil.name||"",mail:(META.profil.mail||"").toLowerCase(),admin:false,signedIn:false}; return; }
   const roles=(a.idTokenClaims&&a.idTokenClaims.roles)||[], mail=(a.username||"").toLowerCase();
   ME={name:a.name||mail,mail,admin:roles.includes("Admin")||CONFIG.admins.map(x=>x.toLowerCase()).includes(mail),signedIn:true};
-  // Auf diesem Gerät angelegte, noch nie hochgeladene Einträge gehören dem angemeldeten Nutzer
   for(const k of KINDS) for(const r of DB[k].values()) if(!r.demo&&!r._etag&&(!r.createdBy||!r.createdBy.mail)){ r.createdBy={name:ME.name,mail:ME.mail}; r._dirty=true; dbPut(k,r); }
 }
 
-// ================= Microsoft 365: Abgleich mit der Share =================
 const GRAPH="https://graph.microsoft.com/v1.0";
 const SY={state:SYNC_ON?"ok":"aus",err:"",running:false,again:false,drive:null,rootId:null,folders:{},fotoBusy:new Set()};
 async function g(path,opt={}){
@@ -742,7 +700,7 @@ const strip=r=>{ const o={...r}; delete o._dirty; delete o._etag; delete o._item
 let konflikte=[];
 function takeServer(k,rec,it){
   const loc=DB[k].get(rec.id);
-  if(loc&&loc._dirty&&(loc.updated||0)>(rec.updated||0)){ loc._etag=it.eTag; loc._itemId=it.id; dbPut(k,loc); return false; } // eigene Fassung ist neuer
+  if(loc&&loc._dirty&&(loc.updated||0)>(rec.updated||0)){ loc._etag=it.eTag; loc._itemId=it.id; dbPut(k,loc); return false; }
   if(loc&&loc._dirty) konflikte.push(rec.updatedBy&&rec.updatedBy.name||"jemand anderes");
   rec._etag=it.eTag; rec._itemId=it.id; dbPut(k,rec);
   if(k==="pruefungen"&&cur&&cur.id===rec.id&&!dirtyCur){ cur=JSON.parse(JSON.stringify(rec)); }
@@ -764,7 +722,7 @@ async function pull(){
 async function pushOne(k,rec,fid,force){
   const ver=rec.updated, headers={"Content-Type":"application/json"}; if(rec._etag&&!force) headers["If-Match"]=rec._etag;
   const r=await g(`/drives/${SY.drive}/items/${fid}:/${rec.id}.json:/content`,{method:"PUT",headers,body:JSON.stringify(strip(rec))});
-  if(r.status===412){ // inzwischen von jemand anderem geändert: neuere Fassung gewinnt
+  if(r.status===412){
     const meta=await gj(`/drives/${SY.drive}/items/${fid}:/${rec.id}.json`); const srv=await (await readItem(meta)).json();
     if((srv.updated||0)>(rec.updated||0)){ takeServer(k,srv,meta); return true; }
     return pushOne(k,rec,fid,true);
@@ -806,7 +764,6 @@ async function fotoFetch(ids){
   }catch(e){} finally{ ids.forEach(id=>SY.fotoBusy.delete(id)); }
   if(got&&(nav.v==="saeule"||nav.v==="katmodell")){ const y=scrollY; render(); scrollTo(0,y); }
 }
-// Lesbare Ablage: Kunde/Standort/[Ladepark]/Datum Prüfart Auftragsnr.pdf
 const fsName=s=>String(s||"").replace(/[\\/:*?"<>|#%\u0000-\u001f]/g,"-").replace(/\s+/g," ").trim().replace(/[. ]+$/,"").slice(0,80)||"Unbenannt";
 function pdfAblage(p){ const {k,s,l}=pfad(p);
   return {dir:[k&&k.name,s&&s.name,l&&l.name].filter(Boolean).map(fsName).join("/")||"Ohne Zuordnung",
@@ -848,11 +805,10 @@ async function syncNow(manual){
 }
 let syncT=null; function syncSoon(){ if(!SYNC_ON||!ME.signedIn) return; clearTimeout(syncT); syncT=setTimeout(()=>syncNow(),2500); }
 function softRender(){
-  const a=document.activeElement; if(a&&a.matches&&a.matches("input,textarea,select")&&$("#app").contains(a)) return; // nicht beim Tippen stören
+  const a=document.activeElement; if(a&&a.matches&&a.matches("input,textarea,select")&&$("#app").contains(a)) return;
   if(!$("#dlg").hidden) return; const y=scrollY; render(); scrollTo(0,y);
 }
 
-// ================= Fotos (IndexedDB) =================
 const FOTO_SLOTS=[["ueb","Übersicht","von weiter weg"],["offen","Geöffnet","Anschlussraum"],["plak","Prüfplakette","gut lesbar"],["vert","Verteiler","LS und RCD"]];
 const fotoCache=new Map(); let fotoDB=null, fotoTarget=null;
 const fotoIds=s=>Object.values(s.fotos||{}).filter(Boolean);
@@ -876,7 +832,6 @@ function fotoVerkleinern(file){ return new Promise((res,rej)=>{ const url=URL.cr
   img.onerror=()=>{ URL.revokeObjectURL(url); rej(0); }; img.src=url; }); }
 function saveFile(blob,name){ const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=name; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),60000); }
 
-// ================= Darstellung =================
 const THEMES=["auto","light","dark"], TH_LABEL={auto:"Wie System",light:"Hell",dark:"Dunkel"};
 function applyTheme(t){
   if(t==="auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme=t;
@@ -887,7 +842,6 @@ function applyTheme(t){
 let theme="auto"; try{ theme=localStorage.getItem(TH_KEY)||"auto"; }catch(e){}
 applyTheme(theme);
 
-// ================= Rendering =================
 const IC={
   back:"M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
   more:"M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z",
@@ -1007,7 +961,6 @@ function applyRO(){
   $("#app").querySelectorAll('[data-act="pdfIn"],[data-act="sigOpen"],[data-act="frist"],[data-act="kAbw"],[data-act="pick"],[data-act="leistung"],[data-act="abs"],[data-act="rcdTyp"],[data-act="rdc"],[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="bauart"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
 }
 
-// Felder: M3 Outlined Text Field
 function tf(path,label,val,o={}){
   const cls=["tf"]; if(o.full) cls.push("full"); if(o.ph||o.type==="date") cls.push("fl"); if(o.sfx) cls.push("has-sfx");
   const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
@@ -1026,7 +979,6 @@ const LEITUNGEN=["NYM-J 5×2,5 mm²","NYM-J 5×4 mm²","NYM-J 5×6 mm²","NYM-J 
 const chipSel=(act,cur,vals,unit,anders)=>`<div class="chips">${vals.map(v=>`<button type="button" class="chip" data-act="pick" data-f="${act}" data-v="${v}" aria-pressed="${!anders&&String(cur)===v}">${icon("check")}${v} ${unit}</button>`).join("")}${act==="absIn"?`<button type="button" class="chip" data-act="pick" data-f="${act}" data-v="x" aria-pressed="${!!anders||(!!cur&&!vals.includes(String(cur)))}">${icon("check")}Andere</button>`:""}</div>`;
 const seg=(act,cur,opts,cls="")=>`<div class="seg ${cls}" role="group">${opts.map(([v,t])=>`<button type="button" data-act="${act}" data-v="${v}" aria-pressed="${String(cur)===String(v)}">${icon("check")}${esc(t)}</button>`).join("")}</div>`;
 
-// --- Listen-Einträge
 function pItem(p,mitPfad){
   const n=p.s.length, r=protoState(p), arch=META.archiv.includes(p.id), ro=!canEdit(p);
   const zeile2=mitPfad?pfadText(p):[p.p.auftragsnr&&`Auftrag ${p.p.auftragsnr}`,p.p.projekt].filter(Boolean).join(" · ");
@@ -1113,7 +1065,6 @@ function archivView(){
   if(!L.length) return `<div class="empty">${icon("archive")}<h2>Archiv ist leer</h2><p>Prüfungen auf der Startseite nach rechts wischen, um sie hierher zu legen. Sie bleiben beim Kunden sichtbar.</p></div>`;
   return `<div class="narrow">${listOf(L.map(p=>pItem(p,true)))}<p class="hint">Nach rechts wischen: zurückholen · nach links: löschen</p></div>`;
 }
-// ---- Prüfungen (alle, mit Filter)
 const PFILTER=[["alle","Alle"],["wip","In Arbeit"],["bad","Mit Mängeln"],["ok","Fertig"]];
 function pruefungenListe(){
   const f=META.pfilter||"alle", q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q);
@@ -1125,7 +1076,6 @@ function pruefungenView(){
     <div class="chips" style="margin:4px 0 12px">${PFILTER.map(([v,t])=>`<button class="chip" data-act="pfilter" data-v="${v}" aria-pressed="${(META.pfilter||"alle")===v}">${icon("check")}${t}</button>`).join("")}</div>
     <div id="res">${pruefungenListe()}</div></div>`;
 }
-// ---- Fällig: je Ort die neueste Prüfung mit empfohlenem Termin
 function faelligListe(){
   const m=new Map();
   for(const p of live("pruefungen")){ const k=p.standortId+"|"+(p.ladeparkId||""), q=m.get(k); if(!q||byDate(p,q)<0) m.set(k,p); }
@@ -1143,7 +1093,6 @@ function faelligView(){
     ${g3.length?`<div class="sec-lbl">Später</div>${listOf(g3.map(p=>item(p,"open","geplant")))}`:""}
     <p class="hint">Antippen öffnet den Ort – dort mit „Neue Prüfung“ die Wiederholungsprüfung anlegen.</p></div>`;
 }
-// ---- Mehr
 function mehrView(){
   const row=(act,ic,t,sub,cls="")=>`<div class="li ${cls}" role="button" tabindex="0" data-act="${act}"><span class="av">${icon(ic)}</span><span class="lt"><span class="h">${t}</span>${sub?`<span class="s">${sub}</span>`:""}</span>${icon("chev")}</div>`;
   const nArch=live("pruefungen").filter(p=>META.archiv.includes(p.id)).length;
@@ -1248,7 +1197,6 @@ function loginView(){
     <p class="hint">${navigator.onLine?"":"Für die Anmeldung wird Internet benötigt."}</p></div>`;
 }
 
-// --- Prüfung bearbeiten
 function projektView(){
   const p=cur.p, {k,s,l}=pfad(cur);
   return `<div class="cols">
@@ -1382,14 +1330,11 @@ function abschlussView(){
   </div>`;
 }
 
-// ================= Wallbox-Katalog =================
-// Hersteller › Modell (› Version) mit Steckbrief, eigenen Hinweisen und Fotos. Liegt wie alles andere auf dem Gerät
-// und wird bei aktiver Microsoft-Anbindung im Firmenordner abgeglichen (_App-Daten/katalog).
 const KAT_HINWEIS=["PE-Anschluss","Anschlussraum / Klemmen","Typschild","Einrichtung / Konfiguration","Fehlerstromschutz","Sonstiges"];
 const KAT_SEED=[["Mennekes",["AMTRON Compact 2.0s","AMTRON Charge Control","AMTRON Professional+","AMTRON 4You 500","AMTRON 4Business 700"]],
   ["Schneider Electric",["EVlink Home","EVlink Pro AC","EVlink Wallbox Plus"]],["Huawei",["AC Smart Charger"]]];
 const katSlug=t=>String(t).toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-function katSeed(){   // feste IDs, damit mehrere Geräte dieselben Vorlagen nicht doppelt anlegen
+function katSeed(){
   for(const [h,ms] of KAT_SEED) for(const m of ms){ const id="kat-"+katSlug(h+" "+m); if(DB.katalog.has(id)) continue;
     saveRec("katalog",{id,hersteller:h,modell:m,version:"",art:"Wallbox",leistung:"",phasen:"",lps:"",anschluss:"",dc6:"",artnr:"",quelle:"",notiz:"",hinweise:[],vorlage:true},true); }
 }
@@ -1397,7 +1342,7 @@ const katName=r=>[r.modell,r.version].filter(Boolean).join(" ");
 const katFotoIds=r=>[r.bild,...(r.hinweise||[]).flatMap(h=>h.fotos||[])].filter(Boolean);
 const katNorm=t=>String(t||"").toLowerCase().replace(/\s+/g," ").trim();
 const katHOk=h=>canEdit({createdBy:h.by});
-function katVerbaut(r){   // Prüfungen mit Säulen dieses Modells (Verknüpfung oder passender Typ-Text)
+function katVerbaut(r){
   const m=katNorm(r.modell); if(!m) return [];
   return live("pruefungen").filter(p=>p.s.some(s=>s.katId===r.id||katNorm(s.typ).includes(m))).sort(byDate);
 }
@@ -1452,7 +1397,6 @@ function katModellView(r){
   if(ps.length) h+=`<details class="kat-gepr"><summary>${icon("doc")}<span>Bei uns geprüft: ${ps.length}× · zuletzt ${esc(deDate(ps[0].p.datum))}</span>${icon("drop")}</summary>${listOf(ps.slice(0,30).map(p=>pItem(p,true)))}${ps.length>30?`<p class="meta">… und ${ps.length-30} weitere</p>`:""}</details>`;
   return h+`</div>`;
 }
-// Anhänge (PDF/Bilder) als Blob in eigener Datenbank – nicht im Speicher gehalten, nur bei Bedarf geöffnet
 let dateiDB=null; const DATEI_DA=new Set();
 function dateiOpen(){ return new Promise((res,rej)=>{ if(!window.indexedDB) return rej(0); const r=indexedDB.open("evse_dateien",1); r.onupgradeneeded=()=>r.result.createObjectStore("d"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
 async function dateiInit(){ try{ dateiDB=await dateiOpen(); (await idbReq(dateiDB.transaction("d").objectStore("d").getAllKeys())).forEach(k=>DATEI_DA.add(k)); }catch(e){ dateiDB=null; } }
@@ -1520,7 +1464,6 @@ async function katFotoAufnehmen(file,t){
   if(!ok) toast("Foto nur bis zum Schließen der App gespeichert – Speicher nicht verfügbar");
 }
 
-// --- Menü und Dialoge
 function closeOverlays(){ ["#menu","#dlg","#scrim"].forEach(s=>$(s).hidden=true); $("#scrim").classList.remove("dim"); $("#menuBtn").setAttribute("aria-expanded","false"); }
 function openMenu(){
   const it=[], E=EDITOR.includes(nav.v), kind=VIEW_KIND[nav.v];
@@ -1559,7 +1502,7 @@ function dialog(title,body,actions){
 }
 const confirmDlg=(title,text,label,act)=>dialog(title,esc(text),`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text danger" data-act="${act}">${esc(label)}</button>`);
 const formVals=()=>{ const o={}; $("#dlg").querySelectorAll("[data-f]").forEach(e=>o[e.dataset.f]=e.value.trim()); return o; };
-let locForm=null;   // {kind, id?, parentId?}
+let locForm=null;
 function locDialog(kind,rec,parentId){
   locForm={kind,id:rec&&rec.id,parentId};
   const r=rec||{};
@@ -1571,8 +1514,7 @@ function locDialog(kind,rec,parentId){
     :tf("name","Bezeichnung",r.name,{form:true,ph:"z. B. Werk Rheinbach"})+adr+tf("ansprech","Ansprechpartner vor Ort",r.ansprech,{form:true})+tf("tel","Telefon vor Ort",r.tel,{form:true,type:"tel"})+ta("notiz","Notiz (z. B. Zufahrt, Schlüssel)",r.notiz,{form:true});
   dialog(`${KIND_NAME[kind]} ${rec?"bearbeiten":"anlegen"}`,`<div class="fg1">${felder}</div>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveLoc">${rec?"Speichern":"Anlegen"}</button>`);
 }
-// Auswahl Kunde › Standort › Ladepark (für neue Prüfung oder Verschieben)
-let pick=null;  // {mode:"new"|"move", k, s, l, kNeu, sNeu, lNeu}
+let pick=null;
 function pickDialog(){
   const P=pick, ks=live("kunden").sort((a,b)=>a.name.localeCompare(b.name,"de"));
   const ss=P.k&&P.k!=="__neu"?standorteVon(P.k):[], ls=P.s&&P.s!=="__neu"?ladeparksVon(P.s):[];
@@ -1602,7 +1544,6 @@ let nachName=null;
 function nameFehlt(weiter){ if(SYNC_ON||META.profil.name) return false; nachName=weiter;
   dialog("Wer prüft?",`<div class="list wahl">${team().map(m=>`<div class="li" role="button" tabindex="0" data-act="ichBin" data-mail="${esc(m.mail)}"><span class="av">${icon("person")}</span><span class="lt"><span class="h">${esc(m.name)}</span><span class="s">${esc(m.mail)}</span></span></div>`).join("")}</div>
     <div class="fg1" style="margin-top:12px">${tf("name","Oder Name eingeben",``,{form:true})}</div><p class="sup" style="margin:12px 0 0">Einmalig pro Gerät. Ändern und weitere Mitarbeiter: Mehr → Mitarbeiter und Mail.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveName">Weiter</button>`); return true; }
-// Was wird geprüft? Gruppen aus Bauart, Hersteller/Typ und Anzahl – z. B. 4 × Ladesäule A und 2 × Wallbox B
 const ST_TECHNIK=["absTyp","absIn","absInAnders","zsMan","lsIcn","lsTyp","rcd","rcdTyp","rdc","idn","rcdIn","rcdHT","inenn","inennAnders","leitung"];
 const ST_GERAET=["bauart","katId","typ","fw","freigabe","lps","phasen"];
 let stDlg=null;
@@ -1625,7 +1566,7 @@ function stDialog(o){
     <p class="sup" style="margin:8px 0 0">Ist der Typ im Katalog, werden Ladepunkte, Phasen und Strom übernommen. Schutzeinrichtung und Leitung trägst du bei der ersten Station ein und überträgst sie dann über ⋮ „Auf andere Stationen übertragen“.</p>`,
     `<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="stOk">${D.mode==="neu"?"Prüfung anlegen":"Hinzufügen"}</button>`);
 }
-function stErzeugen(liste,D){   // liste = vorhandene Stationen (für Vorlagen), liefert neue Stationen
+function stErzeugen(liste,D){
   const neu=[];
   for(const g of D.gr){ const n=Math.max(0,Math.min(50,parseInt(g.n,10)||0)); if(!n) continue;
     const vor=[...liste,...neu].reverse().find(x=>BAUART(x)===g.bauart&&(!g.typ||katNorm(x.typ)===katNorm(g.typ))), kat=katZuTyp(g.typ);
@@ -1643,7 +1584,6 @@ function stAnlegen(){
   if(neu.length===1){ go({v:"saeule",si:start,st:"geraet"}); toast(`${cur.s[start].name} angelegt`); }
   else { go({v:"saeulen"}); toast(`${neu.length} Ladestationen angelegt`); }
 }
-// Daten einer Station auf andere übertragen (Seriennummer, Stellplatz, Messwerte und Fotos bleiben)
 function uebertragDialog(){
   const q=cur.s[nav.si], andere=cur.s.map((s,i)=>({s,i})).filter(x=>x.i!==nav.si);
   const vor=x=>BAUART(x.s)===BAUART(q)&&(!x.s.typ||katNorm(x.s.typ)===katNorm(q.typ));
@@ -1651,14 +1591,13 @@ function uebertragDialog(){
     <div class="chklist">${andere.map(x=>`<label class="chkrow"><input type="checkbox" data-tr="${x.i}" ${vor(x)?"checked":""}><span><b>${esc(sName(x.s,x.i))}</b><small>${esc([BAUART(x.s),x.s.typ].filter(Boolean).join(" · "))}</small></span></label>`).join("")}</div>`,
     `<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="uebertragen">Übertragen</button>`);
 }
-// Neue Prüfung: übernimmt die Ladesäulen der letzten Prüfung am selben Ort (ohne Messwerte, Fotos, Unterschriften)
 function neuePruefung(kundeId,standortId,ladeparkId,st){
   const prev0=pruefAt(standortId,ladeparkId||null)[0];
   if(!prev0&&!st){ stDialog({mode:"neu",k:kundeId,s:standortId,l:ladeparkId}); return; }
   const p=newProto();
   if(st){ p.s=st.stationen; nummeriere(p.s); } p.kundeId=kundeId; p.standortId=standortId; p.ladeparkId=ladeparkId||null; p.p.pruefer=who().name;
   const meine=live("pruefungen").filter(x=>!SYNC_ON||sameUser(x.createdBy,ME)).sort((a,b)=>(b.created||0)-(a.created||0))[0];
-  if(meine) ["geraet","geraetSn","kal","adapter"].forEach(f=>p.p[f]=meine.p[f]);   // eigenes Messgerät übernehmen
+  if(meine) ["geraet","geraetSn","kal","adapter"].forEach(f=>p.p[f]=meine.p[f]);
   const prev=pruefAt(standortId,ladeparkId||null)[0];
   if(prev){ p.s=JSON.parse(JSON.stringify(prev.s)).map(s=>Object.assign(s,{id:uid(),lp:s.lp.map(()=>newLP()),fotos:{}}));
     p.p.art="Wiederholungsprüfung"; ["netz","standort","umfang"].forEach(f=>p.p[f]=prev.p[f]); p.p.normen=[...prev.p.normen]; p.a.funktion=prev.a.funktion;
@@ -1681,7 +1620,6 @@ function zurueck(){
   go({v:"start"});
 }
 
-// Wischen wie in Gmail: rechts = archivieren/zurückholen, links = löschen
 let swipe=null, swipe_block=0;
 document.addEventListener("pointerdown",e=>{ const sw=e.target.closest(".sw"); if(!sw||e.target.closest(".pin")) return; if(sw.dataset.si!==undefined&&!canEdit(cur)) return;
   swipe={sw,li:sw.querySelector(".li"),x:e.clientX,y:e.clientY,dx:0,on:false}; });
@@ -1710,7 +1648,6 @@ function swipeAction(id,what){
   if(what==="arch"){ const now=archToggle(id); softRender(); toast(now?"Archiviert":"Zurückgeholt","Rückgängig",()=>{ archToggle(id); softRender(); }); return; }
   loeschePruefung(p);
 }
-// Kunde/Standort/Ladepark löschen – mit allem, was darunter hängt
 function unterbau(kind,id){
   const S=kind==="kunden"?standorteVon(id):kind==="standorte"?[standortOf(id)]:[];
   const L=kind==="ladeparks"?[ladeparkOf(id)]:S.flatMap(s=>ladeparksVon(s.id));
@@ -1733,7 +1670,6 @@ function locLoeschen(kind,id){
   softRender();
   toast(`${r.name} gelöscht`,"Rückgängig",()=>{ alle.forEach(([k,x])=>{ x.deleted=false; saveRec(k,x); }); softRender(); });
 }
-// Ladesäule aus der Prüfung entfernen (mit Rückgängig); Standardnamen „Ladesäule N“ werden neu durchnummeriert
 function nummeriere(arr){ const n={}; (arr||cur.s).forEach(s=>{ const b=BAUART(s); n[b]=(n[b]||0)+1; if(!s.name||/^(Ladesäule|Wallbox) \d+$/.test(s.name)) s.name=`${b} ${n[b]}`; }); }
 function saeuleEntfernen(si){
   if(!cur||!cur.s[si]) return;
@@ -1746,7 +1682,6 @@ function loeschePruefung(p){
   toast("Prüfung gelöscht","Rückgängig",()=>{ p.deleted=false; saveRec("pruefungen",p); softRender(); });
 }
 
-// ================= Eingaben =================
 const getPath=p=>p.split(".").reduce((o,k)=>o==null?o:o[k],cur);
 function setPath(p,v){ const ks=p.split("."); let o=cur; for(let i=0;i<ks.length-1;i++) o=o[ks[i]]; o[ks[ks.length-1]]=v; }
 document.addEventListener("input",ev=>{
@@ -1785,7 +1720,6 @@ function refresh(){
   for(let i=0;i<s.lps;i++){ const e=document.querySelector(`[data-lpres="lp${i}"]`); if(e) e.className=`sd ${lpState(s,i)}`; }
 }
 
-// ================= Aktionen =================
 document.addEventListener("click",ev=>{
   const g=ev.target.closest("[data-go]"); if(g&&cur){ saveNow(); go({v:g.dataset.go}); return; }
   const b=ev.target.closest("[data-act]"); if(!b||b.disabled) return;
@@ -1986,11 +1920,9 @@ async function importBackup(el){
   }catch(e){ toast("Die Datei ist keine gültige Sicherung"); }
 }
 
-// ================= Plausibilität =================
 const snNorm=v=>String(v||"").replace(/[\s\-./]/g,"").toUpperCase();
 function snDoppelt(p,si){ const n=snNorm(p.s[si].sn); if(!n) return []; return p.s.map((x,i)=>i!==si&&snNorm(x.sn)===n?sName(x,i):null).filter(Boolean); }
 const snWarnHtml=(p,si)=>{ const d=snDoppelt(p,si); return d.length?`<p class="warnline">${icon("warn")}Seriennummer kommt auch bei ${esc(d.join(", "))} vor.</p>`:""; };
-// Kalibrierung „gültig bis“: MM.JJJJ, MM/JJJJ, TT.MM.JJJJ oder JJJJ-MM(-TT) → letzter gültiger Tag
 function kalBis(t){ t=String(t||"").trim(); let m;
   if((m=t.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/))) return new Date(+m[3],+m[2]-1,+m[1]);
   if((m=t.match(/^(\d{1,2})[./](\d{4})$/))) return new Date(+m[2],+m[1],0);
@@ -2003,7 +1935,6 @@ function kalStatus(p){ const raw=p.p.kal; if(!raw) return {s:"leer",t:"Kalibrier
   if(rest<=30) return {s:"bald",t:`Kalibrierung läuft in ${rest} Tag${rest===1?"":"en"} ab – Gerät rechtzeitig einschicken.`};
   return {s:"ok",t:""}; }
 const kalWarnHtml=p=>{ const k=kalStatus(p); return k.s==="ok"||k.s==="leer"?"":`<p class="warnline${k.s==="bald"?" mild":""}">${icon("warn")}${esc(k.t)}</p>`; };
-// Vor dem PDF: was im Protokoll fehlt oder nicht zusammenpasst
 function pdfPruefung(p){
   const out=[], ohne=p.a.pdfOhne||[], S=p.s.map((s,i)=>({s,i})).filter(x=>!ohne.includes(x.s.id));
   const offen=[]; let bad=false;
@@ -2020,8 +1951,6 @@ function pdfPruefung(p){
   return out;
 }
 
-// ================= Mitarbeiter und Mail =================
-// Feste Liste der Firma; weitere Personen können auf dem Gerät ergänzt werden. Fertige Protokolle gehen an das Büro (Chef).
 const MITARBEITER=[{name:"J. Irrgang",mail:"info@elektro-irrgang.de",rolle:"Chef · Firmenmail"},{name:"M. Pevec",mail:"m.pevec@elektro-irrgang.de"},{name:"M. Seipp",mail:"m.seipp@elektro-irrgang.de"},{name:"A. Brandl",mail:"a.brandl@elektro-irrgang.de"}];
 const MAIL_BUERO="info@elektro-irrgang.de";
 const mailAn=()=>META.mailAn||MAIL_BUERO;
@@ -2050,8 +1979,6 @@ function teamDialog(m){
   if(m&&m.fest){ const e=$("#f_mail"); if(e) e.disabled=true; }
 }
 
-// Test-Anmeldung ohne Microsoft: Arbeitsadresse + gemeinsames Firmen-Passwort (nur als Hash im Code).
-// Kein echter Schutz – der Code ist öffentlich. Hält Unbefugte von der Oberfläche fern und legt fest, wer prüft.
 const TEST_LOGIN={an:true, salt:"evse-irrgang", hash:"5c34a514ebd81c44b2b8436b0ff81ad746467e620d0247b3049590ba842a51b0", domain:"@elektro-irrgang.de"};
 let tlSel=null, tlAndere="";
 const testGesperrt=()=>!SYNC_ON&&TEST_LOGIN.an&&!META.angemeldet;
@@ -2068,7 +1995,6 @@ async function testAnmelden(){
 }
 document.addEventListener("submit",ev=>{ if(ev.target.id==="tlForm"){ ev.preventDefault(); testAnmelden(); } });
 
-// ================= Beispieldaten (werden nie abgeglichen) =================
 function demoLP(o={}){
   const v={rpe:"0,06",riso:"200",risov:"500 V",pevt:"ok",cp:"ok",u1:"234,0",u2:"227,3",u3:"234,5",unpe:"0,4",dreh:"rechts (123)",
     zs1:"0,44",zs2:"0,42",zs3:"0,41",r05:"ok",r1:"26,7",r5:"5,7",ria:"21",ub:"1,3",dc6:"1,8",fe:"ok",ff:"ok"};
@@ -2104,7 +2030,6 @@ function demoLaden(){
 }
 
 
-// ================= Unterschrift =================
 function setupSigs(){
   ["sigP","sigK"].forEach(k=>{
     const c=$("#"+k); if(!c) return;
@@ -2119,7 +2044,6 @@ function setupSigs(){
     c.addEventListener("pointerup",end); c.addEventListener("pointercancel",end);
   });
 }
-// Unterschrift im Vollbild: große Fläche, Abbrechen / Löschen / Übernehmen
 function sigOpen(k){
   const nm=(k==="sigP"?(cur.a.sigPName||cur.p.pruefer):cur.a.sigKName)||"";
   const el=document.createElement("div"); el.className="sigfull";
@@ -2142,7 +2066,6 @@ function sigOpen(k){
     else { cur.a[k]=ink?sigExport(sigTrim(c)):""; scheduleSave(); close(); const y=scrollY; render(); scrollTo(0,y); }
   });
 }
-// leeren Rand um die Unterschrift abschneiden, damit sie im PDF groß genug erscheint
 function sigTrim(c){
   const x=c.getContext("2d"), d=x.getImageData(0,0,c.width,c.height).data; let x0=c.width,y0=c.height,x1=0,y1=0;
   for(let yy=0;yy<c.height;yy+=2) for(let xx=0;xx<c.width;xx+=2){ if(d[(yy*c.width+xx)*4+3]>0){ if(xx<x0)x0=xx; if(xx>x1)x1=xx; if(yy<y0)y0=yy; if(yy>y1)y1=yy; } }
@@ -2153,13 +2076,10 @@ function sigExport(c){ const o=document.createElement("canvas"); o.width=Math.mi
   const x=o.getContext("2d"); x.drawImage(c,0,0,o.width,o.height); const d=x.getImageData(0,0,o.width,o.height);
   for(let i=0;i<d.data.length;i+=4){ if(d.data[i+3]>0){ d.data[i]=20; d.data[i+1]=28; d.data[i+2]=40; } } x.putImageData(d,0,0); return o.toDataURL("image/png"); }
 
-// ================= PDF =================
 const LOGO_PDF="<!--LOGO_HELL-->";
-const EHW_PDF="<!--EHANDWERK-->";   // Zeichen des Elektrohandwerks (Innungsbetrieb)
+const EHW_PDF="<!--EHANDWERK-->";
 const PDFMAP={"²":"2","³":"3","≈":"ca.","Ω":"Ohm","≤":"<=","≥":">=","→":"->","↔":"<->","–":"-","Δ":"d","…":"...","·":"|","„":"\"","“":"\""};
 const pt=s=>String(s??"").replace(/[²³≈Ω≤≥→↔–Δ…·„“]/g,c=>PDFMAP[c]);
-// Dateiname nach Firmenschema: Auftragsnr_Prüfart_Kunde_Standort[-Ladepark]
-// Leerzeichen innerhalb der Teile entfallen, Umlaute bleiben. Kein Datum – das ergibt sich aus der Auftragsnummer.
 const PDF_PRUEFART={"Erstprüfung":"ErstprüfungEVSE","Erweiterung":"ErweiterungEVSE","Wiederholungsprüfung":"E-CheckEVSE","nach Instandsetzung":"InstandsetzungEVSE"};
 const PDF_SCHEMA="Auftragsnr_Prüfart_Kunde_Standort-Ladepark";
 function pdfSchema(p){
@@ -2251,7 +2171,6 @@ function buildPDF(P){
     const z=zsInfo(s); sec("Gerätedaten");
     kv([["Hersteller / Typ",s.typ],["Seriennummer",s.sn],["Stellplatz",s.ort],["Firmware",s.fw],["Absicherung",s.absTyp==="manuell"?"Sicherung, Zs lt. Tabelle":[`${s.absTyp}${s.absIn} A, ${polLS(s)}`,s.lsIcn&&`${s.lsIcn} kA`,s.lsTyp].filter(Boolean).join(", ")],["Zs zulässig",isNaN(z.zul)?"-":`${fmt(z.zul,2)} Ohm`],
         ["RCD",[`Typ ${rcdInfo(s).t}, ${s.idn} mA`,s.rcdIn&&`${s.rcdIn} A`,polRCD(s),s.rcdHT].filter(Boolean).join(", ")],["Im Verteiler",s.bmk],["DC 6 mA",rcdInfo(s).dc?"in der Wallbox (RDC-DD)":rcdInfo(s).t==="A-EV"?"im RCD (Typ A-EV)":rcdInfo(s).t==="B"?"RCD Typ B":"-"],["Zuleitung",[s.leitung,s.laenge&&`ca. ${s.laenge} m`].filter(Boolean).join(", ")],["Ladeleistung",s.inenn?`${s.inenn} A${num(s.inenn)?` (${fmt(Math.round(num(s.inenn)*230*(s.phasen===3?3:1)/100)/10,1)} kW)`:""}`:"-"],["Freigabe",s.freigabe],["Anschluss",s.phasen===3?"3-phasig":"1-phasig"]]);
-    // Drei kleine Fotos nebeneinander (Klick im PDF -> Großansicht im Anhang)
     const F=FOTO_SLOTS.map(([k,l,h])=>({l,h,id:(s.fotos||{})[k],data:fotoCache.get((s.fotos||{})[k])}));
     const hasF=F.some(f=>f.data);
     if(hasF){
@@ -2263,7 +2182,6 @@ function buildPDF(P){
         d.setFont("helvetica","bold"); d.setFontSize(7.5); d.setTextColor(...NAVY); d.text(pt(f.l),x,ty+th+4); });
       fotoLinks.push(link); y=ty+th+11;
     }
-    // Zeilenhöhe so wählen, dass die Tabelle die Seite füllt
     const groups=GROUPS.map(g=>({g,rows:g.rows.filter(r=>rowVisible(r,s)&&!(r.opt&&s.lp.slice(0,s.lps).every(lp=>!lp.v[r.k])))})).filter(x=>x.rows.length);
     const nR=groups.reduce((n,x)=>n+x.rows.length,0);
     d.setFontSize(8.5); let resH=12;
@@ -2315,10 +2233,8 @@ function buildPDF(P){
 }
 
 
-// ================= Start =================
 $("#backBtn").innerHTML=icon("back"); $("#menuBtn").innerHTML=icon("more");
 if("serviceWorker" in navigator && location.protocol==="https:"){
-  // Neue Version: beim Zurückholen der App nachsehen und Bescheid geben (iPad-Apps werden oft nur fortgesetzt, nicht neu gestartet)
   const hatteSW=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
     const pruefe=()=>{ if(document.visibilityState==="visible"&&navigator.onLine) reg.update().catch(()=>{}); };
@@ -2332,11 +2248,9 @@ if("serviceWorker" in navigator && location.protocol==="https:"){
   render(); fotoInit(); dateiInit().then(()=>{ if(nav.v==="katmodell") render(); });
   if(SYNC_ON&&ME.signedIn){ syncNow(); setInterval(()=>{ if(document.visibilityState==="visible") syncNow(); },120000); }
 })();
-// Sofort speichern, wenn die App in den Hintergrund geht oder das iPad zugeklappt wird
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden"){ if(cur) saveNow(); } else syncSoon(); });
 window.addEventListener("pagehide",()=>{ if(cur) saveNow(); });
 window.addEventListener("online",()=>syncSoon()); window.addEventListener("offline",()=>setSync("offline"));
-// Browser bitten, den Speicher nicht automatisch zu leeren
 try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){}
 window.__EVSE__={DB,get cur(){return cur},syncNow,get SY(){return SY},get ME(){return ME}};
 })();
