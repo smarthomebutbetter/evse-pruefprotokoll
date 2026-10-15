@@ -433,6 +433,28 @@ body.is-login .topbar{display:none}
 .login p{color:var(--on-sv);margin:0 0 24px}
 .btn-filled{height:48px;border:0;border-radius:24px;background:var(--fab);color:var(--on-fab);font-size:15px;font-weight:700;padding:0 24px 0 18px;display:inline-flex;align-items:center;gap:10px;box-shadow:var(--e1)}
 @media (prefers-reduced-motion:no-preference){#app{animation:fade .18s ease-out}@keyframes fade{from{opacity:.6}to{opacity:1}}}
+.sw .li{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.pm .li{min-height:60px}
+.pm .lt .h,.pm .lt .s{white-space:normal;overflow:visible}
+.pm .li.danger{color:var(--err)}
+.faellig-zeile{display:flex;align-items:center;flex-wrap:wrap;gap:6px;font-size:14px;color:var(--on-sv);margin:4px 4px 8px}
+.faellig-zeile .ic{width:18px;height:18px}
+.akte-k .ak-h{display:flex;gap:14px;align-items:flex-start}
+.akte-k h2{margin:0;font-size:20px}
+.akte-k p{margin:2px 0 0;color:var(--on-sv);font-size:14px}
+.kpis3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0 4px}
+.kpis3 div{background:var(--surface);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;min-width:0}
+.kpis3 b{font-size:17px}
+.kpis3 span{font-size:12px;color:var(--on-sv)}
+.akte-tab{overflow-x:auto;background:var(--sc-low);border-radius:16px;-webkit-overflow-scrolling:touch}
+.akte-tab table{border-collapse:collapse;width:100%;font-size:14px;min-width:620px}
+.akte-tab th{text-align:left;font-size:12px;color:var(--on-sv);font-weight:700;padding:10px 8px;border-bottom:1px solid var(--outline-v);white-space:nowrap}
+.akte-tab th small{display:block;font-weight:400}
+.akte-tab td{padding:8px;border-top:1px solid var(--outline-v);white-space:nowrap;font-variant-numeric:tabular-nums}
+.akte-tab tr.lp2 td{border-top:0;padding-top:0}
+.akte-tab td.d small{display:block;color:var(--on-sv);font-size:12px}
+.akte-tab td.bad{color:var(--err);font-weight:700}
+.akte-tab td.leer{color:var(--outline)}
 </style>
 </head>
 <body class="is-list">
@@ -1414,7 +1436,7 @@ const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter und Mail",archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.71 · 15.10.2026";
+const APP_VERSION="1.72 · 15.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -1434,7 +1456,7 @@ function render(){
   document.body.classList.toggle("is-login",login);
   document.body.classList.toggle("has-nav",!login);
   document.body.classList.toggle("ro",E&&!canEdit(cur));
-  $("#backBtn").hidden=(top&&!(nav.v==="katalog"&&!WIDE.matches))||login; $("#navbar").hidden=login; $("#tabs").hidden=nav.v!=="saeule"; $("#avBtn").hidden=login||nav.v!=="start"; $("#menuBtn").hidden=top||!!MEHR_SUB[nav.v]||login;
+  $("#backBtn").hidden=(top&&!(nav.v==="katalog"&&!WIDE.matches))||login; $("#navbar").hidden=login; $("#tabs").hidden=nav.v!=="saeule"; $("#avBtn").hidden=login||nav.v!=="start"; $("#menuBtn").hidden=top||!!MEHR_SUB[nav.v]||login||nav.v==="geraet";
   const wide=WIDE.matches, katV=nav.v==="katalog"||nav.v==="katmodell";
   const dests=E?DEST:TOPDEST.filter(d=>d[0]!=="katalog"||wide), active=E?(nav.v==="saeule"?"saeulen":nav.v):katV?(wide?"katalog":"mehr"):(top?nav.v:MEHR_SUB[nav.v]?"mehr":"kunden");
   const lh=$(".logo.l-hell").src, ld=$(".logo.l-dunkel").src;
@@ -1454,6 +1476,7 @@ function render(){
   else if(nav.v==="datenschutz"){ title="Datenschutz"; body=datenschutzView(); }
   else if(nav.v==="about"){ title="Über die App"; body=aboutView(); }
   else if(nav.v==="team"){ title="Mitarbeiter und Mail"; body=teamView(); }
+  else if(nav.v==="geraet"){ const T=geraeteTreffer(nav.sn); title="Geräteakte"; sub=T.length?sName(T[0].s,T[0].i):""; body=akteView(nav.sn); }
   else if(VIEW_KIND[nav.v]){ const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id);
     if(!r||r.deleted){ nav={v:"kunden"}; return render(); }
     title=r.name; sub=kind==="kunden"?"Kunde":kind==="standorte"?(kundeOf(r.kundeId)||{}).name:[ (kundeOf((standortOf(r.standortId)||{}).kundeId)||{}).name,(standortOf(r.standortId)||{}).name ].filter(Boolean).join(" › ");
@@ -1547,7 +1570,7 @@ function startListen(){
   if(pins.length) h+=`<div class="sec-lbl">Angepinnt</div>${listOf(pins)}`;
   h+=`<div class="sec-row"><div class="sec-lbl">Zuletzt bearbeitet</div>${SYNC_ON?`<div class="chips">${[["alle","Alle"],["meine","Meine"]].map(([v,t])=>`<button class="chip" data-act="filter" data-v="${v}" aria-pressed="${META.filter===v}">${icon("check")}${t}</button>`).join("")}</div>`:""}</div>`;
   h+=rec.length?listOf(rec.map(p=>pItem(p,true))):`<p class="meta">Keine Prüfungen.</p>`;
-  return h+`<p class="hint">Wischen nach rechts: anpinnen bzw. archivieren · nach links: löschen</p>`;
+  return h+`<p class="hint">Lange drücken: Wiederholungsprüfung anlegen · nach rechts wischen: archivieren · nach links: löschen</p>`;
 }
 function kundenListe(){
   const q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q), ks=live("kunden").sort((a,b)=>a.name.localeCompare(b.name,"de")).filter(k=>!q||H(k.name)||H(k.kdnr)||H(k.ort)||standorteVon(k.id).some(s=>H(s.name)||H(s.ort)));
@@ -1579,16 +1602,17 @@ function kundeView(k){
   return `<div class="narrow">${infoKarte(k,"kunden")}<div class="sec-lbl">Standorte</div>${ss.length?listOf(ss.map(s=>locItem("standorte",s))):`<p class="meta">Noch kein Standort – über „Standort“ anlegen.</p>`}</div>`;
 }
 function standortView(s){
+  const _ak=geraeteSektion(s.id,null), _fz=verlaufKopf(s.id,null);
   const lps=ladeparksVon(s.id), ps=pruefAt(s.id,null);
   let h=`<div class="narrow">${infoKarte(s,"standorte")}`;
   h+=`<div class="sec-row"><div class="sec-lbl">Ladeparks</div><button class="btn-text" data-act="newLadepark">${icon("add")}Ladepark</button></div>`;
   h+=lps.length?listOf(lps.map(l=>locItem("ladeparks",l))):`<p class="meta">Optional – nur nötig, wenn es am Standort mehrere Parkplätze mit Ladestationen gibt.</p>`;
-  h+=`<div class="sec-lbl">Prüfungen${lps.length?" ohne Ladepark":""}</div>`+(ps.length?listOf(ps.map(p=>pItem(p,false))):`<p class="meta">Noch keine Prüfung – über „Neue Prüfung“ anlegen.</p>`);
-  return h+`</div>`;
+  h+=`<div class="sec-lbl">Prüfverlauf${lps.length?" ohne Ladepark":""}</div>`+_fz+(ps.length?listOf(ps.map(p=>pItem(p,false))):`<p class="meta">Noch keine Prüfung – über „Neue Prüfung“ anlegen.</p>`);
+  return h+_ak+`</div>`;
 }
 function ladeparkView(l){
   const ps=pruefAt(l.standortId,l.id);
-  return `<div class="narrow">${infoKarte(l,"ladeparks")}<div class="sec-lbl">Prüfungen</div>${ps.length?listOf(ps.map(p=>pItem(p,false))):`<p class="meta">Noch keine Prüfung – über „Neue Prüfung“ anlegen.</p>`}</div>`;
+  return `<div class="narrow">${infoKarte(l,"ladeparks")}<div class="sec-lbl">Prüfverlauf</div>${verlaufKopf(l.standortId,l.id)}${ps.length?listOf(ps.map(p=>pItem(p,false))):`<p class="meta">Noch keine Prüfung – über „Neue Prüfung“ anlegen.</p>`}${geraeteSektion(l.standortId,l.id)}${ps.length?`<p class="hint">Prüfung lange drücken: Wiederholungsprüfung anlegen.</p>`:""}</div>`;
 }
 function archivView(){
   const L=live("pruefungen").filter(p=>META.archiv.includes(p.id)).sort((a,b)=>(b.updated||0)-(a.updated||0));
@@ -1780,7 +1804,7 @@ function saeuleView(){
         ${tf(b+"ort","Stellplatz / Position",s.ort,{ph:"z. B. Stellplatz 12–13 oder Reihe B"})}
         <div class="full">${katSelect("katWahl","Modell aus dem Katalog",s.katId&&DB.katalog.has(s.katId)?s.katId:"","– kein Katalogmodell –",true)}${katInfoHtml(s)}</div>
         ${tf(b+"typ","Hersteller / Typ",s.typ,{list:"dl-typ"})}${datalist("dl-typ",live("pruefungen").flatMap(p=>p.s.map(x=>x.typ)))}
-        <div>${tf(b+"sn","Seriennummer",s.sn)}<div id="snWarn">${snWarnHtml(cur,si)}</div></div>
+        <div>${tf(b+"sn","Seriennummer",s.sn)}<div id="snWarn">${snWarnHtml(cur,si)}</div>${(()=>{ const n=geraeteTreffer(s.sn).filter(t=>t.p.id!==cur.id).length; return n?`<button type="button" class="btn-text akte-link" data-act="akte" data-sn="${esc(s.sn)}">${icon("wallbox")}Geräteakte · ${n} frühere Prüfung${n>1?"en":""}</button>`:""; })()}</div>
         ${tf(b+"fw","Firmware (optional)",s.fw,{full:true})}
         <div class="full"><div class="lbl">Freigabe zum Laden</div><div class="chips">${FREIGABEN.map(f=>`<button type="button" class="chip${f!==FREIGABEN[2]&&freigabeListe(s).includes(FREIGABEN[2])?" dim":""}" data-act="freigabe" data-v="${f}" aria-pressed="${freigabeListe(s).includes(f)}">${icon("check")}${f}</button>`).join("")}</div></div>
         <div><div class="lbl">Ladepunkte</div>${seg("lps",s.lps,[[1,"1"],[2,"2"]])}</div>
@@ -2214,14 +2238,14 @@ function uebertragDialog(){
     <div class="chklist">${andere.map(x=>`<label class="chkrow"><input type="checkbox" data-tr="${x.i}" ${vor(x)?"checked":""}><span><b>${esc(sName(x.s,x.i))}</b><small>${esc([BAUART(x.s),x.s.typ].filter(Boolean).join(" · "))}</small></span></label>`).join("")}</div>`,
     `<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="uebertragen">Übertragen</button>`);
 }
-function neuePruefung(kundeId,standortId,ladeparkId,st){
-  const prev0=pruefAt(standortId,ladeparkId||null)[0];
+function neuePruefung(kundeId,standortId,ladeparkId,st,vorlage){
+  const prev0=vorlage||pruefAt(standortId,ladeparkId||null)[0];
   if(!prev0&&!st){ stDialog({mode:"neu",k:kundeId,s:standortId,l:ladeparkId}); return; }
   const p=newProto();
   if(st){ p.s=st.stationen; nummeriere(p.s); } p.kundeId=kundeId; p.standortId=standortId; p.ladeparkId=ladeparkId||null; p.p.pruefer=who().name;
   const meine=live("pruefungen").filter(x=>!SYNC_ON||sameUser(x.createdBy,ME)).sort((a,b)=>(b.created||0)-(a.created||0))[0];
   if(meine) ["geraet","geraetSn","kal","adapter"].forEach(f=>p.p[f]=meine.p[f]);
-  const prev=pruefAt(standortId,ladeparkId||null)[0];
+  const prev=vorlage||pruefAt(standortId,ladeparkId||null)[0];
   if(prev){ p.s=JSON.parse(JSON.stringify(prev.s)).map(s=>Object.assign(s,{id:uid(),lp:s.lp.map(()=>newLP()),fotos:{}}));
     p.p.art="Wiederholungsprüfung"; ["netz","standort","umfang"].forEach(f=>p.p[f]=prev.p[f]); p.p.normen=[...prev.p.normen]; p.a.funktion=prev.a.funktion;
     if(prev.a.fristJ){ p.a.fristJ=prev.a.fristJ; const d=new Date(p.p.datum+"T12:00:00"); d.setFullYear(d.getFullYear()+(+p.a.fristJ)); p.a.naechste=d.toISOString().slice(0,10); } }
@@ -2238,6 +2262,7 @@ function zurueck(){
   if(nav.v==="standort"){ const s=standortOf(nav.id); go(s?{v:"kunde",id:s.kundeId}:{v:"kunden"}); return; }
   if(nav.v==="kunde"){ go({v:"kunden"}); return; }
   if(MEHR_SUB[nav.v]){ go({v:"mehr"}); return; }
+  if(nav.v==="geraet"){ go(nav.von||{v:"start"}); return; }
   if(nav.v==="katmodell"){ go({v:"katalog"}); return; }
   if(nav.v==="katalog"){ go({v:"mehr"}); return; }
   go({v:"start"});
@@ -2300,6 +2325,59 @@ function saeuleEntfernen(si){
   cur.s.splice(si,1); if(!cur.s.length) cur.s.push(newSaeule(1)); nummeriere(); commit(); softRender();
   toast(`${name} entfernt`,"Rückgängig",()=>{ if(!cur) return; cur.s=vorher; commit(); softRender(); });
 }
+const AKTE_SP=[["rpe","R<sub>PE</sub>","Ω"],["riso","R<sub>ISO</sub>","MΩ"],["zs1","Zs L1","Ω"],["ria","IΔ","mA"],["r1","t<sub>A</sub>","ms"],["dc6","6 mA DC","s"]];
+const ROW_BY_K=Object.fromEntries(GROUPS.flatMap(g=>g.rows).map(r=>[r.k,r]));
+function geraeteTreffer(sn){ const n=snNorm(sn); if(!n) return [];
+  return live("pruefungen").flatMap(p=>p.s.map((s,i)=>snNorm(s.sn)===n?{p,s,i}:null).filter(Boolean)).sort((a,b)=>byDate(a.p,b.p)); }
+function geraeteAmOrt(standortId,ladeparkId){
+  const m=new Map();
+  for(const p of pruefAt(standortId,ladeparkId)) p.s.forEach((s,i)=>{ const n=snNorm(s.sn); if(n&&!m.has(n)) m.set(n,{p,s,i}); });
+  return [...m.values()];
+}
+function geraetItem(t){ const T=geraeteTreffer(t.s.sn), r=saeuleResult(t.s);
+  return `<div class="li" role="button" tabindex="0" data-act="akte" data-sn="${esc(t.s.sn)}"><span class="av">${icon("wallbox")}</span><span class="lt"><span class="h">${esc(sName(t.s,t.i))}</span>
+    <span class="s">${esc([t.s.typ,`SN ${t.s.sn}`].filter(Boolean).join(" · "))}</span><span class="st">${pill(r==="open"?"open":r,r==="ok"?"zuletzt i. O.":r==="bad"?"zuletzt Mängel":"zuletzt offen")}${pill("open",`${T.length} Prüfung${T.length===1?"":"en"}`)}</span></span>${icon("chev")}</div>`; }
+function geraeteSektion(standortId,ladeparkId){ const G=geraeteAmOrt(standortId,ladeparkId); if(!G.length) return "";
+  return `<div class="sec-lbl">Geräte · ${G.length}</div>${listOf(G.map(geraetItem))}`; }
+function verlaufKopf(standortId,ladeparkId){ const p=pruefAt(standortId,ladeparkId)[0]; if(!p||!p.a||!p.a.naechste) return "";
+  const t=today(), kl=p.a.naechste<t?"bad":p.a.naechste<=new Date(Date.now()+90*864e5).toISOString().slice(0,10)?"wip":"open";
+  return `<p class="faellig-zeile">${icon("pending")}Nächste Prüfung fällig: <b>${esc(deDate(p.a.naechste))}</b> ${pill(kl,kl==="bad"?"überfällig":kl==="wip"?"bald":"geplant")}</p>`; }
+function akteView(sn){
+  const T=geraeteTreffer(sn); if(!T.length) return `<div class="empty">${icon("wallbox")}<h2>Keine Prüfungen gefunden</h2><p>Zu dieser Seriennummer gibt es keine Prüfung.</p></div>`;
+  const L=T[0], s=L.s, kat=s.katId&&DB.katalog.get(s.katId), orte=[...new Set(T.map(t=>pfadText(t.p)))];
+  const zelle=(t,li,k)=>{ const r=ROW_BY_K[k], lp=t.s.lp[li]; if(!r||!lp) return "<td>–</td>"; if(r.p3&&+t.s.phasen!==3) return "<td>–</td>";
+    const v=lp.v[r.k]; if(v==null||v==="") return "<td class='leer'>–</td>"; let e="open"; try{ e=evalRow(r,v,t.s); }catch(x){}
+    return `<td class="${e==="bad"?"bad":""}">${esc(v)}</td>`; };
+  const zeilen=T.map(t=>Array.from({length:Math.max(1,+t.s.lps||1)},(_,li)=>`<tr${li?" class='lp2'":""}>${li?`<td></td>`:`<td class="d"><b>${esc(deDate(t.p.p.datum))}</b><small>${esc(t.p.p.art)}</small></td>`}<td>${(+t.s.lps||1)>1?`LP ${li+1}`:""}</td>${AKTE_SP.map(([k])=>zelle(t,li,k)).join("")}<td>${li?"":pill(saeuleResult(t.s))}</td></tr>`).join("")).join("");
+  return `<div class="narrow"><section class="card akte-k"><div class="ak-h"><span class="av">${icon("wallbox")}</span><div><h2>${esc(s.typ||sName(s,L.i))}</h2>
+      <p>${esc([BAUART(s),`SN ${s.sn}`,s.ort&&`Stellplatz ${s.ort}`].filter(Boolean).join(" · "))}</p><p>${esc(orte.join(" · "))}</p></div></div>
+      <div class="kpis3"><div><b>${T.length}</b><span>Prüfung${T.length===1?"":"en"}</span></div><div><b>${esc(deDate(T[T.length-1].p.p.datum))}</b><span>erste Prüfung</span></div><div><b>${esc(deDate(L.p.p.datum))}</b><span>letzte Prüfung</span></div></div>
+      ${kat?`<button class="btn-text" data-act="nav" data-v="katmodell" data-id="${esc(kat.id)}">${icon("book")}Steckbrief im Katalog</button>`:""}</section>
+    <div class="sec-lbl">Messwerte im Verlauf</div>
+    <div class="akte-tab"><table><thead><tr><th>Prüfung</th><th></th>${AKTE_SP.map(([,l,u])=>`<th>${l}<small>${u}</small></th>`).join("")}<th>Ergebnis</th></tr></thead><tbody>${zeilen}</tbody></table></div>
+    <p class="hint">Rot = Grenzwert nicht eingehalten. Die Akte ergibt sich automatisch aus der Seriennummer.</p>
+    <div class="sec-lbl">Prüfprotokolle</div>${listOf(T.map(t=>pItem(t.p,true)))}</div>`;
+}
+let lpress=null, lpFired=0;
+document.addEventListener("pointerdown",e=>{ const sw=e.target.closest(".sw[data-id]"); if(!sw||sw.dataset.kind||sw.dataset.si!==undefined||e.button>0) return;
+  clearTimeout(lpress&&lpress.t); const id=sw.dataset.id;
+  lpress={x:e.clientX,y:e.clientY,t:setTimeout(()=>{ lpress=null; if(swipe&&swipe.on) return; swipe=null; lpFired=Date.now(); try{ navigator.vibrate&&navigator.vibrate(12); }catch(x){} pMenu(id); },520)}; });
+document.addEventListener("pointermove",e=>{ if(lpress&&Math.hypot(e.clientX-lpress.x,e.clientY-lpress.y)>8){ clearTimeout(lpress.t); lpress=null; } });
+let lpSup=0;
+["pointerup","pointercancel"].forEach(t=>document.addEventListener(t,()=>{ if(lpress){ clearTimeout(lpress.t); lpress=null; } if(lpFired){ lpFired=0; lpSup=Date.now()+450; } }));
+document.addEventListener("click",e=>{ if(lpSup&&Date.now()<lpSup){ lpSup=0; e.stopPropagation(); e.preventDefault(); } },true);
+document.addEventListener("contextmenu",e=>{ const sw=e.target.closest(".sw[data-id]"); if(!sw||sw.dataset.kind||sw.dataset.si!==undefined) return; e.preventDefault(); if(!lpFired&&$("#dlg").hidden) pMenu(sw.dataset.id); });
+function pMenu(id){
+  const p=DB.pruefungen.get(id); if(!p) return; const ok=canEdit(p), arch=META.archiv.includes(id), sns=p.s.filter(s=>snNorm(s.sn));
+  const z=(act,ic,t,s,cls="")=>`<div class="li ${cls}" role="button" tabindex="0" data-act="${act}" data-id="${esc(id)}"><span class="av">${icon(ic)}</span><span class="lt"><span class="h">${t}</span>${s?`<span class="s">${s}</span>`:""}</span></div>`;
+  dialog(pTitel(p),`<p class="sup" style="margin:-4px 0 12px">${esc(pfadText(p))}</p><div class="list pm">
+    ${z("pWdh","copy","Wiederholungsprüfung anlegen",`Übernimmt ${p.s.length} ${p.s.length>1?"Ladestationen":"Ladestation"} mit Marke, Seriennummer und Frist – Messwerte leer`)}
+    ${z("open","edit","Öffnen","")}
+    ${sns.length===1?`<div class="li" role="button" tabindex="0" data-act="akte" data-sn="${esc(sns[0].sn)}"><span class="av">${icon("wallbox")}</span><span class="lt"><span class="h">Geräteakte</span><span class="s">Alle Prüfungen dieser Wallbox</span></span></div>`:""}
+    ${z("pArch",arch?"unarchive":"archive",arch?"Aus dem Archiv holen":"Archivieren","")}
+    ${ok?z("pDel","del","Prüfung löschen","","danger"):""}</div>`,`<button class="btn-text" data-act="cancel">Schließen</button>`);
+}
+
 function loeschePruefung(p){
   p.deleted=true; saveRec("pruefungen",p); if(cur&&cur.id===p.id) cur=null; softRender();
   toast("Prüfung gelöscht","Rückgängig",()=>{ p.deleted=false; saveRec("pruefungen",p); softRender(); });
@@ -2410,7 +2488,11 @@ document.addEventListener("click",ev=>{
   case "delLoc": { const t=delZiel; delZiel=null; closeOverlays(); if(!t) return; if(VIEW_KIND[nav.v]&&nav.id===t.id) zurueck(); locLoeschen(t.kind,t.id); return; }
   case "newHere": { if(nameFehlt("newHere")) return; const kind=VIEW_KIND[nav.v], r=DB[kind].get(nav.id);
     if(kind==="standorte") neuePruefung(r.kundeId,r.id,null); else { const s=standortOf(r.standortId); neuePruefung(s.kundeId,s.id,r.id); } return; }
-  case "open": oeffne(b.dataset.id); return;
+  case "open": closeOverlays(); oeffne(b.dataset.id); return;
+  case "akte": { closeOverlays(); if(cur&&EDITOR.includes(nav.v)) saveNow(); go({v:"geraet",sn:b.dataset.sn,von:{...nav}}); return; }
+  case "pWdh": { const p=DB.pruefungen.get(b.dataset.id); closeOverlays(); if(p) neuePruefung(p.kundeId,p.standortId,p.ladeparkId,null,p); return; }
+  case "pArch": { const id=b.dataset.id; closeOverlays(); swipeAction(id,"arch"); return; }
+  case "pDel": { const p=DB.pruefungen.get(b.dataset.id); closeOverlays(); if(p&&canEdit(p)) loeschePruefung(p); return; }
   case "katNeu": katDialog(null); return;
   case "katExport": katExport(); return;
   case "katImport": $("#katFile").click(); return;
