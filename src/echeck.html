@@ -763,7 +763,18 @@ html,body{overscroll-behavior-y:none}
 
 @media (min-width:744px){
   .sk .stabs{flex:none;margin-top:2px!important;height:48px}
-  .sk:has(.stabs){position:sticky;top:var(--tbh,72px);z-index:5;background:var(--surface);margin:0 -12px 12px!important;padding:12px 12px 8px}
+  .sk:has(.schips){position:sticky;top:var(--tbh,72px);z-index:5;background:var(--surface);margin:0 -12px 12px!important;padding:12px 12px 8px}
+}
+
+@media (min-width:744px){
+  .schips{flex:none;display:flex;gap:8px;margin-top:6px}
+  .schip{height:40px;padding:0 16px;border-radius:12px;border:1px solid var(--outline);background:transparent;color:var(--on-surface);font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent;transition:background .15s,border-color .15s}
+  .schip:hover{background:color-mix(in srgb,var(--on-surface) 6%,transparent)}
+  .schip[aria-selected="true"]{background:var(--sec-c);color:var(--on-sec-c);border-color:var(--sec-c)}
+  .schip .sd{width:10px;height:10px;flex:none}
+  .schip:has(.sd.ok):not([aria-selected="true"]){border-color:color-mix(in srgb,var(--ok) 55%,var(--outline))}
+  .schip:has(.sd.bad):not([aria-selected="true"]){border-color:var(--err);color:var(--err)}
+  .schip[aria-selected="true"]:has(.sd.bad){background:var(--err-c);color:var(--on-err-c);border-color:var(--err-c)}
 }
 </style>
 </head>

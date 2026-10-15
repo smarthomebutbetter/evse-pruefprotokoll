@@ -717,7 +717,18 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 
 @media (min-width:744px){
   .sk .stabs{flex:none;margin-top:2px!important;height:48px}
-  .sk:has(.stabs){position:sticky;top:var(--tbh,72px);z-index:5;background:var(--surface);margin:0 -12px 12px!important;padding:12px 12px 8px}
+  .sk:has(.schips){position:sticky;top:var(--tbh,72px);z-index:5;background:var(--surface);margin:0 -12px 12px!important;padding:12px 12px 8px}
+}
+
+@media (min-width:744px){
+  .schips{flex:none;display:flex;gap:8px;margin-top:6px}
+  .schip{height:40px;padding:0 16px;border-radius:12px;border:1px solid var(--outline);background:transparent;color:var(--on-surface);font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent;transition:background .15s,border-color .15s}
+  .schip:hover{background:color-mix(in srgb,var(--on-surface) 6%,transparent)}
+  .schip[aria-selected="true"]{background:var(--sec-c);color:var(--on-sec-c);border-color:var(--sec-c)}
+  .schip .sd{width:10px;height:10px;flex:none}
+  .schip:has(.sd.ok):not([aria-selected="true"]){border-color:color-mix(in srgb,var(--ok) 55%,var(--outline))}
+  .schip:has(.sd.bad):not([aria-selected="true"]){border-color:var(--err);color:var(--err)}
+  .schip[aria-selected="true"]:has(.sd.bad){background:var(--err-c);color:var(--on-err-c);border-color:var(--err-c)}
 }
 </style>
 </head>
@@ -1431,7 +1442,9 @@ addEventListener("resize",()=>{ if(PV){ clearTimeout(PV.rt); PV.rt=setTimeout(pv
     if(d.an&&d.dx>90) zurueck(); };
   document.addEventListener("touchend",ende); document.addEventListener("touchcancel",ende);
 })();
-const skRechts=()=>nav.v==="saeule"&&cur&&cur.s[nav.si]?`<div class="stabs" role="tablist">${saeuleTabs(cur.s[nav.si])}</div>`:"";
+const skRechts=()=>{ if(nav.v!=="saeule"||!cur||!cur.s[nav.si]) return ""; const sx=cur.s[nav.si], st=nav.st||"geraet";
+  const t=[["geraet","Gerät",null],...Array.from({length:sx.lps},(_,i)=>[`lp${i}`,sx.lps>1?`Ladepunkt ${i+1}`:"Ladepunkt",lpState(sx,i)])];
+  return `<div class="schips" role="tablist">${t.map(([k,l,r])=>`<button class="schip" role="tab" data-act="sub" data-v="${k}" aria-selected="${st===k}">${r?`<i class="sd ${r}" data-lpres="${k}"></i>`:""}<span>${l}</span></button>`).join("")}</div>`; };
 function render(){
   const app=$("#app"), ed=EDITOR.includes(nav.v);
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
