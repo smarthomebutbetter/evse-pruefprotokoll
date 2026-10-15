@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "EVSE Mobility · Elektro Irrgang",
-  "short_name": "EVSE Mobility",
-  "description": "Prüfprotokolle für Wallboxen und Ladesäulen",
+  "name": "Irrgang Apps · Elektro Irrgang",
+  "short_name": "Irrgang Apps",
+  "description": "Alle Apps von Elektro Irrgang: Prüfungen, Baustellen, Kunden",
   "lang": "de",
   "start_url": "./",
   "scope": "./",

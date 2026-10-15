@@ -622,9 +622,9 @@ const Auth={pca:null,account:null,test:null,
 };
 function setMe(){
   const a=Auth.account;
-  if(!a){ ME={name:META.profil.name||"",mail:(META.profil.mail||"").toLowerCase(),admin:false,signedIn:false}; return; }
+  if(!a){ ME={name:META.profil.name||"",mail:(META.profil.mail||"").toLowerCase(),admin:istAdmin(META.profil.mail),signedIn:false}; return; }
   const roles=(a.idTokenClaims&&a.idTokenClaims.roles)||[], mail=(a.username||"").toLowerCase();
-  ME={name:a.name||mail,mail,admin:roles.includes("Admin")||CONFIG.admins.map(x=>x.toLowerCase()).includes(mail),signedIn:true};
+  ME={name:a.name||mail,mail,admin:roles.includes("Admin")||istAdmin(mail)||CONFIG.admins.map(x=>x.toLowerCase()).includes(mail),signedIn:true};
   for(const k of KINDS) for(const r of DB[k].values()) if(!r.demo&&!r._etag&&(!r.createdBy||!r.createdBy.mail)){ r.createdBy={name:ME.name,mail:ME.mail}; r._dirty=true; dbPut(k,r); }
 }
 const GRAPH="https://graph.microsoft.com/v1.0";
@@ -851,12 +851,24 @@ const confirmDlg=(title,text,label,act)=>dialog(title,esc(text),`<button class="
 const formVals=()=>{ const o={}; $("#dlg").querySelectorAll("[data-f]").forEach(e=>o[e.dataset.f]=e.value.trim()); return o; };
 const MITARBEITER=[{name:"J. Irrgang",mail:"info@elektro-irrgang.de",rolle:"Chef · Firmenmail"},{name:"M. Pevec",mail:"m.pevec@elektro-irrgang.de"},{name:"M. Seipp",mail:"m.seipp@elektro-irrgang.de"},{name:"A. Brandl",mail:"a.brandl@elektro-irrgang.de"}];
 const MAIL_BUERO="info@elektro-irrgang.de";
-const mailAn=()=>META.mailAn||MAIL_BUERO;
-const team=()=>[...MITARBEITER.map(m=>({...m,name:(META.teamNamen||{})[m.mail]||m.name,fest:true})),...(META.team||[])];
+const mailAn=()=>EINST.mail||META.mailAn||MAIL_BUERO;
+const TEAM_STD=MITARBEITER.map(m=>({...m,admin:m.mail==="info@elektro-irrgang.de"||m.mail==="m.pevec@elektro-irrgang.de",status:"aktiv"}));
+const EINST={team:null,mail:null};
+function einstSetzen(all){ EINST.team=null; EINST.mail=null; for(const r of all){ if(!r||r.deleted) continue; if(r.id==="team"&&Array.isArray(r.liste)) EINST.team=r.liste; if(r.id==="mail") EINST.mail=r.protokollAn||null; } }
+async function einstLaden(){ try{ const db=await openStores("irrgang_apps",["einstellungen"],true); const all=await idbReq(db.transaction("einstellungen").objectStore("einstellungen").getAll()); db.close(); einstSetzen(all); }catch(e){} }
+const teamAlle=()=>EINST.team||TEAM_STD;
+const team=()=>EINST.team?EINST.team.filter(m=>m.status!=="weg").map(m=>({...m,fest:true})):[...MITARBEITER.map(m=>({...m,name:(META.teamNamen||{})[m.mail]||m.name,fest:true})),...(META.team||[])];
+const gesperrt=mail=>!!(EINST.team&&mail&&!team().some(m=>m.mail===String(mail).toLowerCase()));
+const istAdmin=mail=>!!mail&&teamAlle().some(m=>m.mail===String(mail).toLowerCase()&&m.admin&&m.status!=="weg");
+function loginSync(){ if(SYNC_ON) return false; let l=null; try{ l=JSON.parse(localStorage.getItem("irrgang_login")||"null"); }catch(e){} if(!l) return false;
+  if(l.aus){ if(META.angemeldet){ delete META.angemeldet; metaSave(); return true; } return false; }
+  if(!l.mail||gesperrt(l.mail)||(META.angemeldet&&META.angemeldet.mail===l.mail)) return false;
+  const m=team().find(x=>x.mail===l.mail)||{name:l.name||l.mail,mail:l.mail}; META.profil.name=m.name; META.profil.mail=m.mail; META.angemeldet={mail:l.mail,at:Date.now()}; metaSave(); return true; }
+const loginMerken=m=>{ try{ localStorage.setItem("irrgang_login",JSON.stringify(m?{mail:m.mail,name:m.name}:{aus:true})); }catch(e){} };
 function ichBin(m){ META.profil.name=m.name; META.profil.mail=m.mail; metaSave(); setMe(); }
 const TEST_LOGIN={an:true, salt:"evse-irrgang", hash:"5c34a514ebd81c44b2b8436b0ff81ad746467e620d0247b3049590ba842a51b0", domain:"@elektro-irrgang.de"};
 let tlSel=null, tlAndere="";
-const testGesperrt=()=>!SYNC_ON&&TEST_LOGIN.an&&!META.angemeldet;
+const testGesperrt=()=>!SYNC_ON&&TEST_LOGIN.an&&(!META.angemeldet||gesperrt(META.angemeldet.mail));
 async function sha256(t){ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
 const WIDE=matchMedia("(min-width:840px)");
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
@@ -961,7 +973,7 @@ let theme="auto"; try{ theme=localStorage.getItem(TH_KEY)||"auto"; }catch(e){}
 applyTheme(theme);
 WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
 
-const APP_VERSION="1.63 · 15.10.2026";
+const APP_VERSION="1.64 · 15.10.2026";
 const TOPDEST=[["start","Baustellen","baustelle"],["kunden","Kunden","firma"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter",impressum:"Impressum",about:"Über die App"};
 const VIEW_KIND={kunde:"kunden",standort:"standorte"};
@@ -1169,7 +1181,7 @@ function mehrView(){
       ${SYNC_ON?row("syncNow","sync","Jetzt abgleichen",esc(syncText())):""}
       ${row("export","backup","Alle sichern","Baustellen, Übergaben, Fotos und Kunden")}
       ${row("import","upload","Sicherung laden","Daten aus einer Sicherungsdatei übernehmen")}</div>
-    <div class="sec-lbl">Apps</div><div class="list">${`<a class="li" href="../" style="text-decoration:none;color:inherit"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">EVSE Mobility</span><span class="s">Prüfung von Wallboxen und Ladesäulen</span></span>${icon("chev")}</a>`}</div>
+    <div class="sec-lbl">Apps</div><div class="list">${`<a class="li" href="../" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">Alle Apps</span><span class="s">Startseite mit Übersicht und Kunden</span></span>${icon("chev")}</a><a class="li" href="../evse/" style="text-decoration:none;color:inherit"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">EVSE Mobility</span><span class="s">Prüfung von Wallboxen und Ladesäulen</span></span>${icon("chev")}</a>`}</div>
     <div class="sec-lbl">Rechtliches und Info</div><div class="list">
       ${row("nav:impressum","paragraph","Impressum","")}
       ${row("nav:about","info","Über die App",`Version ${APP_VERSION}`)}</div>
@@ -1178,7 +1190,7 @@ function mehrView(){
 function teamView(){
   const T=team(), ich=(META.profil.mail||"").toLowerCase();
   return `<div class="narrow"><div class="sec-lbl">Mitarbeiter · angemeldet ist der markierte</div>${listOf(T.map(m=>`<div class="li${ich===m.mail?" sel":""}"><span class="rb${ich===m.mail?" on":""}"></span><span class="lt"><span class="h">${esc(m.name)}</span><span class="s">${esc([m.mail,m.rolle].filter(Boolean).join(" · "))}</span></span></div>`))}
-    <p class="hint">Wer schreibt, ergibt sich aus der Anmeldung. Wechseln: Mehr → Abmelden.</p></div>`;
+    <p class="hint">Wer schreibt, ergibt sich aus der Anmeldung. Wechseln: Mehr → Abmelden.${EINST.team?" Mitarbeiter verwaltet ein Admin auf der Startseite.":""}</p></div>`;
 }
 function aboutView(){
   const ic=(document.querySelector('link[rel="apple-touch-icon"]')||{}).href||"";
@@ -1210,11 +1222,12 @@ async function testAnmelden(){
   const mail=(tlSel==="__andere"?($("#f_tlMail")||{}).value||"":tlSel||"").trim().toLowerCase(), pw=$("#f_tlPw").value||"";
   if(!mail){ toast("Bitte auswählen, wer sich anmeldet"); return; }
   if(!mail.endsWith(TEST_LOGIN.domain)){ toast(`Bitte die Arbeitsadresse (…${TEST_LOGIN.domain}) eingeben`); return; }
+  if(gesperrt(mail)){ toast("Kein Zugang – bitte beim Chef melden"); return; }
   let ok=false; try{ ok=(await sha256(TEST_LOGIN.salt+"|"+pw))===TEST_LOGIN.hash; }catch(e){ toast("Anmeldung auf diesem Gerät nicht möglich"); return; }
   if(!ok){ toast("Passwort falsch"); $("#f_tlPw").value=""; $("#f_tlPw").focus(); return; }
   const m=team().find(x=>x.mail===mail)||{name:mail.split("@")[0].replace(/[._]/g," ").replace(/\b\w/g,c=>c.toUpperCase()),mail};
   if(!team().some(x=>x.mail===mail)){ META.team=[...(META.team||[]),m]; }
-  ichBin(m); META.angemeldet={mail,at:Date.now()}; metaSave(); go({v:"start"}); toast(`Angemeldet als ${m.name}`);
+  loginMerken(m); ichBin(m); META.angemeldet={mail,at:Date.now()}; metaSave(); go({v:"start"}); toast(`Angemeldet als ${m.name}`);
 }
 document.addEventListener("submit",ev=>{ if(ev.target.id==="tlForm"){ ev.preventDefault(); testAnmelden(); } });
 
@@ -1282,7 +1295,7 @@ document.addEventListener("click",ev=>{
   case "konto": if(!SYNC_ON){ go({v:"team"}); return; } dialog("Konto",`<div class="konto"><span class="avatar-big">${esc(initials(ME.name))}</span><div><b>${esc(ME.name)}</b><span>${esc(ME.mail)}</span></div></div>`,`<button class="btn-text danger" data-act="logout">Abmelden</button><span style="flex:1"></span><button class="btn-text" data-act="cancel">Schließen</button>`); return;
   case "logout": Auth.logout(); return;
   case "testLogout": confirmDlg("Abmelden?","Die Daten bleiben auf diesem Gerät. Zum Weiterarbeiten wieder mit Name und Passwort anmelden.","Abmelden","testLogoutOk"); return;
-  case "testLogoutOk": delete META.angemeldet; tlSel=null; metaSave(); closeOverlays(); go({v:"login"}); return;
+  case "testLogoutOk": loginMerken(null); delete META.angemeldet; tlSel=null; metaSave(); closeOverlays(); go({v:"login"}); return;
   case "theme": dialog("Darstellung",THEMES.map(t=>`<button class="radio" role="radio" data-act="setTheme" data-v="${t}" aria-checked="${t===theme}"><span class="rb"></span>${TH_LABEL[t]}</button>`).join(""),`<button class="btn-text" data-act="cancel">Schließen</button>`); return;
   case "setTheme": theme=b.dataset.v; applyTheme(theme); closeOverlays(); render(); return;
   case "export": exportBackup(); return;
@@ -1334,12 +1347,13 @@ if("serviceWorker" in navigator && location.protocol==="https:"){
   navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(!hatteSW) return; toast("Neue Version verfügbar","Jetzt laden",()=>location.reload()); });
 }
 (async()=>{
-  await dataLoad(); await Auth.init(); setMe();
+  await dataLoad(); await einstLaden(); loginSync(); await Auth.init(); setMe();
   if(SYNC_ON&&!ME.signedIn) nav={v:"login"};
   render(); fotoInit();
   if(SYNC_ON&&ME.signedIn){ syncNow(); setInterval(()=>{ if(document.visibilityState==="visible") syncNow(); },120000); }
 })();
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") syncSoon(); });
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") einstLaden().then(()=>{ const w=loginSync(); if(w&&nav.v==="login"&&META.angemeldet) nav={v:"start"}; setMe(); if(w||(testGesperrt()&&nav.v!=="login")) render(); }); });
 window.addEventListener("online",()=>syncSoon()); window.addEventListener("offline",()=>setSync("offline"));
 try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){}
 window.__EVSE__={DB,syncNow,get SY(){return SY},get ME(){return ME}};

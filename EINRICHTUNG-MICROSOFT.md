@@ -13,9 +13,9 @@ Entra Admin Center → **Identität → Anwendungen → App-Registrierungen → 
 | Name | `EVSE-Prüfprotokoll` |
 | Unterstützte Kontotypen | **Nur Konten in diesem Organisationsverzeichnis** (Single Tenant) |
 | Umleitungs-URI – Plattform | **Single-Page-Anwendung (SPA)** |
-| Umleitungs-URI – Adresse | `https://smarthomebutbetter.github.io/evse-pruefprotokoll/` |
+| Umleitungs-URIs – Adressen | `https://smarthomebutbetter.github.io/evse-pruefprotokoll/` (Startseite)<br>`https://smarthomebutbetter.github.io/evse-pruefprotokoll/evse/`<br>`https://smarthomebutbetter.github.io/evse-pruefprotokoll/baustelle/` |
 
-Zieht die App später auf eine eigene Adresse um (z. B. `https://pruefung.elektro-irrgang.de/`), wird diese Adresse **zusätzlich** als SPA-Umleitungs-URI eingetragen.
+Eine Registrierung („Elektro Irrgang Apps“) gilt für alle Apps. Zieht die App später auf eine eigene Adresse um (z. B. `https://pruefung.elektro-irrgang.de/`), wird diese Adresse **zusätzlich** als SPA-Umleitungs-URI eingetragen.
 
 Kein Client-Geheimnis und kein Zertifikat nötig: Die Anmeldung läuft als SPA mit PKCE.
 

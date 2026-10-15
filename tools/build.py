@@ -16,6 +16,8 @@ def baue(quelle, ziel, icon):
     html = html.replace("<!--EHANDWERK-->", "data:image/jpeg;base64," + b64("brand/e-handwerk.jpg"))
     html = html.replace("<!--VERSION-->", version)
     html = html.replace("<!--ICON-->", "data:image/png;base64," + b64(icon))
+    html = html.replace("<!--ICON_EVSE-->", "data:image/png;base64," + b64("evse/icon-180.png"))
+    html = html.replace("<!--ICON_BAU-->", "data:image/png;base64," + b64("baustelle/icon-180.png"))
     html = html.replace("<!--LOGO_HELL-->", "data:image/png;base64," + b64("brand/logo-hell.png"))
     html = html.replace("<!--LOGO_DUNKEL-->", "data:image/png;base64," + b64("brand/logo-dunkel.png"))
     for w in (400, 600, 700, 800):
@@ -24,5 +26,6 @@ def baue(quelle, ziel, icon):
     print(f"{ziel}: {len(html)} Zeichen")
 
 
-baue("src/app.html", "index.html", "icon-180.png")
+baue("src/start.html", "index.html", "icon-180.png")
+baue("src/app.html", "evse/index.html", "evse/icon-180.png")
 baue("src/baustelle.html", "baustelle/index.html", "baustelle/icon-180.png")
