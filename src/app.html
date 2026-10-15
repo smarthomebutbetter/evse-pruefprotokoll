@@ -2080,6 +2080,7 @@ function projektView(){
     </div></section>
     <section class="card"><h3>Prüfumfang</h3>${ta("p.umfang","Text im Protokoll",p.umfang)}</section>
   </div>
+  <div class="weiter"><button class="btn-filled" data-act="weiterS" data-v="liste">Weiter zu den Ladestationen${icon("chev")}</button></div>
   <p class="by-line">Angelegt${cur.createdBy&&cur.createdBy.name?` von ${esc(cur.createdBy.name)}`:""} am ${new Date(cur.created||Date.now()).toLocaleString("de-DE",{dateStyle:"medium",timeStyle:"short"})}${cur.updatedBy&&cur.updatedBy.name&&cur.updated?` · zuletzt geändert von ${esc(cur.updatedBy.name)} am ${new Date(cur.updated).toLocaleString("de-DE",{dateStyle:"medium",timeStyle:"short"})}`:""}</p>`;
 }
 function saeulenView(){
@@ -2564,7 +2565,7 @@ function neuePruefung(kundeId,standortId,ladeparkId,st,vorlage){
   go({v:"projekt"}); if(cur.s.length>1) setTimeout(umfangDlg,150); toast(prev?`${p.s.length} ${p.s.length>1?"Ladestationen":"Ladestation"} aus der Prüfung vom ${deDate(prev.p.datum)} übernommen`:"Neue Prüfung angelegt");
 }
 function oeffne(id){ const p=DB.pruefungen.get(id); if(!p||p.deleted) return; cur=JSON.parse(JSON.stringify(p)); dirtyCur=false; setSub(SYNC_ON?"Abgeglichen":"Gespeichert auf diesem Gerät");
-  fotoFetch(cur.s.flatMap(fotoIds)); go({v:"saeulen"}); }
+  fotoFetch(cur.s.flatMap(fotoIds)); go({v:"projekt"}); }
 function zurueck(){
   saveNow();
   if(nav.v==="saeule"){ go({v:"saeulen"}); return; }
