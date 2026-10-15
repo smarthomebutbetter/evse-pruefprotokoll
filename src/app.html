@@ -374,6 +374,18 @@ details.optrows .mrow:first-of-type{border-top:0}
 .okline{display:flex;gap:8px;align-items:center;color:var(--ok);font-size:13px;font-weight:600;margin:12px 4px 0}.okline .ic{width:18px;height:18px}
 .pdfchk{margin:14px 0 0;padding:12px 14px;border-radius:14px;background:var(--err-c);color:var(--on-err-c)}
 .pdfchk b{font-size:14px}.pdfchk .warnline{color:inherit;margin:6px 0 0}.pdfchk span{display:block;font-size:12px;margin-top:8px;opacity:.85}
+.infok2{background:var(--sc-low);border-radius:24px;padding:16px;margin:8px 0 4px}
+.qa-row{display:flex;gap:8px;justify-content:space-around;padding:4px 0 12px}
+.qa{flex:1 1 0;min-width:0;max-width:112px;display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:transparent;color:var(--on-surface);text-decoration:none;font-size:12px;font-weight:600;padding:0;text-align:center;line-height:1.2}
+.qa-ic{width:48px;height:48px;border-radius:16px;background:var(--pc);color:var(--on-pc);display:grid;place-items:center}
+.qa-ic .ic{width:22px;height:22px}
+.qa-row + .dz-list{border-top:1px solid var(--outline-v);padding-top:4px}
+.dz{display:flex;gap:16px;align-items:flex-start;padding:10px 4px}
+.dz-ic{width:24px;height:24px;flex:none;color:var(--on-sv);margin-top:8px}.dz-ic .ic{width:22px;height:22px}
+.dz-t{display:flex;flex-direction:column;min-width:0;font-size:15px;line-height:1.35;overflow-wrap:anywhere}
+.dz-t small{font-size:12px;color:var(--on-sv)}
+.dz-t a{color:var(--primary);text-decoration:none;font-weight:600}
+@media (min-width:600px){.qa-row{justify-content:flex-start;gap:24px}.qa{flex:0 0 auto;width:88px}}
 .kath{padding-bottom:10px}
 .kath + .kath{margin-top:12px}
 .kath-k{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px}
@@ -894,6 +906,11 @@ const IC={
   wallbox:"M3 2h2v20H3V2zm5 2h9c1.1 0 2 .9 2 2v9c0 1.1-.9 2-2 2h-1v2c0 1.66-1.34 3-3 3h-1v-2h1c.55 0 1-.45 1-1v-2H8V4zm2 2v9h7V6h-7zm3.5 1L11 11h2l-.5 3 2.5-4h-2l.5-3z",
   mail:"M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z",
   logout:"M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z",
+  phone:"M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z",
+  route:"M21.71 11.29l-9-9c-.39-.39-1.02-.39-1.41 0l-9 9c-.39.39-.39 1.02 0 1.41l9 9c.39.39 1.02.39 1.41 0l9-9c.39-.38.39-1.01 0-1.41zM14 14.5V12h-4v3H8v-4c0-.55.45-1 1-1h5V7.5l3.5 3.5-3.5 3.5z",
+  globe:"M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2s.07-1.35.16-2h4.68c.09.65.16 1.32.16 2s-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2s-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z",
+  notes:"M3 18h12v-2H3v2zM3 6v2h18V6H3zm0 7h18v-2H3v2z",
+  tag:"M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z",
   book:"M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z",
   person:"M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
 };
@@ -1047,19 +1064,30 @@ function kundenView(){
   if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Lege mit „Kunde“ den ersten an, zum Beispiel eine Firma mit mehreren Standorten.</p></div>`;
   return `<div class="narrow">${searchBar("Kunde, Kundennr. oder Ort suchen")}<div id="res">${kundenListe()}</div></div><p class="hint">Nach rechts wischen: anpinnen · nach links: löschen</p>`;
 }
-function infoKarte(r,extra=""){
-  const zeile=(l,v,href)=>v?`<div class="iz"><span>${l}</span>${href?`<a href="${href}">${esc(v)}</a>`:`<b>${esc(v)}</b>`}</div>`:"";
-  const z=[zeile("Kundennr.",r.kdnr),zeile("Adresse",adrText(r),adrText(r)&&"https://maps.apple.com/?q="+encodeURIComponent(adrText(r))),zeile("Ansprechpartner",r.ansprech),
-    zeile("Telefon",r.tel,r.tel&&"tel:"+r.tel.replace(/[^\d+]/g,"")),zeile("E-Mail",r.mail,r.mail&&"mailto:"+r.mail),zeile("Notiz",r.notiz)].join("");
-  return `<div class="infok">${z}${extra}<div class="by">Angelegt${r.createdBy&&r.createdBy.name?` von ${esc(r.createdBy.name)}`:""} am ${new Date(r.created||Date.now()).toLocaleDateString("de-DE")}</div></div>`;
+const FREEMAIL=/^(gmail|googlemail|web|gmx|t-online|outlook|hotmail|live|icloud|me|mac|yahoo|aol|freenet|arcor|posteo|mailbox|online|vodafone|1und1|ionos)\./i;
+const webHref=w=>!w?"":/^https?:\/\//i.test(w)?w:"https://"+w;
+const webText=w=>String(w||"").replace(/^https?:\/\//i,"").replace(/\/$/,"");
+function webVorschlag(r){ const d=String(r.mail||"").split("@")[1]; return d&&!FREEMAIL.test(d)?d.toLowerCase():""; }
+const mapsHref=a=>(/iPad|iPhone|Macintosh/.test(navigator.userAgent)?"https://maps.apple.com/?q=":"https://www.google.com/maps/search/?api=1&query=")+encodeURIComponent(a);
+function infoKarte(r,kind){
+  const adr=adrText(r), tel=r.tel&&r.tel.replace(/[^\d+]/g,""), vorschlag=kind==="kunden"&&!r.web?webVorschlag(r):"";
+  const qa=(href,ic,t,act)=>`<${href?`a href="${href}"${/^https/.test(href)?' target="_blank" rel="noopener"':""}`:`button type="button" data-act="${act}"`} class="qa"><span class="qa-ic">${icon(ic)}</span><span>${t}</span></${href?"a":"button"}>`;
+  const aktionen=[tel&&qa("tel:"+tel,"phone","Anrufen"),r.mail&&qa("mailto:"+r.mail,"mail","E-Mail"),adr&&qa(mapsHref(adr),"route","Route"),
+    kind==="kunden"&&(r.web?qa(webHref(r.web),"globe","Webseite"):vorschlag?qa(webHref(vorschlag),"globe","Webseite"):canEdit(r)?qa("","search","Webseite suchen","webSuchen"):"")].filter(Boolean);
+  const z=(ic,l,v,href)=>v?`<div class="dz"><span class="dz-ic">${icon(ic)}</span><span class="dz-t"><small>${l}</small>${href?`<a href="${href}"${/^https/.test(href)?' target="_blank" rel="noopener"':""}>${esc(v)}</a>`:`<span>${esc(v)}</span>`}</span></div>`:"";
+  const zeilen=[z("tag","Kundennummer",r.kdnr),z("ort","Adresse",adr,adr&&mapsHref(adr)),z("person",kind==="standorte"?"Ansprechpartner vor Ort":"Ansprechpartner",r.ansprech),
+    z("phone","Telefon",r.tel,tel&&"tel:"+tel),z("mail","E-Mail",r.mail,r.mail&&"mailto:"+r.mail),
+    z("globe",r.web?"Webseite":"Webseite (aus der E-Mail-Adresse)",r.web?webText(r.web):vorschlag,webHref(r.web||vorschlag)),z("notes","Notiz",r.notiz)].join("");
+  if(!aktionen.length&&!zeilen) return "";
+  return `<div class="infok2">${aktionen.length?`<div class="qa-row">${aktionen.join("")}</div>`:""}${zeilen?`<div class="dz-list">${zeilen}</div>`:""}</div>`;
 }
 function kundeView(k){
   const ss=standorteVon(k.id);
-  return `<div class="narrow">${infoKarte(k)}<div class="sec-lbl">Standorte</div>${ss.length?listOf(ss.map(s=>locItem("standorte",s))):`<p class="meta">Noch kein Standort – über „Standort“ anlegen.</p>`}</div>`;
+  return `<div class="narrow">${infoKarte(k,"kunden")}<div class="sec-lbl">Standorte</div>${ss.length?listOf(ss.map(s=>locItem("standorte",s))):`<p class="meta">Noch kein Standort – über „Standort“ anlegen.</p>`}</div>`;
 }
 function standortView(s){
   const lps=ladeparksVon(s.id), ps=pruefAt(s.id,null);
-  let h=`<div class="narrow">${infoKarte(s)}`;
+  let h=`<div class="narrow">${infoKarte(s,"standorte")}`;
   h+=`<div class="sec-row"><div class="sec-lbl">Ladeparks</div><button class="btn-text" data-act="newLadepark">${icon("add")}Ladepark</button></div>`;
   h+=lps.length?listOf(lps.map(l=>locItem("ladeparks",l))):`<p class="meta">Optional – nur nötig, wenn es am Standort mehrere Parkplätze mit Ladestationen gibt.</p>`;
   h+=`<div class="sec-lbl">Prüfungen${lps.length?" ohne Ladepark":""}</div>`+(ps.length?listOf(ps.map(p=>pItem(p,false))):`<p class="meta">Noch keine Prüfung – über „Neue Prüfung“ anlegen.</p>`);
@@ -1067,7 +1095,7 @@ function standortView(s){
 }
 function ladeparkView(l){
   const ps=pruefAt(l.standortId,l.id);
-  return `<div class="narrow">${infoKarte(l)}<div class="sec-lbl">Prüfungen</div>${ps.length?listOf(ps.map(p=>pItem(p,false))):`<p class="meta">Noch keine Prüfung – über „Neue Prüfung“ anlegen.</p>`}</div>`;
+  return `<div class="narrow">${infoKarte(l,"ladeparks")}<div class="sec-lbl">Prüfungen</div>${ps.length?listOf(ps.map(p=>pItem(p,false))):`<p class="meta">Noch keine Prüfung – über „Neue Prüfung“ anlegen.</p>`}</div>`;
 }
 function archivView(){
   const L=live("pruefungen").filter(p=>META.archiv.includes(p.id)).sort((a,b)=>(b.updated||0)-(a.updated||0));
@@ -1519,7 +1547,7 @@ function locDialog(kind,rec,parentId){
   const adr=tf("strasse","Straße und Hausnummer",r.strasse,{form:true})+`<div class="row2">${tf("plz","PLZ",r.plz,{form:true,im:"numeric"})}${tf("ort","Ort",r.ort,{form:true})}</div>`;
   const felder=kind==="ladeparks"?tf("name","Name",r.name,{form:true,ph:"z. B. Parkplatz Nord"})+ta("notiz","Notiz",r.notiz,{form:true})
     :kind==="kunden"?tf("name","Firma / Name",r.name,{form:true,ph:"z. B. Musterfirma GmbH"})+tf("kdnr","Kundennummer",r.kdnr,{form:true})+adr
-      +tf("ansprech","Ansprechpartner",r.ansprech,{form:true})+tf("tel","Telefon",r.tel,{form:true,type:"tel"})+tf("mail","E-Mail",r.mail,{form:true,type:"email"})+ta("notiz","Notiz",r.notiz,{form:true})
+      +tf("ansprech","Ansprechpartner",r.ansprech,{form:true})+tf("tel","Telefon",r.tel,{form:true,type:"tel"})+tf("mail","E-Mail",r.mail,{form:true,type:"email"})+tf("web","Webseite",r.web,{form:true,type:"url",ph:"z. B. musterfirma.de"})+ta("notiz","Notiz",r.notiz,{form:true})
     :tf("name","Bezeichnung",r.name,{form:true,ph:"z. B. Werk Rheinbach"})+adr+tf("ansprech","Ansprechpartner vor Ort",r.ansprech,{form:true})+tf("tel","Telefon vor Ort",r.tel,{form:true,type:"tel"})+ta("notiz","Notiz (z. B. Zufahrt, Schlüssel)",r.notiz,{form:true});
   dialog(`${KIND_NAME[kind]} ${rec?"bearbeiten":"anlegen"}`,`<div class="fg1">${felder}</div>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveLoc">${rec?"Speichern":"Anlegen"}</button>`);
 }
@@ -1790,6 +1818,9 @@ document.addEventListener("click",ev=>{
     if(kind==="standorte") neuePruefung(r.kundeId,r.id,null); else { const s=standortOf(r.standortId); neuePruefung(s.kundeId,s.id,r.id); } return; }
   case "open": oeffne(b.dataset.id); return;
   case "katNeu": katDialog(null); return;
+  case "webSuchen": { const k=DB.kunden.get(nav.id); if(!k) return; window.open("https://www.google.com/search?q="+encodeURIComponent([k.name,k.ort].filter(Boolean).join(" ")),"_blank","noopener");
+    dialog("Webseite eintragen",`<div class="fg1">${tf("web","Webseite",k.web||"",{form:true,type:"url",ph:"z. B. musterfirma.de"})}</div><p class="sup" style="margin:12px 0 0">Die Suche ist in einem neuen Fenster geöffnet. Adresse dort kopieren und hier einsetzen.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="webSave">Speichern</button>`); return; }
+  case "webSave": { const k=DB.kunden.get(nav.id), v=webText(formVals().web.trim()); if(!k||!canEdit(k)) return; k.web=v; saveRec("kunden",k); closeOverlays(); render(); return; }
   case "tlWahl": { const pw=($("#f_tlPw")||{}).value||""; if($("#f_tlMail")) tlAndere=$("#f_tlMail").value; tlSel=b.dataset.mail; render(); const e=$("#f_tlPw"); if(e) e.value=pw;
     if(tlSel==="__andere") $("#f_tlMail")?.focus(); else e?.focus(); return; }
   case "testLogout": confirmDlg("Abmelden?","Die Daten bleiben auf diesem Gerät. Zum Weiterarbeiten wieder mit Mail und Passwort anmelden.","Abmelden","testLogoutOk"); return;
