@@ -863,6 +863,20 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 .tl-p.an{background:var(--sec-c);color:var(--on-sec-c)}
 .tl-p.an .tl-av{background:var(--primary);color:var(--on-primary)}
 .login .lbl{margin:0 0 8px 2px}
+
+.fertig{position:fixed;inset:0;z-index:70;background:color-mix(in srgb,var(--surface) 94%,transparent);display:grid;place-items:center;padding:24px;animation:fertigAuf .25s ease-out}
+@keyframes fertigAuf{from{opacity:0}to{opacity:1}}
+.fertig-k{width:min(460px,100%);background:var(--sc);border-radius:28px;padding:32px 28px 24px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25);animation:fertigK .3s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes fertigK{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+.fertig-ic{width:72px;height:72px;border-radius:50%;background:var(--ok-c);color:var(--on-ok-c);display:grid;place-items:center;margin:0 auto 16px}
+.fertig-ic .ic{width:36px;height:36px}
+.fertig h2{margin:0;font-size:24px;font-weight:800}
+.fertig-t{margin:6px 0 12px;color:var(--on-sv);font-weight:600}
+.fertig-p{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.fertig-s{margin:14px 0 22px;color:var(--on-sv);font-size:14px;line-height:1.45}
+.fertig-a{display:flex;flex-direction:column;gap:10px}
+.fertig-a .btn-filled,.fertig-a .btn-tonal{height:48px;border-radius:24px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;width:100%}
+.fertig-a .btn-text{height:44px}
 </style>
 </head>
 <body class="is-list">
@@ -1478,9 +1492,20 @@ async function protAblegen(p,blob,name){
       titel:[k&&k.name,(l||s||{}).name].filter(Boolean).join(" · ")||pTitel(p),datum:p.p.datum||"",art:p.p.art||"",auftragsnr:p.p.auftragsnr||"",pruefer:p.p.pruefer||"",
       ergebnis:protoResult(p)==="bad"?"bad":"ok",unterschrift:!!(p.a&&p.a.sigP),created:Date.now(),von:who(),fassung:PROT.filter(y=>y.pruefungId===p.id).length+1,demo:!!p.demo,size:blob.size};
     const tx=d.transaction(["meta","blob"],"readwrite"); tx.objectStore("meta").put(x); tx.objectStore("blob").put(blob,x.id);
-    await new Promise((r,j)=>{ tx.oncomplete=r; tx.onerror=()=>j(tx.error); }); PROT.push(x); if(nav.v==="bibliothek") render();
-  }catch(e){ toast("PDF konnte nicht in der Bibliothek abgelegt werden"); }
+    await new Promise((r,j)=>{ tx.oncomplete=r; tx.onerror=()=>j(tx.error); }); PROT.push(x); if(nav.v==="bibliothek") render(); return x;
+  }catch(e){ toast("PDF konnte nicht in der Bibliothek abgelegt werden"); return null; }
 }
+function fertigZeigen(x,mail){ $("#fertig")?.remove(); if(!cur) return; const r=x?x.ergebnis:(protoResult(cur)==="bad"?"bad":"ok");
+  const {k,s,l}=pfad(cur), titel=x?x.titel:[k&&k.name,(l||s||{}).name].filter(Boolean).join(" · ");
+  document.body.insertAdjacentHTML("beforeend",`<div class="fertig" id="fertig" role="dialog" aria-modal="true" aria-label="Protokoll erstellt"><div class="fertig-k">
+    <span class="fertig-ic">${icon("doc")}</span><h2>Protokoll erstellt</h2><p class="fertig-t">${esc(titel)}</p>
+    <div class="fertig-p">${pill(r,r==="bad"?"Mängel festgestellt":"bestanden")}${x&&x.fassung>1?pill("open",`Fassung ${x.fassung}`):""}${x&&!x.unterschrift?pill("open","ohne Unterschrift"):""}</div>
+    <p class="fertig-s">${mail?"Das Teilen-Menü wurde geöffnet.":"Das PDF wurde auf dem Gerät gespeichert."}${x?" Es liegt außerdem in der Bibliothek.":""}</p>
+    <div class="fertig-a"><button class="btn-filled" data-act="fertigStart">${icon("home")}Zur Startseite</button>
+      ${x?`<button class="btn-tonal" data-act="fertigAnsehen" data-id="${esc(x.id)}">${icon("doc")}Protokoll ansehen</button>`:""}
+      ${x&&!mail?`<button class="btn-tonal" data-act="fertigTeilen" data-id="${esc(x.id)}">${icon("share")}Teilen</button>`:""}
+      <button class="btn-text" data-act="fertigZu">Weiter bearbeiten</button></div></div></div>`); }
+
 function bibOpen(id){ const x=PROT.find(y=>y.id===id); if(!x) return; const p=DB.pruefungen.get(x.pruefungId), offen=p&&!p.deleted;
   dialog(x.titel,`<div class="bib-dlg"><p>${esc([deDate(x.datum),x.art].filter(Boolean).join(" · "))}${x.auftragsnr?` · Auftrag ${esc(x.auftragsnr)}`:""}</p>
     <p>${pill(x.ergebnis)}${x.fassung>1?pill("open",`Fassung ${x.fassung}`):""}${x.unterschrift?"":pill("open","ohne Unterschrift")}</p>
@@ -2621,6 +2646,10 @@ document.addEventListener("click",ev=>{
   switch(a){
   case "crumb": crumbGo(+b.dataset.i); return;
   case "skZurueck": zurueck(); return;
+  case "fertigZu": $("#fertig")?.remove(); return;
+  case "fertigStart": $("#fertig")?.remove(); saveNow(); cur=null; go({v:"start"}); return;
+  case "fertigAnsehen": $("#fertig")?.remove(); pvOeffnen(b.dataset.id); return;
+  case "fertigTeilen": bibPdf(b.dataset.id,true); return;
   case "katPick": katPickOeffnen(); return;
   case "kpWahl": { closeOverlays(); const sel=$("#katWahl"); if(!sel) return; sel.value=b.dataset.v; sel.dispatchEvent(new Event("change",{bubbles:true})); return; }
   case "spick": spickOeffnen(b); return;
@@ -3096,8 +3125,9 @@ function makePDF(name,mail){
   const P=ohne.length?Object.assign({},cur,{s:cur.s.filter(s=>!ohne.includes(s.id)),_ohne:cur.s.filter(s=>ohne.includes(s.id)).map(s=>s.name)}):cur;
   let blob; try{ blob=buildPDF(P); }catch(e){ toast("PDF konnte nicht erstellt werden"); return; }
   name=name||pdfSchema(cur).name||"Prüfprotokoll";
-  protAblegen(cur,blob,name);
+  const ablage=protAblegen(cur,blob,name);
   if(mail) pdfTeilen(blob,name); else saveFile(blob,name+".pdf");
+  ablage.then(x=>fertigZeigen(x,mail));
   if(SYNC_ON&&ME.signedIn&&!cur.demo){ const id=cur.id;
     toast("PDF erstellt – wird zusätzlich in der Share abgelegt …");
     pdfHochladen(cur,blob,name).then(pfadTxt=>{ if(!pfadTxt) return; if(cur&&cur.id===id&&canEdit(cur)){ cur.pdfAblage=pfadTxt; commit(); if(nav.v==="abschluss") softRender(); } toast("PDF in der Share abgelegt: "+pfadTxt); })
