@@ -408,6 +408,7 @@ details.optrows .mrow:first-of-type{border-top:0}
 .login .logo-big{height:40px;width:auto;margin:0 auto 24px;display:block}
 .login h2{font-size:24px;margin:0 0 8px}
 .login .tf label{background:var(--surface)}
+body.is-login .logo{display:none!important}
 .login .fg1{margin-top:20px}
 .login p{color:var(--on-sv);margin:0 0 24px}
 .btn-filled{height:48px;border:0;border-radius:24px;background:var(--fab);color:var(--on-fab);font-size:15px;font-weight:700;padding:0 24px 0 18px;display:inline-flex;align-items:center;gap:10px;box-shadow:var(--e1)}
@@ -1395,7 +1396,7 @@ const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter und Mail",archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.41 · 15.10.2026";
+const APP_VERSION="1.42 · 15.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -1412,6 +1413,7 @@ function render(){
   if(nav.v==="saeule"&&!cur.s[nav.si]) nav={v:"saeulen"};
   const top=TOP.includes(nav.v), login=nav.v==="login", E=EDITOR.includes(nav.v);
   document.body.classList.toggle("is-list",nav.v==="start"||login);
+  document.body.classList.toggle("is-login",login);
   document.body.classList.toggle("has-nav",!login);
   document.body.classList.toggle("ro",E&&!canEdit(cur));
   $("#backBtn").hidden=(top&&!(nav.v==="katalog"&&!WIDE.matches))||login; $("#navbar").hidden=login; $("#tabs").hidden=nav.v!=="saeule"; $("#avBtn").hidden=login||nav.v!=="start"; $("#menuBtn").hidden=top||!!MEHR_SUB[nav.v]||login;
@@ -2432,7 +2434,7 @@ async function importBackup(el){
 
 // ================= Mitarbeiter und Mail =================
 // Feste Liste der Firma; weitere Personen können auf dem Gerät ergänzt werden. Fertige Protokolle gehen an das Büro (Chef).
-const MITARBEITER=[{name:"Max Pevec",mail:"m.pevec@elektro-irrgang.de"},{name:"M. Seipp",mail:"m.seipp@elektro-irrgang.de"},{name:"A. Brandl",mail:"a.brandl@elektro-irrgang.de"}];
+const MITARBEITER=[{name:"Joachim Irrgang",mail:"info@elektro-irrgang.de",rolle:"Chef · Firmenmail"},{name:"Max Pevec",mail:"m.pevec@elektro-irrgang.de"},{name:"M. Seipp",mail:"m.seipp@elektro-irrgang.de"},{name:"A. Brandl",mail:"a.brandl@elektro-irrgang.de"}];
 const MAIL_BUERO="info@elektro-irrgang.de";
 const mailAn=()=>META.mailAn||MAIL_BUERO;
 const team=()=>[...MITARBEITER.map(m=>({...m,name:(META.teamNamen||{})[m.mail]||m.name,fest:true})),...(META.team||[])];
@@ -2441,7 +2443,7 @@ function teamView(){
   const T=team(), ich=(META.profil.mail||"").toLowerCase();
   const fest=SYNC_ON||(TEST_LOGIN.an&&META.angemeldet);
   const zeile=m=>`<div class="li${!SYNC_ON&&ich===m.mail?" sel":""}" role="button" tabindex="0" data-act="${fest?"teamEdit":"ichBin"}" data-mail="${esc(m.mail)}">
-      ${fest&&ich!==m.mail?`<span class="av">${icon("person")}</span>`:`<span class="rb${ich===m.mail?" on":""}"></span>`}<span class="lt"><span class="h">${esc(m.name)}</span><span class="s">${esc(m.mail)}</span></span>
+      ${fest&&ich!==m.mail?`<span class="av">${icon("person")}</span>`:`<span class="rb${ich===m.mail?" on":""}"></span>`}<span class="lt"><span class="h">${esc(m.name)}</span><span class="s">${esc([m.mail,m.rolle].filter(Boolean).join(" · "))}</span></span>
       <button class="icon-btn sm" data-act="teamEdit" data-mail="${esc(m.mail)}" aria-label="Bearbeiten">${icon("edit")}</button></div>`;
   return `<div class="narrow">
     <div class="sec-row"><div class="sec-lbl">${SYNC_ON?"Mitarbeiter":fest?"Mitarbeiter · angemeldet ist der markierte":"Wer arbeitet auf diesem Gerät?"}</div><button class="btn-text" data-act="teamAdd">${icon("add")}Mitarbeiter</button></div>
