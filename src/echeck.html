@@ -659,6 +659,12 @@ html,body{overscroll-behavior-y:none}
 }
 @media (min-width:744px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) .nav-ind{background:var(--on-surface)}:root:not([data-theme="light"]) body .nav-item[aria-current="page"]{color:var(--surface)!important}:root:not([data-theme="light"]) body .navbar.zieht .nav-item[aria-current="page"]{color:var(--on-sv)!important}:root:not([data-theme="light"]) body .navbar.zieht .nav-item.nav-ziel{color:var(--surface)!important}}
 @media (min-width:744px){:root[data-theme="dark"] .nav-ind{background:var(--on-surface)}:root[data-theme="dark"] body .nav-item[aria-current="page"]{color:var(--surface)!important}:root[data-theme="dark"] body .navbar.zieht .nav-item[aria-current="page"]{color:var(--on-sv)!important}:root[data-theme="dark"] body .navbar.zieht .nav-item.nav-ziel{color:var(--surface)!important}}
+
+#menuBtn{order:1}#avBtn{order:2}
+.avatar.aktiv{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--primary)}
+.li.ruhig{cursor:default}
+.bib-dlg p{margin:0 0 6px;font-size:14px}
+.bib-dlg .sup{color:var(--on-sv)}
 </style>
 </head>
 <body class="is-list">
@@ -669,7 +675,7 @@ html,body{overscroll-behavior-y:none}
     <img class="logo l-hell" src="<!--LOGO_HELL-->" alt="Elektro Irrgang">
     <img class="logo l-dunkel" src="<!--LOGO_DUNKEL-->" alt="Elektro Irrgang">
     <h1 class="tb-title" id="topTitle"></h1>
-    <button class="avatar" id="avBtn" data-act="konto" aria-label="Konto" hidden><span id="avTxt"></span></button>
+    <button class="avatar" id="avBtn" data-act="nav" data-v="mehr" aria-label="Konto und Einstellungen" hidden><span id="avTxt"></span></button>
     <button class="icon-btn" id="menuBtn" data-act="menu" aria-label="Weitere Optionen" aria-haspopup="menu" aria-expanded="false"></button>
   </div>
   <div class="tabs" id="tabs" role="tablist" hidden></div>
@@ -1068,7 +1074,7 @@ const BEREICHE=[
     plan:["Prüfung je Kunde und Standort, gegliedert nach Verteiler und Stromkreisen","Besichtigen, Erproben, Messen (RLO, RISO, Zs/Zi, RCD) mit Grenzwertprüfung","Mängel mit Fotos, Prüfprotokoll als PDF und E-Check-Plakette","Übernahme der Messwerte aus dem Messgerät, sobald das Exportformat geklärt ist"]},
   {id:"geraet",t:"Geräte E-Check",ic:"steckdose",s:"Ortsveränderliche Geräte prüfen",normen:"DIN EN 50699 (VDE 0702) Wiederholungsprüfung · DIN EN 50678 (VDE 0701) nach Instandsetzung",
     plan:["Geräteliste je Kunde mit Inventarnummer, Schutzklasse und Prüffrist","Sichtprüfung, Schutzleiter-, Isolations- und Ableitstrommessung","Prüfprotokoll pro Gerät und Sammelprotokoll je Kunde","Erinnerung an fällige Wiederholungsprüfungen"]}];
-const TOPDEST=[["start","E-Check","done"],["kunden","Kunden","firma"],["mehr","Mehr","mehr"]];
+const TOPDEST=[["start","E-Check","done"],["kunden","Kunden","firma"],["bibliothek","Bibliothek","folder"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter",impressum:"Impressum",about:"Über die App"};
 const VIEW_KIND={kunde:"kunden",standort:"standorte"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort"};
@@ -1124,6 +1130,10 @@ function navIndSetzen(){
   addEventListener("resize",()=>navIndSetzen());
 })();
 
+function bibliothekView(){
+  return `<div class="empty">${icon("folder")}<h2>Noch keine Protokolle</h2><p>Hier erscheinen die E-Check-Protokolle für Hausinstallation und Geräte, sobald die Prüfabläufe fertig sind.</p></div>`;
+}
+
 function render(){
   const app=$("#app");
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1131,9 +1141,9 @@ function render(){
   document.body.classList.toggle("is-list",nav.v==="start"||login);
   document.body.classList.toggle("is-login",login);
   document.body.classList.toggle("has-nav",!login);
-  $("#backBtn").hidden=top||login; $("#navbar").hidden=login; $("#tabs").hidden=true; $("#avBtn").hidden=login||nav.v!=="start"&&!WIDE.matches;
+  $("#backBtn").hidden=top||login; $("#navbar").hidden=login; $("#tabs").hidden=true; $("#avBtn").hidden=login; $("#avBtn").classList.toggle("aktiv",nav.v==="mehr"||!!MEHR_SUB[nav.v]);
   $("#menuBtn").hidden=!VIEW_KIND[nav.v];
-  const active=top?nav.v:MEHR_SUB[nav.v]?"mehr":VIEW_KIND[nav.v]?"kunden":"start";
+  const active=top?nav.v:(MEHR_SUB[nav.v]||nav.v==="mehr")?"mehr":VIEW_KIND[nav.v]?"kunden":"start";
   const lh=$(".logo.l-hell").src, ld=$(".logo.l-dunkel").src;
   $("#navbar").innerHTML=`<div class="nav-head"><button class="icon-btn nav-tog" data-act="railToggle" aria-label="${railOpen?"Seitenleiste einklappen":"Seitenleiste ausklappen"}" aria-expanded="${railOpen}">${icon(railOpen?"menuOpen":"menu")}</button><img class="nav-logo l-hell" src="${lh}" alt="Elektro Irrgang"><img class="nav-logo l-dunkel" src="${ld}" alt=""></div>`
     +TOPDEST.map(([k,t,i])=>`<button class="nav-item${k==="mehr"?" nav-end":""}" data-act="nav" data-v="${k}" ${k===active?'aria-current="page"':""}><span class="ind">${icon(i)}</span><span>${t}</span></button>`).join("");
@@ -1141,6 +1151,7 @@ function render(){
   if(login) body=loginView();
   else if(nav.v==="start") body=startView();
   else if(nav.v==="kunden"){ title="Kunden"; body=kundenView(); fab=["newKunde","Kunde","add"]; }
+  else if(nav.v==="bibliothek"){ title="Bibliothek"; body=bibliothekView(); }
   else if(nav.v==="mehr"){ title="Mehr"; body=mehrView(); }
   else if(nav.v==="team"){ title="Mitarbeiter"; body=teamView(); }
   else if(nav.v==="impressum"){ title="Impressum"; body=impressumView(); }

@@ -647,6 +647,12 @@ html,body{overscroll-behavior-y:none}
 }
 @media (min-width:744px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) .nav-ind{background:var(--on-surface)}:root:not([data-theme="light"]) body .nav-item[aria-current="page"]{color:var(--surface)!important}:root:not([data-theme="light"]) body .navbar.zieht .nav-item[aria-current="page"]{color:var(--on-sv)!important}:root:not([data-theme="light"]) body .navbar.zieht .nav-item.nav-ziel{color:var(--surface)!important}}
 @media (min-width:744px){:root[data-theme="dark"] .nav-ind{background:var(--on-surface)}:root[data-theme="dark"] body .nav-item[aria-current="page"]{color:var(--surface)!important}:root[data-theme="dark"] body .navbar.zieht .nav-item[aria-current="page"]{color:var(--on-sv)!important}:root[data-theme="dark"] body .navbar.zieht .nav-item.nav-ziel{color:var(--surface)!important}}
+
+#menuBtn{order:1}#avBtn{order:2}
+.avatar.aktiv{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--primary)}
+.li.ruhig{cursor:default}
+.bib-dlg p{margin:0 0 6px;font-size:14px}
+.bib-dlg .sup{color:var(--on-sv)}
 </style>
 </head>
 <body class="is-list">
@@ -657,7 +663,7 @@ html,body{overscroll-behavior-y:none}
     <img class="logo l-hell" src="<!--LOGO_HELL-->" alt="Elektro Irrgang">
     <img class="logo l-dunkel" src="<!--LOGO_DUNKEL-->" alt="Elektro Irrgang">
     <h1 class="tb-title" id="topTitle"></h1>
-    <button class="avatar" id="avBtn" data-act="konto" aria-label="Konto" hidden><span id="avTxt"></span></button>
+    <button class="avatar" id="avBtn" data-act="nav" data-v="mehr" aria-label="Konto und Einstellungen" hidden><span id="avTxt"></span></button>
     <button class="icon-btn" id="menuBtn" data-act="menu" aria-label="Weitere Optionen" aria-haspopup="menu" aria-expanded="false"></button>
   </div>
   <div class="tabs" id="tabs" role="tablist" hidden></div>
@@ -1092,7 +1098,7 @@ applyTheme(theme);
 WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
 
 const APP_VERSION="<!--VERSION-->";
-const TOPDEST=[["start","Baustellen","baustelle"],["notizen","Notizen","notiz"],["kunden","Kunden","firma"],["mehr","Mehr","mehr"]];
+const TOPDEST=[["start","Baustellen","baustelle"],["notizen","Notizen","notiz"],["kunden","Kunden","firma"],["bibliothek","Bibliothek","folder"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter",impressum:"Impressum",about:"Über die App"};
 const VIEW_KIND={kunde:"kunden",standort:"standorte"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort"};
@@ -1111,7 +1117,7 @@ function pfadVerlassen(){}
 function pfadTeile(){
   if(nav.v==="notiz"){ const b=nEntw&&nEntw.baustelleId&&DB.baustellen.get(nEntw.baustelleId), z=nZurueck; const zb=z&&z.v==="baustelle"&&DB.baustellen.get(z.id); return [[zb?zb.name:z&&z.v==="start"?"Baustellen":"Notizen",null]]; }
   if(nav.v==="eintrag"){ const b=entw&&DB.baustellen.get(entw.baustelleId); return [[b?b.name:"Baustelle",null]]; }
-  if(nav.v==="baustelle"){ const v=nav.von; if(v&&v.v==="kunde") return kette(v.id); if(v&&v.v==="standort"){ const s=standortOf(v.id); return kette(s&&s.kundeId,v.id); } if(v&&v.v==="kunden") return [["Kunden",{v:"kunden"}]]; if(v&&v.v==="notizen") return [["Notizen",{v:"notizen"}]]; return [["Baustellen",{v:"start"}]]; }
+  if(nav.v==="baustelle"){ const v=nav.von; if(v&&v.v==="kunde") return kette(v.id); if(v&&v.v==="standort"){ const s=standortOf(v.id); return kette(s&&s.kundeId,v.id); } if(v&&v.v==="kunden") return [["Kunden",{v:"kunden"}]]; if(v&&v.v==="notizen") return [["Notizen",{v:"notizen"}]]; if(v&&v.v==="bibliothek") return [["Bibliothek",{v:"bibliothek"}]]; return [["Baustellen",{v:"start"}]]; }
   if(nav.v==="standort"){ const s=standortOf(nav.id); return kette(s&&s.kundeId); }
   if(nav.v==="kunde") return kette();
   if(MEHR_SUB[nav.v]) return [["Mehr",{v:"mehr"}]];
@@ -1151,6 +1157,26 @@ function navIndSetzen(){
   addEventListener("resize",()=>navIndSetzen());
 })();
 
+const monatVon=d=>{ const x=new Date((d||"")+"T12:00"); return isNaN(x)?"Ohne Datum":x.toLocaleDateString("de-DE",{month:"long",year:"numeric"}); };
+function nachMonat(L,datum,item){ let h="", m=null, g=[]; const fl=()=>{ if(g.length) h+=`<div class="sec-lbl">${esc(m)}</div>${listOf(g)}`; g=[]; };
+  for(const x of L){ const mm=monatVon(datum(x)); if(mm!==m){ fl(); m=mm; } g.push(item(x)); } fl(); return h; }
+let BIB_F="alle";
+const bibChips=F=>`<div class="chips" style="margin:4px 0 12px">${F.map(([v,t])=>`<button class="chip" data-act="bfilter" data-v="${v}" aria-pressed="${BIB_F===v}">${icon("check")}${t}</button>`).join("")}</div>`;
+function bibListe(){
+  const q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q);
+  const L=live("eintraege").filter(e=>{ const b=DB.baustellen.get(e.baustelleId); if(!b||b.deleted) return false;
+    return !q||H(b.name)||H(pfadText(b))||H(e.stand)||H(e.offen)||H(e.material)||H(vonText(e)); })
+    .sort((a,b)=>(b.datum||"").localeCompare(a.datum||"")||(b.created||0)-(a.created||0));
+  if(!L.length) return `<p class="meta">${q?"Keine Übergaben zu dieser Suche.":"Noch keine Übergaben. Sie erscheinen hier, sobald auf einer Baustelle eine Übergabe gespeichert ist."}</p>`;
+  return nachMonat(L,e=>e.datum,e=>{ const b=DB.baustellen.get(e.baustelleId), st=String(e.stand||"").trim();
+    return `<div class="li" role="button" tabindex="0" data-act="nav" data-v="baustelle" data-id="${esc(b.id)}"><span class="av">${icon("doc")}</span><span class="lt"><span class="h">${esc(b.name)}</span>
+      <span class="s">${esc([tagText(e.datum),vonText(e)].filter(Boolean).join(" · "))}</span>${st?`<span class="s">${esc(st.length>110?st.slice(0,110)+" …":st)}</span>`:""}${(e.fotos||[]).length?`<span class="st">${pill("open",`${e.fotos.length} Foto${e.fotos.length>1?"s":""}`)}</span>`:""}</span>${icon("chev")}</div>`; });
+}
+function bibliothekView(){
+  return `<div class="narrow">${searchBar("Baustelle, Kunde, Text oder Mitarbeiter")}<div id="res">${bibListe()}</div>
+    <p class="hint">Alle Übergaben aller Baustellen, neueste zuerst. Die Prüf- und E-Check-Protokolle liegen in den jeweiligen Apps.</p></div>`;
+}
+
 function render(){
   const app=$("#app");
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1160,9 +1186,9 @@ function render(){
   document.body.classList.toggle("is-list",nav.v==="start"||login);
   document.body.classList.toggle("is-login",login);
   document.body.classList.toggle("has-nav",!login&&!ed);
-  $("#backBtn").hidden=top||login; $("#navbar").hidden=login||ed; $("#tabs").hidden=true; $("#avBtn").hidden=login||nav.v!=="start"&&!WIDE.matches;
+  $("#backBtn").hidden=top||login; $("#navbar").hidden=login||ed; $("#tabs").hidden=true; $("#avBtn").hidden=login; $("#avBtn").classList.toggle("aktiv",nav.v==="mehr"||!!MEHR_SUB[nav.v]);
   $("#menuBtn").hidden=!(nav.v==="baustelle"||VIEW_KIND[nav.v]);
-  const active=top?nav.v:nav.v==="notiz"?"notizen":MEHR_SUB[nav.v]?"mehr":VIEW_KIND[nav.v]?"kunden":"start";
+  const active=top?nav.v:nav.v==="notiz"?"notizen":(MEHR_SUB[nav.v]||nav.v==="mehr")?"mehr":VIEW_KIND[nav.v]?"kunden":"start";
   const lh=$(".logo.l-hell").src, ld=$(".logo.l-dunkel").src;
   $("#navbar").innerHTML=`<div class="nav-head"><button class="icon-btn nav-tog" data-act="railToggle" aria-label="${railOpen?"Seitenleiste einklappen":"Seitenleiste ausklappen"}" aria-expanded="${railOpen}">${icon(railOpen?"menuOpen":"menu")}</button><img class="nav-logo l-hell" src="${lh}" alt="Elektro Irrgang"><img class="nav-logo l-dunkel" src="${ld}" alt=""></div>`
     +TOPDEST.map(([k,t,i])=>`<button class="nav-item${k==="mehr"?" nav-end":""}" data-act="nav" data-v="${k}" ${k===active?'aria-current="page"':""}><span class="ind">${icon(i)}</span><span>${t}</span></button>`).join("");
@@ -1172,6 +1198,7 @@ function render(){
   else if(nav.v==="kunden"){ title="Kunden"; body=kundenView(); fab=["newKunde","Kunde","add"]; }
   else if(nav.v==="notizen"){ title="Notizen"; body=notizenView(); fab=["neueNotiz","Notiz","add"]; }
   else if(nav.v==="notiz"){ const ro=!istMeine(nEntw), b=nEntw.baustelleId&&DB.baustellen.get(nEntw.baustelleId); title=ro?"Notiz":DB.notizen.has(nEntw.id)?"Notiz bearbeiten":"Neue Notiz"; sub=b?b.name:""; body=notizView(); fab=ro?null:["nSpeichern","Speichern","check"]; }
+  else if(nav.v==="bibliothek"){ title="Bibliothek"; body=bibliothekView(); }
   else if(nav.v==="mehr"){ title="Mehr"; body=mehrView(); }
   else if(nav.v==="team"){ title="Mitarbeiter"; body=teamView(); }
   else if(nav.v==="impressum"){ title="Impressum"; body=impressumView(); }
@@ -1636,7 +1663,7 @@ async function importBackup(el){
 }
 
 document.addEventListener("input",ev=>{
-  if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="kunden"?kundenListe():nav.v==="notizen"?notizenListe():baustellenListe(); return; }
+  if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="bibliothek"?bibListe():nav.v==="kunden"?kundenListe():nav.v==="notizen"?notizenListe():baustellenListe(); return; }
   if(nav.v==="notiz"&&notizEingabe(ev.target)) return;
 });
 document.addEventListener("change",ev=>{

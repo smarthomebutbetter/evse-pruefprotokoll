@@ -559,6 +559,12 @@ html,body{overscroll-behavior-y:none}
 }
 @media (min-width:744px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) .nav-ind{background:var(--on-surface)}:root:not([data-theme="light"]) body .nav-item[aria-current="page"]{color:var(--surface)!important}:root:not([data-theme="light"]) body .navbar.zieht .nav-item[aria-current="page"]{color:var(--on-sv)!important}:root:not([data-theme="light"]) body .navbar.zieht .nav-item.nav-ziel{color:var(--surface)!important}}
 @media (min-width:744px){:root[data-theme="dark"] .nav-ind{background:var(--on-surface)}:root[data-theme="dark"] body .nav-item[aria-current="page"]{color:var(--surface)!important}:root[data-theme="dark"] body .navbar.zieht .nav-item[aria-current="page"]{color:var(--on-sv)!important}:root[data-theme="dark"] body .navbar.zieht .nav-item.nav-ziel{color:var(--surface)!important}}
+
+#menuBtn{order:1}#avBtn{order:2}
+.avatar.aktiv{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--primary)}
+.li.ruhig{cursor:default}
+.bib-dlg p{margin:0 0 6px;font-size:14px}
+.bib-dlg .sup{color:var(--on-sv)}
 </style>
 </head>
 <body class="is-list">
@@ -569,7 +575,7 @@ html,body{overscroll-behavior-y:none}
     <img class="logo l-hell" src="<!--LOGO_HELL-->" alt="Elektro Irrgang">
     <img class="logo l-dunkel" src="<!--LOGO_DUNKEL-->" alt="Elektro Irrgang">
     <h1 class="tb-title" id="topTitle">Prüfprotokolle</h1>
-    <button class="avatar" id="avBtn" data-act="konto" aria-label="Konto" hidden><span id="avTxt"></span></button>
+    <button class="avatar" id="avBtn" data-act="nav" data-v="mehr" aria-label="Konto und Einstellungen" hidden><span id="avTxt"></span></button>
     <button class="icon-btn" id="menuBtn" data-act="menu" aria-label="Weitere Optionen" aria-haspopup="menu" aria-expanded="false"></button>
   </div>
   <div class="tabs" id="tabs" role="tablist" hidden></div>
@@ -1075,7 +1081,7 @@ const pill=(r,t)=>`<span class="pill ${r}">${esc(t??RES_TXT[r])}</span>`;
 const DEST=[["projekt","Auftrag","project"],["saeulen","Ladestationen","ev"],["abschluss","Abschluss","done"]];
 const WIDE=matchMedia("(min-width:744px)"); WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
-const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
+const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["bibliothek","Bibliothek","folder"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter und Mail",archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
 const APP_VERSION="<!--VERSION-->";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
@@ -1142,6 +1148,40 @@ function navIndSetzen(){
   addEventListener("resize",()=>navIndSetzen());
 })();
 
+const monatVon=d=>{ const x=new Date((d||"")+"T12:00"); return isNaN(x)?"Ohne Datum":x.toLocaleDateString("de-DE",{month:"long",year:"numeric"}); };
+function nachMonat(L,datum,item){ let h="", m=null, g=[]; const fl=()=>{ if(g.length) h+=`<div class="sec-lbl">${esc(m)}</div>${listOf(g)}`; g=[]; };
+  for(const x of L){ const mm=monatVon(datum(x)); if(mm!==m){ fl(); m=mm; } g.push(item(x)); } fl(); return h; }
+let BIB_F="alle";
+const bibChips=F=>`<div class="chips" style="margin:4px 0 12px">${F.map(([v,t])=>`<button class="chip" data-act="bfilter" data-v="${v}" aria-pressed="${BIB_F===v}">${icon("check")}${t}</button>`).join("")}</div>`;
+const BFILTER=[["alle","Alle"],["ok","Bestanden"],["bad","Mit Mängeln"]];
+function bibListe(){
+  const q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q);
+  const L=live("pruefungen").filter(p=>{ const st=protoState(p); return (st==="ok"||st==="bad")&&(BIB_F==="alle"||st===BIB_F)&&(!q||H(pfadText(p))||H(p.p.auftragsnr)||H(p.p.pruefer)||H(p.p.art)); }).sort(byDate);
+  if(!L.length) return `<p class="meta">${q||BIB_F!=="alle"?"Keine Protokolle in dieser Auswahl.":"Noch keine fertigen Protokolle. Eine Prüfung erscheint hier, sobald alle Messwerte eingetragen sind."}</p>`;
+  return nachMonat(L,p=>p.p.datum,p=>{ const r=protoState(p), {k,s,l}=pfad(p);
+    return `<div class="li" role="button" tabindex="0" data-act="bibOpen" data-id="${esc(p.id)}"><span class="av">${icon("doc")}</span><span class="lt"><span class="h">${esc([k&&k.name,(l||s||{}).name].filter(Boolean).join(" · ")||pTitel(p))}</span>
+      <span class="s">${esc([deDate(p.p.datum),p.p.art,p.p.auftragsnr&&`Auftrag ${p.p.auftragsnr}`].filter(Boolean).join(" · "))}</span><span class="st">${pill(r)}${p.a&&p.a.sigP?"":pill("open","ohne Unterschrift")}${p.demo?pill("open","Beispiel"):""}</span></span>${icon("chev")}</div>`; });
+}
+function bibliothekView(){
+  return `<div class="narrow">${searchBar("Kunde, Ort, Auftrag oder Prüfer")}${bibChips(BFILTER)}<div id="res">${bibListe()}</div>
+    <p class="hint">Alle fertigen Prüfprotokolle. Antippen: PDF speichern, teilen oder die Prüfung öffnen.</p></div>`;
+}
+function bibOpen(id){ const p=DB.pruefungen.get(id); if(!p) return; const {k,s,l}=pfad(p);
+  dialog([k&&k.name,(l||s||{}).name].filter(Boolean).join(" · ")||"Protokoll",`<div class="bib-dlg"><p>${esc([deDate(p.p.datum),p.p.art].filter(Boolean).join(" · "))}${p.p.auftragsnr?` · Auftrag ${esc(p.p.auftragsnr)}`:""}</p>
+    <p>${pill(protoState(p))}${p.a&&p.a.sigP?"":pill("open","ohne Unterschrift")}</p>${p.p.pruefer?`<p class="sup">Prüfer: ${esc(p.p.pruefer)}</p>`:""}${p.pdfAblage?`<p class="sup">In der Share: ${esc(p.pdfAblage)}</p>`:""}</div>`,
+    `<button class="btn-text" data-act="open" data-id="${esc(id)}">Prüfung öffnen</button><span style="flex:1"></span><button class="btn-text" data-act="bibTeilen" data-id="${esc(id)}">Teilen</button><button class="btn-text" data-act="bibSpeichern" data-id="${esc(id)}">PDF speichern</button>`);
+}
+function bibPdf(id,teilen){ const p=DB.pruefungen.get(id); if(!p) return;
+  if(!window.jspdf){ toast("PDF-Erstellung nicht geladen"); return; }
+  const fehlt=p.s.flatMap(fotoIds).filter(x=>!fotoCache.has(x));
+  if(fehlt.length&&SYNC_ON){ fotoFetch(fehlt); toast("Fotos werden noch geladen – gleich noch einmal tippen"); return; }
+  const ohne=((p.a&&p.a.pdfOhne)||[]).filter(x=>p.s.some(s=>s.id===x));
+  const P=ohne.length?Object.assign({},p,{s:p.s.filter(s=>!ohne.includes(s.id)),_ohne:p.s.filter(s=>ohne.includes(s.id)).map(s=>s.name)}):p;
+  let blob; try{ blob=buildPDF(P); }catch(e){ toast("PDF konnte nicht erstellt werden"); return; }
+  const name=pdfSchema(p).name||"Prüfprotokoll";
+  if(teilen){ const alt=cur; cur=p; try{ pdfTeilen(blob,name); } finally{ cur=alt; } } else saveFile(blob,name+".pdf");
+}
+
 function render(){
   const app=$("#app"), ed=EDITOR.includes(nav.v);
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1152,9 +1192,9 @@ function render(){
   document.body.classList.toggle("is-login",login);
   document.body.classList.toggle("has-nav",!login);
   document.body.classList.toggle("ro",E&&!canEdit(cur));
-  $("#backBtn").hidden=(top&&!(nav.v==="katalog"&&!WIDE.matches))||login; $("#navbar").hidden=login; $("#tabs").hidden=nav.v!=="saeule"; $("#avBtn").hidden=login||nav.v!=="start"&&!WIDE.matches; $("#menuBtn").hidden=top||!!MEHR_SUB[nav.v]||login||nav.v==="geraet";
+  $("#backBtn").hidden=(top&&!(nav.v==="katalog"&&!WIDE.matches))||login; $("#navbar").hidden=login; $("#tabs").hidden=nav.v!=="saeule"; $("#avBtn").hidden=login; $("#avBtn").classList.toggle("aktiv",nav.v==="mehr"||!!MEHR_SUB[nav.v]); $("#menuBtn").hidden=top||nav.v==="mehr"||!!MEHR_SUB[nav.v]||login||nav.v==="geraet";
   const wide=WIDE.matches, katV=nav.v==="katalog"||nav.v==="katmodell";
-  const dests=E?DEST:TOPDEST.filter(d=>d[0]!=="katalog"||wide), active=E?(nav.v==="saeule"?"saeulen":nav.v):katV?(wide?"katalog":"mehr"):(top?nav.v:MEHR_SUB[nav.v]?"mehr":"kunden");
+  const dests=E?DEST:TOPDEST.filter(d=>d[0]!=="katalog"||wide), active=E?(nav.v==="saeule"?"saeulen":nav.v):katV?(wide?"katalog":"mehr"):(top?nav.v:(MEHR_SUB[nav.v]||nav.v==="mehr")?"mehr":"kunden");
   const lh=$(".logo.l-hell").src, ld=$(".logo.l-dunkel").src;
   $("#navbar").innerHTML=`<div class="nav-head"><button class="icon-btn nav-tog" data-act="railToggle" aria-label="${railOpen?"Seitenleiste einklappen":"Seitenleiste ausklappen"}" aria-expanded="${railOpen}">${icon(railOpen?"menuOpen":"menu")}</button><img class="nav-logo l-hell" src="${lh}" alt="Elektro Irrgang"><img class="nav-logo l-dunkel" src="${ld}" alt=""></div>`+dests.map(([k,t,i])=>`<button class="nav-item${!E&&k==="mehr"?" nav-end":""}" ${E?`data-go="${k}"`:`data-act="nav" data-v="${k}"`} ${k===active?'aria-current="page"':""}><span class="ind">${icon(i)}</span><span>${t}</span></button>`).join("");
   let title="", sub="", fab=null, body="";
@@ -1166,6 +1206,7 @@ function render(){
   else if(nav.v==="katalog"){ title="Katalog"; body=katalogView(); fab=["katNeu","Modell","add"]; }
   else if(nav.v==="katmodell"){ const r=DB.katalog.get(nav.id); if(!r||r.deleted){ nav={v:"katalog"}; return render(); }
     title=katName(r); sub=r.hersteller; body=katModellView(r); fab=["katHNeu","Hinweis","add"]; fotoFetch(katFotoIds(r)); }
+  else if(nav.v==="bibliothek"){ title="Bibliothek"; body=bibliothekView(); }
   else if(nav.v==="mehr"){ title="Mehr"; body=mehrView(); }
   else if(nav.v==="archiv"){ title="Archiv"; body=archivView(); }
   else if(nav.v==="impressum"){ title="Impressum"; body=impressumView(); }
@@ -2086,7 +2127,7 @@ function loeschePruefung(p){
 const getPath=p=>p.split(".").reduce((o,k)=>o==null?o:o[k],cur);
 function setPath(p,v){ const ks=p.split("."); let o=cur; for(let i=0;i<ks.length-1;i++) o=o[ks[i]]; o[ks[ks.length-1]]=v; }
 document.addEventListener("input",ev=>{
-  if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="katalog"?katalogListe():nav.v==="kunden"?kundenListe():nav.v==="pruefungen"?pruefungenListe():(query?suche(query):startListen()); return; }
+  if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="bibliothek"?bibListe():nav.v==="katalog"?katalogListe():nav.v==="kunden"?kundenListe():nav.v==="pruefungen"?pruefungenListe():(query?suche(query):startListen()); return; }
   const el=ev.target.closest("[data-bind]"); if(!el||!cur) return;
   const path=el.dataset.bind, alt=path==="p.adapter"?cur.p.adapter:null; setPath(path,el.value); scheduleSave();
   if(path==="p.datum"&&cur.a.fristJ){ const d=new Date((el.value||today())+"T12:00:00"); d.setFullYear(d.getFullYear()+(+cur.a.fristJ)); cur.a.naechste=d.toISOString().slice(0,10); }
@@ -2138,6 +2179,10 @@ document.addEventListener("click",ev=>{
   if(a.startsWith("nav:")){ go({v:a.slice(4)}); return; }
   switch(a){
   case "crumb": crumbGo(+b.dataset.i); return;
+  case "bfilter": BIB_F=b.dataset.v; render(); return;
+  case "bibOpen": bibOpen(b.dataset.id); return;
+  case "bibTeilen": closeOverlays(); bibPdf(b.dataset.id,true); return;
+  case "bibSpeichern": closeOverlays(); bibPdf(b.dataset.id,false); return;
   case "menu": openMenu(); return;
   case "fabMenu": { if($("#fabm")){ $("#fabm").remove(); return; }
     const it=(act,ic,t)=>`<button class="fabm-it" data-act="${act}">${icon(ic)}<span>${t}</span></button>`;
