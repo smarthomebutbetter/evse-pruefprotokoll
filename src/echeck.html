@@ -665,6 +665,18 @@ html,body{overscroll-behavior-y:none}
 .li.ruhig{cursor:default}
 .bib-dlg p{margin:0 0 6px;font-size:14px}
 .bib-dlg .sup{color:var(--on-sv)}
+
+/* Feinschliff: weichere Ecken */
+.menu{border-radius:16px;padding:6px;background:var(--sc-high);box-shadow:0 12px 32px rgba(0,0,0,.24),0 2px 6px rgba(0,0,0,.12);transform-origin:top right;animation:menuAuf .16s cubic-bezier(.2,.8,.2,1)}
+@keyframes menuAuf{from{opacity:0;transform:scale(.95) translateY(-4px)}to{opacity:1;transform:none}}
+.menu hr{margin:6px 10px}
+.mi{height:44px;border-radius:10px;padding:0 14px 0 12px}
+.mh{padding:6px 12px 8px}
+.snackbar{border-radius:14px}
+.chip{border-radius:10px}
+.tf input,.tf select,.tf textarea{border-radius:12px}
+.calc{border-radius:10px}
+.dlg{border-radius:24px}
 </style>
 </head>
 <body class="is-list">
