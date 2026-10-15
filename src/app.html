@@ -1977,19 +1977,22 @@ const LOGO_PDF="<!--LOGO_HELL-->";
 const EHW_PDF="<!--EHANDWERK-->";   // Zeichen des Elektrohandwerks (Innungsbetrieb)
 const PDFMAP={"²":"2","³":"3","≈":"ca.","Ω":"Ohm","≤":"<=","≥":">=","→":"->","↔":"<->","–":"-","Δ":"d","…":"...","·":"|","„":"\"","“":"\""};
 const pt=s=>String(s??"").replace(/[²³≈Ω≤≥→↔–Δ…·„“]/g,c=>PDFMAP[c]);
-// Dateiname nach Firmenschema: Auftragsnr_E-CheckEVSE_Kunde_Bereich (Leerzeichen innerhalb der Teile entfallen)
-const PDF_PRUEFART="E-CheckEVSE";
+// Dateiname nach Firmenschema: Auftragsnr_Prüfart_Kunde_Standort[-Ladepark]_JJJJ-MM-TT
+// Leerzeichen innerhalb der Teile entfallen, Umlaute bleiben. Datum am Ende: eindeutig und sortierbar.
+const PDF_PRUEFART={"Erstprüfung":"ErstprüfungEVSE","Erweiterung":"ErweiterungEVSE","Wiederholungsprüfung":"E-CheckEVSE","nach Instandsetzung":"InstandsetzungEVSE"};
+const PDF_SCHEMA="Auftragsnr_Prüfart_Kunde_Standort-Ladepark_Datum";
 function pdfSchema(p){
   const {k,s,l}=pfad(p), kurz=t=>String(t||"").replace(/\s+/g,"").replace(/[\\/:*?"<>|#%]/g,"-");
-  const fehlt=[]; if(!p.p.auftragsnr) fehlt.push("Auftragsnummer"); if(!k) fehlt.push("Kunde"); if(!(l||s)) fehlt.push("Standort / Bereich");
-  const name=[kurz(p.p.auftragsnr),PDF_PRUEFART,kurz(k&&k.name),kurz((l||s||{}).name)].filter(Boolean).join("_");
+  const fehlt=[]; if(!p.p.auftragsnr) fehlt.push("Auftragsnummer"); if(!k) fehlt.push("Kunde"); if(!s) fehlt.push("Standort"); if(!p.p.datum) fehlt.push("Prüfdatum");
+  const ort=[s&&kurz(s.name),l&&kurz(l.name)].filter(Boolean).join("-");
+  const name=[kurz(p.p.auftragsnr),PDF_PRUEFART[p.p.art]||"E-CheckEVSE",kurz(k&&k.name),ort,p.p.datum].filter(Boolean).join("_");
   return {name,fehlt};
 }
 function pdfDialog(){
   saveNow(); const S=pdfSchema(cur);
   dialog("PDF erstellen",`<div class="fg1">${tf("fname","Dateiname",S.name,{form:true,sfx:".pdf"})}</div>
     ${S.fehlt.map(f=>`<p class="warnline">${icon("warn")}${esc(f)} fehlt – steht deshalb nicht im Dateinamen.</p>`).join("")}
-    <p class="sup" style="margin:12px 0 0">Schema: Auftragsnr_${PDF_PRUEFART}_Kunde_Bereich · <button class="btn-text" style="height:auto;padding:0" data-act="pdfStd">Standardname</button></p>`,
+    <p class="sup" style="margin:12px 0 0">Schema: ${PDF_SCHEMA} · <button class="btn-text" style="height:auto;padding:0" data-act="pdfStd">Standardname</button></p>`,
     `<button class="btn-text" data-act="cancel">Abbrechen</button><span style="flex:1"></span><button class="btn-text" data-act="pdfMail">Per Mail senden</button><button class="btn-text" data-act="pdfSave">Speichern</button>`);
 }
 async function pdfTeilen(blob,name){
