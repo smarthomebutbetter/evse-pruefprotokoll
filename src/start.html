@@ -909,7 +909,20 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 .app-k.geplant{background:var(--sc-low)!important}
 .n-add button{border:0!important;background:var(--feld)!important}
 
-.tl-leute{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:0 0 4px}
+.tl-feld{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:8px 12px 8px 12px;border:0;border-radius:16px;background:var(--feld);color:var(--on-surface);text-align:left;font-size:16px;font-weight:650;-webkit-tap-highlight-color:transparent;transition:background .15s}
+.tl-feld:hover{background:color-mix(in srgb,var(--on-surface) 6%,var(--feld))}
+.tl-n{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.tl-n small{font-size:12px;font-weight:600;color:var(--on-sv)}
+.tl-leer{color:var(--on-sv);font-weight:600;padding-left:4px}
+.tl-pf{display:grid;color:var(--on-sv)}
+.tl-av{width:36px;height:36px;border-radius:50%;background:var(--pc);color:var(--on-pc);display:grid;place-items:center;font-size:13px;font-weight:800;flex:none}
+.tl-av .ic{width:20px;height:20px}
+.tl-av-plus{background:var(--sc-highest);color:var(--on-sv)}
+.menu .tl-mi{height:auto;min-height:56px;padding:8px 12px;gap:12px}
+.menu .tl-mi .tl-n{font-size:15px}
+.menu .tl-mi .tl-n small{font-weight:500}
+.menu .tl-mi.an{background:var(--sec-c);color:var(--on-sec-c)}
+.menu .tl-mi.an .tl-av{background:var(--primary);color:var(--on-primary)}
 .tl-p{display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 12px;border:0;border-radius:16px;background:var(--feld);color:var(--on-surface);font-size:15px;font-weight:650;text-align:left;-webkit-tap-highlight-color:transparent;transition:background .15s,transform .12s}
 .tl-p:hover{background:color-mix(in srgb,var(--on-surface) 6%,var(--feld))}
 .tl-p:active{transform:scale(.97)}
@@ -1609,7 +1622,14 @@ document.addEventListener("click",()=>setTimeout(segInd,0));
   document.addEventListener("pointerup",ende); document.addEventListener("pointercancel",ende);
   document.addEventListener("click",e=>{ if(e.isTrusted&&Date.now()<sperre&&e.target.closest(".seg")){ sperre=0; e.stopPropagation(); e.preventDefault(); } },true);
 })();
-document.addEventListener("click",e=>{ const b=e.target.closest("[data-tlwahl]"); if(!b) return; e.preventDefault(); const sel=$("#f_tlWer"); if(!sel) return; sel.value=b.dataset.tlwahl; sel.dispatchEvent(new Event("change",{bubbles:true})); });
+const tlIni=m=>String(m.name||m.mail).split(/[\s.@]+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join("");
+document.addEventListener("click",e=>{
+  const f=e.target.closest("#tlFeld");
+  if(f){ e.preventDefault(); const r=f.getBoundingClientRect(), m=$("#menu");
+    m.innerHTML=team().map(x=>`<button type="button" class="mi tl-mi${tlSel===x.mail?" an":""}" data-tlwahl="${esc(x.mail)}"><span class="tl-av">${esc(tlIni(x))}</span><span class="tl-n">${esc(x.name)}<small>${esc(x.mail)}</small></span></button>`).join("")+`<hr><button type="button" class="mi tl-mi${tlSel==="__andere"?" an":""}" data-tlwahl="__andere"><span class="tl-av tl-av-plus">${icon("add")}</span><span class="tl-n">Andere Person</span></button>`;
+    m.style.top=(r.bottom+6)+"px"; m.style.left=r.left+"px"; m.style.right="auto"; m.style.width=r.width+"px"; m.style.maxWidth="none"; m.hidden=false; $("#scrim").hidden=false; return; }
+  const b=e.target.closest("[data-tlwahl]"); if(!b) return; e.preventDefault(); e.stopPropagation(); closeOverlays(); const m=$("#menu"); ["top","left","right","width","maxWidth"].forEach(k=>m.style[k]="");
+  const sel=$("#f_tlWer"); if(!sel) return; sel.value=b.dataset.tlwahl; sel.dispatchEvent(new Event("change",{bubbles:true})); },true);
 function render(){
   const app=$("#app");
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1799,7 +1819,7 @@ function loginView(){
   if(!SYNC_ON){ const wer=team().find(m=>m.mail===tlSel);
     return `<form class="login" id="tlForm" autocomplete="on">${logos}<h2>Übersicht</h2>
     <p>${weg?"Dein Zugang ist nicht mehr freigeschaltet. Bitte beim Chef melden.":"Name wählen und mit dem Firmen-Passwort anmelden."}</p>
-    <div class="fg1" style="text-align:left"><div class="lbl">Wer bist du?</div><div class="tl-leute">${team().map(m=>{ const ini=String(m.name||m.mail).split(/[\s.@]+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join(""); return `<button type="button" class="tl-p${tlSel===m.mail?" an":""}" data-tlwahl="${esc(m.mail)}"><span class="tl-av">${esc(ini)}</span><span>${esc(m.name)}</span></button>`; }).join("")}<button type="button" class="tl-p tl-andere${tlSel==="__andere"?" an":""}" data-tlwahl="__andere"><span class="tl-av">${icon("add")}</span><span>Andere Person</span></button></div><div class="tl-sel" hidden>${sf("tlWer","Name",tlSel||"",[["","Name auswählen"],...team().map(m=>[m.mail,m.name]),["__andere","Andere Person …"]],{form:true})}</div>
+    <div class="fg1" style="text-align:left"><button type="button" class="tl-feld" id="tlFeld" aria-haspopup="menu">${(()=>{ const m=team().find(x=>x.mail===tlSel); return m?`<span class="tl-av">${esc(tlIni(m))}</span><span class="tl-n"><small>Name</small>${esc(m.name)}</span>`:tlSel==="__andere"?`<span class="tl-av tl-av-plus">${icon("add")}</span><span class="tl-n"><small>Name</small>Andere Person</span>`:`<span class="tl-n tl-leer">Name auswählen</span>`; })()}<span class="tl-pf">${icon("drop")}</span></button><div class="tl-sel" hidden>${sf("tlWer","Name",tlSel||"",[["","Name auswählen"],...team().map(m=>[m.mail,m.name]),["__andere","Andere Person …"]],{form:true})}</div>
       ${wer?`<p class="tl-mail">${esc(wer.mail)}</p>`:""}
       ${tlSel==="__andere"?tf("tlMail","E-Mail",tlAndere,{form:true,type:"email",ph:"name@elektro-irrgang.de"}):""}
       <div class="tf"><input id="f_tlPw" data-f="tlPw" type="password" placeholder=" " autocomplete="current-password"><label for="f_tlPw">Passwort</label></div></div>
