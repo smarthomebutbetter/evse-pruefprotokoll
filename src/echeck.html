@@ -630,6 +630,18 @@ html.standalone .app-weiter{display:none!important}html.standalone a.li.weiter{p
 }
 @media (min-width:744px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) body .nav-item[aria-current="page"]{background:var(--on-surface)!important;color:var(--surface)!important}}
 @media (min-width:744px){:root[data-theme="dark"] body .nav-item[aria-current="page"]{background:var(--on-surface)!important;color:var(--surface)!important}}
+
+@media (min-width:744px){
+  #backBtn{display:none!important}
+  body:not(.is-login) .logo.l-hell{display:block;margin-left:4px}
+  .pfad{display:flex;flex-wrap:wrap;align-items:center;gap:2px 4px;margin:0 0 6px -8px;font-size:14px;font-weight:700}
+  .pf{border:0;background:transparent;color:var(--primary);padding:4px 8px;border-radius:8px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pf:hover{background:color-mix(in srgb,var(--primary) 10%,transparent)}
+  .pf-s{color:var(--on-sv);opacity:.6}
+}
+@media (min-width:744px) and (prefers-color-scheme: dark){:root:not([data-theme="light"]) body .logo.l-hell{display:none}:root:not([data-theme="light"]) body:not(.is-login) .logo.l-dunkel{display:block;margin-left:4px}}
+@media (min-width:744px){:root[data-theme="dark"] body .logo.l-hell{display:none}:root[data-theme="dark"] body:not(.is-login) .logo.l-dunkel{display:block;margin-left:4px}}
+@media (min-width:744px) and (max-width:959.98px){body .navbar,body.rail-open .navbar{left:max(184px,calc(env(safe-area-inset-left,0px) + 184px));transform:none}}
 </style>
 </head>
 <body class="is-list">
@@ -1047,13 +1059,19 @@ const KIND_NAME={kunden:"Kunde",standorte:"Standort"};
 function go(n){ nav=n; closeOverlays(); render(); window.scrollTo(0,0); }
 const KOPF_START="E-Check";
 function seitenKopf(t,s,f){ t=t||(f?KOPF_START:""); if(!t&&!f) return "";
-  return `<div class="sk"><div class="sk-t">${t?`<h1>${esc(t)}</h1>`:""}${s?`<p>${esc(s)}</p>`:""}</div>${f?`<button class="sk-neu" data-act="${f[0]}">${icon(f[2])}<span>${esc(f[1]||"Neu")}</span></button>`:""}</div>`; }
-function backSetzen(){ const b=$("#backBtn"); if(!b) return; b.innerHTML=WIDE.matches?`<span class="bk">${icon("chev")}</span><span>${esc(backText())}</span>`:icon("back"); }
-function backText(){
-  if(nav.v==="standort"){ const s=standortOf(nav.id), k=s&&kundeOf(s.kundeId); return k&&k.name||"Kunden"; }
-  if(nav.v==="kunde") return "Kunden";
-  if(MEHR_SUB[nav.v]) return "Mehr";
-  return "E-Check";
+  const T=pfadTeile(); if(s&&T.length&&s.split(/\s*›\s*/).every(x=>T.some(y=>y[0]===x))) s="";
+  const pf=T.length?`<nav class="pfad" aria-label="Pfad">${T.map((x,i)=>`<button class="pf" data-act="crumb" data-i="${i}">${esc(x[0])}</button>`).join('<span class="pf-s">›</span>')}</nav>`:"";
+  return `<div class="sk"><div class="sk-t">${pf}${t?`<h1>${esc(t)}</h1>`:""}${s?`<p>${esc(s)}</p>`:""}</div>${f?`<button class="sk-neu" data-act="${f[0]}">${icon(f[2])}<span>${esc(f[1]||"Neu")}</span></button>`:""}</div>`; }
+function backSetzen(){ const b=$("#backBtn"); if(!b) return; b.innerHTML=icon("back"); }
+function crumbGo(i){ const T=pfadTeile(); if(i>=T.length-1||!T[i][1]) return zurueck(); pfadVerlassen(); go(T[i][1]); }
+const kette=(kid,sid,lid)=>{ const r=[["Kunden",{v:"kunden"}]], k=kid&&kundeOf(kid), s=sid&&standortOf(sid), l=lid&&ladeparkOf(lid);
+  if(k) r.push([k.name||"Kunde",{v:"kunde",id:k.id}]); if(s) r.push([s.name||"Standort",{v:"standort",id:s.id}]); if(l) r.push([l.name||"Ladepark",{v:"ladepark",id:l.id}]); return r; };
+function pfadVerlassen(){}
+function pfadTeile(){
+  if(nav.v==="standort"){ const s=standortOf(nav.id); return kette(s&&s.kundeId); }
+  if(nav.v==="kunde") return kette();
+  if(MEHR_SUB[nav.v]) return [["Mehr",{v:"mehr"}]];
+  return [];
 }
 function render(){
   const app=$("#app");
@@ -1186,6 +1204,7 @@ document.addEventListener("click",ev=>{
   if(b.closest("#menu")) closeOverlays();
   if(a.startsWith("nav:")){ go({v:a.slice(4)}); return; }
   switch(a){
+  case "crumb": crumbGo(+b.dataset.i); return;
   case "menu": openMenu(); return;
   case "cancel": closeOverlays(); locForm=null; return;
   case "nav": { const v=b.dataset.v; if(v!==nav.v) query=""; go(b.dataset.id?{v,id:b.dataset.id}:{v}); return; }
