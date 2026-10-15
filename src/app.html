@@ -386,6 +386,8 @@ details.optrows .mrow:first-of-type{border-top:0}
 .dz-t small{font-size:12px;color:var(--on-sv)}
 .dz-t a{color:var(--primary);text-decoration:none;font-weight:600}
 @media (min-width:600px){.qa-row{justify-content:flex-start;gap:24px}.qa{flex:0 0 auto;width:88px}}
+.katinfo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px;margin:8px 4px 0;font-size:13px;color:var(--on-sv)}
+.katinfo-a{display:flex;gap:4px}.katinfo .btn-text{height:32px;padding:0 8px}
 .kath{padding-bottom:10px}
 .kath + .kath{margin-top:12px}
 .kath-k{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px}
@@ -1284,6 +1286,7 @@ function saeuleView(){
         <div class="full"><div class="lbl">Bauart</div>${seg("bauart",BAUART(s),BAUARTEN.map(([v,t,z])=>[v,`${t} · ${z}`]))}</div>
         ${tf(b+"name","Bezeichnung",s.name)}
         ${tf(b+"ort","Stellplatz / Position",s.ort,{ph:"z. B. Stellplatz 12–13 oder Reihe B"})}
+        <div class="full">${katSelect("katWahl","Modell aus dem Katalog",s.katId&&DB.katalog.has(s.katId)?s.katId:"","– kein Katalogmodell –")}${katInfoHtml(s)}</div>
         ${tf(b+"typ","Hersteller / Typ",s.typ,{list:"dl-typ"})}${datalist("dl-typ",live("pruefungen").flatMap(p=>p.s.map(x=>x.typ)))}
         <div>${tf(b+"sn","Seriennummer",s.sn)}<div id="snWarn">${snWarnHtml(cur,si)}</div></div>
         ${tf(b+"fw","Firmware (optional)",s.fw,{full:true})}
@@ -1367,6 +1370,7 @@ function abschlussView(){
   </div>`;
 }
 
+const KAT_DATEIEN=false;
 const KAT_HINWEIS=["PE-Anschluss","Anschlussraum / Klemmen","Typschild","Einrichtung / Konfiguration","Fehlerstromschutz","Sonstiges"];
 const KAT_SEED=[["Mennekes",["AMTRON Compact 2.0s","AMTRON Charge Control","AMTRON Professional+","AMTRON 4You 500","AMTRON 4Business 700"]],
   ["Schneider Electric",["EVlink Home","EVlink Pro AC","EVlink Wallbox Plus"]],["Huawei",["AC Smart Charger"]]];
@@ -1386,10 +1390,10 @@ function katVerbaut(r){
 function katItem(r){
   const kurz=[r.leistung&&`${r.leistung} kW`,r.phasen&&`${r.phasen}-phasig`,r.lps&&`${r.lps} Ladepunkt${r.lps==="1"?"":"e"}`].filter(Boolean).join(" · ");
   const nh=(r.hinweise||[]).length, nv=katVerbaut(r).length;
-  const bsrc=r.bild&&fotoCache.get(r.bild);
+  const bsrc=KAT_DATEIEN&&r.bild&&fotoCache.get(r.bild);
   return `<div class="li" role="button" tabindex="0" data-act="nav" data-v="katmodell" data-id="${esc(r.id)}"><span class="av${bsrc?" av-img":""}">${bsrc?`<img src="${bsrc}" alt="">`:icon("ev")}</span>
     <span class="lt"><span class="h">${esc(katName(r))}</span><span class="s">${esc(nav.v==="katalog"?(kurz||r.art||""):[r.hersteller,kurz].filter(Boolean).join(" · "))}</span>
-    <span class="st">${!r.quelle?pill("wip","Angaben prüfen"):""}${nh?pill("open",`${nh} Hinweis${nh>1?"e":""}`):""}${(r.anhaenge||[]).length?pill("open",`${r.anhaenge.length} Anhang${r.anhaenge.length>1?"e":""}`):""}</span></span>${icon("chev")}</div>`;
+    <span class="st">${!r.quelle?pill("wip","Angaben prüfen"):""}${nh?pill("open",`${nh} Hinweis${nh>1?"e":""}`):""}${KAT_DATEIEN&&(r.anhaenge||[]).length?pill("open",`${r.anhaenge.length} Anhang${r.anhaenge.length>1?"e":""}`):""}</span></span>${icon("chev")}</div>`;
 }
 function katalogListe(){
   const q=katNorm(query), H=v=>katNorm(v).includes(q);
@@ -1410,17 +1414,17 @@ function katModellView(r){
     z("Artikelnummer",r.artnr),z("Notiz",r.notiz)].join("");
   let h=`<div class="narrow">`;
   if(!r.quelle) h+=`<div class="robanner warn">${icon("warn")}<span>Angaben noch nicht geprüft – bitte aus dem Datenblatt oder vor Ort ergänzen und die Quelle eintragen.</span><button class="btn-text" data-act="katEdit">Ergänzen</button></div>`;
-  const bsrc=r.bild&&fotoCache.get(r.bild);
+  const bsrc=KAT_DATEIEN&&r.bild&&fotoCache.get(r.bild);
   h+=`<div class="sec-row"><div class="sec-lbl">Steckbrief</div><button class="btn-text" data-act="katEdit">${icon("edit")}Bearbeiten</button></div>`;
-  h+=`<div class="infok kat-kopf"><div class="kat-bild">${bsrc?`<button class="foto" data-act="katBildShow" aria-label="Produktbild ansehen"><img src="${bsrc}" alt=""></button>`
-      :r.bild?`<div class="foto leer">${icon("sync")}<span class="fh">wird geladen …</span></div>`:`<button class="foto leer" data-act="katBildAdd">${icon("cam")}<span class="fl">Produktbild</span><span class="fh">Foto oder Bild vom Hersteller</span></button>`}</div>
+  h+=`<div class="infok${KAT_DATEIEN?" kat-kopf":""}">${KAT_DATEIEN?`<div class="kat-bild">${bsrc?`<button class="foto" data-act="katBildShow" aria-label="Produktbild ansehen"><img src="${bsrc}" alt=""></button>`
+      :r.bild?`<div class="foto leer">${icon("sync")}<span class="fh">wird geladen …</span></div>`:`<button class="foto leer" data-act="katBildAdd">${icon("cam")}<span class="fl">Produktbild</span><span class="fh">Foto oder Bild vom Hersteller</span></button>`}</div>`:""}
     <div class="kat-daten">${stb||`<span class="meta">Noch keine Angaben.</span>`}<div class="by">${r.quelle?`Quelle: ${esc(r.quelle)} · `:""}zuletzt geändert${r.updatedBy&&r.updatedBy.name?` von ${esc(r.updatedBy.name)}`:""} am ${new Date(r.updated||Date.now()).toLocaleDateString("de-DE")}</div></div></div>`;
   const an=r.anhaenge||[];
-  h+=`<div class="sec-row"><div class="sec-lbl">Anleitungen und Datenblätter</div><button class="btn-text" data-act="katDateiAdd">${icon("add")}Anhang</button></div>`;
+  if(KAT_DATEIEN){ h+=`<div class="sec-row"><div class="sec-lbl">Anleitungen und Datenblätter</div><button class="btn-text" data-act="katDateiAdd">${icon("add")}Anhang</button></div>`;
   h+=an.length?listOf(an.map(d=>`<div class="li" role="button" tabindex="0" data-act="katDateiOpen" data-d="${d.id}"><span class="av">${icon("doc")}</span>
       <span class="lt"><span class="h">${esc(d.name)}</span><span class="s">${esc(groesse(d.size))}${d.by&&d.by.name?` · ${esc(d.by.name)}`:""} · ${new Date(d.at||Date.now()).toLocaleDateString("de-DE")}${DATEI_DA.has(d.id)?"":" · nicht auf diesem Gerät"}</span></span>
       ${canEdit({createdBy:d.by})?`<button class="icon-btn sm" data-act="katDateiDelAsk" data-d="${d.id}" aria-label="Anhang entfernen">${icon("del")}</button>`:icon("chev")}</div>`))
-    :`<p class="meta">Noch keine Anhänge. Die PDF des Herstellers einmal hier anhängen – danach ist sie auf diesem Gerät auch ohne Internet da.</p>`;
+    :`<p class="meta">Noch keine Anhänge. Die PDF des Herstellers einmal hier anhängen – danach ist sie auf diesem Gerät auch ohne Internet da.</p>`; }
   h+=`<div class="sec-row"><div class="sec-lbl">Hinweise</div><button class="btn-text" data-act="katHNeu">${icon("add")}Hinweis</button></div>`;
   const hs=[...(r.hinweise||[])].sort((a,b)=>KAT_HINWEIS.indexOf(a.titel)-KAT_HINWEIS.indexOf(b.titel));
   h+=hs.length?hs.map(x=>{ const ok=katHOk(x), fs=x.fotos||[];
@@ -1452,6 +1456,21 @@ async function katDateiAufnehmen(el){
 async function katDateiOeffnen(id){
   const o=await dateiGet(id); if(!o||!o.blob){ toast("Anhang liegt nicht auf diesem Gerät"); return; }
   const url=URL.createObjectURL(o.blob), w=window.open(url,"_blank"); if(!w) saveFile(o.blob,o.name); else setTimeout(()=>URL.revokeObjectURL(url),120000);
+}
+
+function katInfoHtml(s){
+  const r=s.katId&&DB.katalog.get(s.katId);
+  if(r&&!r.deleted) return `<div class="katinfo"><span>${esc(katKurz(r)||"Steckbrief noch ohne Angaben")}</span><span class="katinfo-a"><button type="button" class="btn-text" data-act="katUebernehmen">Werte übernehmen</button><button type="button" class="btn-text" data-act="nav" data-v="katmodell" data-id="${esc(r.id)}">Katalog</button></span></div>`;
+  const t=String(s.typ||"").trim(); if(!t) return "";
+  const f=katZuTyp(t);
+  if(f) return `<div class="katinfo"><span>Im Katalog gefunden: <b>${esc(katVoll(f))}</b></span><span class="katinfo-a"><button type="button" class="btn-text" data-act="katVerknuepfen" data-id="${esc(f.id)}">Verknüpfen</button></span></div>`;
+  return `<div class="katinfo"><span>„${esc(t)}“ ist noch nicht im Katalog.</span><span class="katinfo-a"><button type="button" class="btn-text" data-act="katAufnehmen">In den Katalog aufnehmen</button></span></div>`;
+}
+function katAusStation(s){
+  const t=String(s.typ||"").trim(), w=t.split(/\s+/), i=rcdInfo(s);
+  const kw=s.inennAnders?"":({"3-16":"11","3-32":"22","1-16":"3,7","1-32":"7,4"})[`${s.phasen||3}-${s.inenn}`]||"";
+  return saveRec("katalog",{id:uid(),hersteller:w.length>1?w[0]:"",modell:w.length>1?w.slice(1).join(" "):t,version:"",art:BAUART(s),leistung:kw,phasen:String(s.phasen||""),lps:String(s.lps||""),
+    anschluss:"",dc6:i.t==="A"||i.t==="F"?(i.dc?"ja":"nein"):"",artnr:"",quelle:"",notiz:"Aus einer Prüfung übernommen",hinweise:[]},true);
 }
 
 let katForm=null, katHForm=null, katHDel=null, katDDel=null;
@@ -1587,8 +1606,15 @@ let stDlg=null;
 const stTypListe=()=>[...live("katalog").map(r=>[r.hersteller,katName(r)].filter(Boolean).join(" ")),...live("pruefungen").flatMap(p=>p.s.map(x=>x.typ))];
 function katZuTyp(typ){ const t=katNorm(typ); if(!t) return null;
   return live("katalog").find(r=>katNorm([r.hersteller,katName(r)].join(" "))===t)||live("katalog").find(r=>r.modell&&t.includes(katNorm(r.modell)))||null; }
-function katAnwenden(s,r){ if(!r) return; s.katId=r.id;
-  if(r.phasen) s.phasen=+r.phasen; if(r.lps) s.lps=+r.lps;
+const katVoll=r=>[r.hersteller,katName(r)].filter(Boolean).join(" ");
+const katKurz=r=>[r.art,r.leistung&&`${r.leistung} kW`,r.phasen&&`${r.phasen}-phasig`,r.lps&&`${r.lps} Ladepunkt${r.lps==="1"?"":"e"}`,r.dc6==="ja"?"DC-Erkennung integriert":r.dc6==="nein"?"keine DC-Erkennung":""].filter(Boolean).join(" · ");
+function katOptionen(sel,leer){ const grp={}; live("katalog").forEach(r=>(grp[r.hersteller||"Sonstige"]=grp[r.hersteller||"Sonstige"]||[]).push(r));
+  return `<option value="">${esc(leer)}</option>`+Object.keys(grp).sort((a,b)=>a.localeCompare(b,"de")).map(h=>`<optgroup label="${esc(h)}">${grp[h].sort((a,b)=>katName(a).localeCompare(katName(b),"de")).map(r=>`<option value="${esc(r.id)}" ${r.id===sel?"selected":""}>${esc(katName(r))}</option>`).join("")}</optgroup>`).join(""); }
+const katSelect=(id,label,sel,leer)=>`<div class="tf fl"><select id="${id}">${katOptionen(sel,leer)}</select><label for="${id}">${esc(label)}</label><span class="arr">${icon("drop")}</span></div>`;
+function katAnwenden(s,r){ if(!r) return; s.katId=r.id; s.typ=katVoll(r);
+  if(r.art) s.bauart=r.art;
+  if(r.phasen) s.phasen=+r.phasen; if(r.lps) s.lps=+r.lps; while(s.lp.length<2) s.lp.push(newLP());
+  if(r.dc6){ const i=rcdInfo(s); setRcd(s,i.t,r.dc6==="ja"); }
   const kw=num(r.leistung); if(kw&&s.phasen){ const A=kw*1000/(s.phasen*230); if(Math.abs(A-16)<1.5) s.inenn="16"; else if(Math.abs(A-32)<2.5) s.inenn="32"; } }
 function stLesen(){ const F=formVals(); stDlg.gr.forEach((g,i)=>{ if(F["typ_"+i]!==undefined) g.typ=F["typ_"+i]; if(F["n_"+i]!==undefined) g.n=F["n_"+i]; }); }
 function stDialog(o){
@@ -1597,19 +1623,22 @@ function stDialog(o){
   const D=stDlg, many=D.gr.length>1;
   const body=D.gr.map((g,i)=>`<div class="stgr">${many?`<div class="stgr-k"><b>Gruppe ${i+1}</b><button class="icon-btn sm" data-act="stGrDel" data-g="${i}" aria-label="Gruppe entfernen">${icon("del")}</button></div>`:""}
       ${seg("stBauart",g.bauart,BAUARTEN.map(([v,t,z])=>[v,`${t} · ${z}`])).replace(/data-act="stBauart"/g,`data-act="stBauart" data-g="${i}"`)}
-      <div class="row2 stgr-f">${tf("typ_"+i,"Hersteller / Typ (optional)",g.typ,{form:true,list:"dl-sttyp",ph:"z. B. Mennekes AMTRON"})}${tf("n_"+i,"Anzahl",g.n,{form:true,im:"numeric",sfx:"Stück"})}</div></div>`).join("");
+      <div class="row2 stgr-f">${katSelect("stkat_"+i,"Modell aus dem Katalog",g.kat||"","– anderes Modell –")}${tf("n_"+i,"Anzahl",g.n,{form:true,im:"numeric",sfx:"Stück"})}</div>
+      ${g.kat?"":`<div class="stgr-f">${tf("typ_"+i,"Hersteller / Typ (optional)",g.typ,{form:true,list:"dl-sttyp",ph:"z. B. Mennekes AMTRON"})}</div>`}
+      ${g.kat&&DB.katalog.get(g.kat)?`<p class="sup" style="margin:8px 4px 0">${esc(katKurz(DB.katalog.get(g.kat))||"Steckbrief noch ohne Angaben")}</p>`:""}</div>`).join("");
   dialog(D.mode==="neu"?"Was wird geprüft?":"Ladestationen hinzufügen",`<div class="fg1">${body}</div>${datalist("dl-sttyp",stTypListe())}
     <button class="btn-text stgr-add" data-act="stGrAdd">${icon("add")}Weitere Bauart oder Typ</button>
-    <p class="sup" style="margin:8px 0 0">Ist der Typ im Katalog, werden Ladepunkte, Phasen und Strom übernommen. Schutzeinrichtung und Leitung trägst du bei der ersten Station ein und überträgst sie dann über ⋮ „Auf andere Stationen übertragen“.</p>`,
+    <p class="sup" style="margin:8px 0 0">Aus dem Katalog werden Bauart, Ladepunkte, Phasen, Strom und DC-Erkennung übernommen. Schutzeinrichtung und Leitung trägst du bei der ersten Station ein und überträgst sie dann über ⋮ „Auf andere Stationen übertragen“.</p>`,
     `<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="stOk">${D.mode==="neu"?"Prüfung anlegen":"Hinzufügen"}</button>`);
 }
 function stErzeugen(liste,D){
   const neu=[];
   for(const g of D.gr){ const n=Math.max(0,Math.min(50,parseInt(g.n,10)||0)); if(!n) continue;
-    const vor=[...liste,...neu].reverse().find(x=>BAUART(x)===g.bauart&&(!g.typ||katNorm(x.typ)===katNorm(g.typ))), kat=katZuTyp(g.typ);
+    const kg=g.kat&&DB.katalog.get(g.kat), typ=kg?katVoll(kg):g.typ;
+    const vor=[...liste,...neu].reverse().find(x=>BAUART(x)===g.bauart&&(!typ||katNorm(x.typ)===katNorm(typ))), kat=kg||katZuTyp(typ);
     for(let i=0;i<n;i++){ const s=newSaeule(1,g.bauart); s.name="";
       if(vor){ [...ST_GERAET.filter(k=>k!=="fw"),...ST_TECHNIK].forEach(k=>{ if(vor[k]!==undefined) s[k]=vor[k]; }); }
-      if(g.typ){ s.typ=g.typ.trim(); if(!vor) katAnwenden(s,kat); }
+      if(typ){ s.typ=typ.trim(); if(!vor) katAnwenden(s,kat); }
       neu.push(s); } }
   return neu;
 }
@@ -1732,6 +1761,7 @@ document.addEventListener("input",ev=>{
   const m=path.match(/^s\.(\d+)\.(.+)$/); if(!m) return;
   const s=cur.s[+m[1]];
   if(m[2]==="name"&&nav.v==="saeule") $("#topTitle span").textContent=sName(s,+m[1]);
+  if(m[2]==="typ"){ const r=s.katId&&DB.katalog.get(s.katId); if(r&&katNorm(s.typ)!==katNorm(katVoll(r))){ delete s.katId; const w=$("#katWahl"); if(w) w.value=""; } }
   if(["absIn","zsMan"].includes(m[2])){ const c=$("#calc"); if(c) c.textContent=zsInfo(s).calc; }
   refresh();
 });
@@ -1739,6 +1769,10 @@ document.addEventListener("change",ev=>{
   const el=ev.target;
   if(el.id==="importFile"){ importBackup(el); return; }
   if(el.id==="fotoFile"){ fotoAufnehmen(el); return; }
+  if(el.id==="katWahl"&&cur&&nav.v==="saeule"&&canEdit(cur)){ const s=cur.s[nav.si], r=DB.katalog.get(el.value);
+    if(r){ katAnwenden(s,r); toast(`${katVoll(r)} übernommen`); } else delete s.katId;
+    nummeriere(); commit(); const y=scrollY; render(); scrollTo(0,y); return; }
+  if(el.id&&el.id.startsWith("stkat_")&&stDlg){ stLesen(); const g=stDlg.gr[+el.id.slice(6)], r=DB.katalog.get(el.value); g.kat=el.value; if(r){ g.typ=""; if(r.art) g.bauart=r.art; } stDialog(); return; }
   if(el.id==="f_tlWer"){ const pw=($("#f_tlPw")||{}).value||""; tlSel=el.value||null; render(); const e=$("#f_tlPw"); if(e){ e.value=pw; } (tlSel==="__andere"?$("#f_tlMail"):e)?.focus(); return; }
   if(el.id==="dateiFile"){ katDateiAufnehmen(el); return; }
   if(el.matches("#dlg select[data-f]")&&pick){ Object.assign(pick,formVals()); if(el.dataset.f==="k"){ pick.s=""; pick.l=""; } if(el.dataset.f==="s") pick.l=""; pickDialog(); return; }
@@ -1910,6 +1944,9 @@ document.addEventListener("click",ev=>{
     nummeriere();
     commit(); closeOverlays(); go({v:"saeulen"}); toast(`${n} ${n>1?"Ladestationen":"Ladestation"} angelegt (${cur.s[start].name}${n>1?` bis ${cur.s[cur.s.length-1].name}`:""})`); return; }
   case "uebertragAsk": uebertragDialog(); return;
+  case "katUebernehmen": { const s=cur.s[nav.si], r=DB.katalog.get(s.katId); if(!r) return; katAnwenden(s,r); nummeriere(); commit(); const y=scrollY; render(); scrollTo(0,y); toast("Werte aus dem Katalog übernommen"); return; }
+  case "katVerknuepfen": { const s=cur.s[nav.si], r=DB.katalog.get(b.dataset.id); if(!r) return; katAnwenden(s,r); nummeriere(); commit(); const y=scrollY; render(); scrollTo(0,y); toast(`Mit ${katVoll(r)} verknüpft`); return; }
+  case "katAufnehmen": { const s=cur.s[nav.si], r=katAusStation(s); s.katId=r.id; commit(); const y=scrollY; render(); scrollTo(0,y); toast("In den Katalog aufgenommen – Steckbrief dort ergänzen"); return; }
   case "uebertragen": { const q=cur.s[nav.si], ziel=[...document.querySelectorAll("#dlg [data-tr]:checked")].map(e=>cur.s[+e.dataset.tr]).filter(Boolean); closeOverlays();
     if(!ziel.length){ toast("Keine Station ausgewählt"); return; }
     ziel.forEach(z=>{ [...ST_GERAET,...ST_TECHNIK,"leistung"].forEach(k=>{ if(q[k]===undefined) delete z[k]; else z[k]=JSON.parse(JSON.stringify(q[k])); }); while(z.lp.length<2) z.lp.push(newLP()); });
