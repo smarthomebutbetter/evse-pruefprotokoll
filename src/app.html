@@ -877,6 +877,9 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 .fertig-a{display:flex;flex-direction:column;gap:10px}
 .fertig-a .btn-filled,.fertig-a .btn-tonal{height:48px;border-radius:24px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;width:100%}
 .fertig-a .btn-text{height:44px}
+
+.sicht-k{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}.sicht-k > div{flex:1}.sicht-k p{margin:2px 0 0;color:var(--on-sv);font-size:13px}
+.sicht-alle{display:flex;justify-content:flex-end;margin-top:8px}
 </style>
 </head>
 <body class="is-list">
@@ -954,6 +957,19 @@ const GROUPS = [
   ]},
 ];
 const ROWS = GROUPS.flatMap(g=>g.rows);
+const SICHT=[
+  {k:"gehaeuse",l:"Gehäuse, Abdeckungen und Display unbeschädigt"},
+  {k:"ladekabel",l:"Ladekabel, Stecker bzw. Ladedose unbeschädigt",d:"Isolierung, Knickschutz, Kontakte, Halterung"},
+  {k:"befestigung",l:"Befestigung bzw. Standsicherheit",d:"Wallbox fest montiert, Säule standsicher, Anfahrschutz falls nötig"},
+  {k:"umgebung",l:"Montageort und Schutzart passend",d:"IP-Schutzart, Witterung, keine Feuchte im Anschlussraum"},
+  {k:"leitung",l:"Zuleitung fachgerecht",d:"Auswahl, Verlegung, Einführung, Zugentlastung"},
+  {k:"klemmen",l:"Anschlussraum: Klemmstellen fest, keine Verfärbung"},
+  {k:"schutz",l:"Schutzeinrichtungen passend zur Ladestation",d:"LS, RCD-Typ und DC-Erkennung lt. Herstellerangabe"},
+  {k:"kennz",l:"Stromkreis im Verteiler gekennzeichnet",d:"eigener Stromkreis je Ladepunkt"},
+  {k:"schild",l:"Typschild lesbar, Herstellerunterlagen vorhanden"},
+];
+function sichtResult(s){ if(!s.sicht) return "ok"; const v=SICHT.map(r=>s.sicht[r.k]); return v.includes("nok")?"bad":v.every(x=>x==="ok")?"ok":"open"; }
+function sichtState(s){ if(!s.sicht) return "ok"; const v=SICHT.map(r=>s.sicht[r.k]); if(v.includes("nok")) return "bad"; if(v.every(x=>x==="ok")) return "ok"; return v.some(x=>x==="ok")?"wip":"open"; }
 const RCD_TYPES = ["A + RDC-DD 6 mA","A-EV","B","A (ohne DC-Erkennung)"];
 const PRUEFARTEN = ["Erstprüfung","Erweiterung","Wiederholungsprüfung","nach Instandsetzung"];
 const NORMEN = ["DIN VDE 0100-600","DIN VDE 0105-100","DIN VDE 0100-722","DGUV V3"];
@@ -972,7 +988,7 @@ const today = ()=>new Date().toISOString().slice(0,10);
 const deDate = iso=>iso?iso.split("-").reverse().join("."):"";
 
 function newLP(){ return {v:{risov:"500 V"}, bem:""}; }
-function newSaeule(n,bauart="Wallbox"){ return {id:uid(), bauart, name:`${bauart} ${n}`, typ:"", sn:"", ort:"", fw:"", absTyp:"LS B", absIn:"16", zsMan:"", inenn:"", rcd:RCD_TYPES[0], idn:"30", freigabe:"", phasen:3, lps:bauart==="Ladesäule"?2:1, lp:[newLP(),newLP()], fotos:{}}; }
+function newSaeule(n,bauart="Wallbox"){ return {id:uid(), sicht:{}, bauart, name:`${bauart} ${n}`, typ:"", sn:"", ort:"", fw:"", absTyp:"LS B", absIn:"16", zsMan:"", inenn:"", rcd:RCD_TYPES[0], idn:"30", freigabe:"", phasen:3, lps:bauart==="Ladesäule"?2:1, lp:[newLP(),newLP()], fotos:{}}; }
 const BAUART=s=>s.bauart||"Ladesäule";
 const BAUARTEN=[["Wallbox","Wallbox","an der Wand"],["Ladesäule","Ladesäule","freistehend"]];
 function newProto(){
@@ -1010,14 +1026,14 @@ function evalRow(r,val,s){
 }
 function groupResult(g,s,li){ let o=0,b=0; for(const r of g.rows){ if(!rowVisible(r,s)) continue; const e=evalRow(r,s.lp[li].v[r.k],s); if(e==="bad")b++; else if(e==="open")o++; } return b?"bad":o?"open":"ok"; }
 function lpResult(s,li){ const rs=GROUPS.map(g=>groupResult(g,s,li)); return rs.includes("bad")?"bad":rs.includes("open")?"open":"ok"; }
-function saeuleResult(s){ const rs=[]; for(let i=0;i<s.lps;i++) rs.push(lpResult(s,i)); return rs.includes("bad")?"bad":rs.includes("open")?"open":"ok"; }
+function saeuleResult(s){ const rs=[sichtResult(s)]; for(let i=0;i<s.lps;i++) rs.push(lpResult(s,i)); return rs.includes("bad")?"bad":rs.includes("open")?"open":"ok"; }
 function stateOf(list){ if(list.includes("bad")) return "bad"; if(list.every(x=>x==="ok"||x==="skip")) return "ok"; return list.some(x=>x==="ok"||x==="wip")?"wip":"open"; }
 function groupState(g,s,li){
   const rs=g.rows.filter(r=>rowVisible(r,s)).map(r=>[r,evalRow(r,s.lp[li].v[r.k],s)]).filter(x=>x[1]!=="skip"), es=rs.map(x=>x[1]);
   if(es.includes("bad")) return "bad"; if(es.every(e=>e==="ok")) return "ok";
   return rs.some(([r,e])=>!r.pre&&e!=="open")?"wip":"open"; }
 function lpState(s,li){ const st=GROUPS.map(g=>groupState(g,s,li)); return stateOf(st); }
-function saeuleState(s){ return stateOf(Array.from({length:s.lps},(_,i)=>lpState(s,i))); }
+function saeuleState(s){ return stateOf([sichtState(s),...Array.from({length:s.lps},(_,i)=>lpState(s,i))]); }
 function protoState(p){ return stateOf(p.s.map(saeuleState)); }
 function protoResult(p){ const rs=p.s.map(saeuleResult); return rs.includes("bad")?"bad":rs.includes("open")?"open":"ok"; }
 
@@ -1490,7 +1506,7 @@ async function protAblegen(p,blob,name){
   try{ const {k,s,l}=pfad(p), d=await protOpen();
     const x={id:uid(),pruefungId:p.id,kundeId:p.kundeId||"",standortId:p.standortId||"",ladeparkId:p.ladeparkId||"",name,
       titel:[k&&k.name,(l||s||{}).name].filter(Boolean).join(" · ")||pTitel(p),datum:p.p.datum||"",art:p.p.art||"",auftragsnr:p.p.auftragsnr||"",pruefer:p.p.pruefer||"",
-      ergebnis:protoResult(p)==="bad"?"bad":"ok",unterschrift:!!(p.a&&p.a.sigP),created:Date.now(),von:who(),fassung:PROT.filter(y=>y.pruefungId===p.id).length+1,demo:!!p.demo,size:blob.size};
+      ergebnis:protoResult(p)==="bad"?"bad":"ok",nr:p._nr||"",unterschrift:!!(p.a&&p.a.sigP),created:Date.now(),von:who(),fassung:PROT.filter(y=>y.pruefungId===p.id).length+1,demo:!!p.demo,size:blob.size};
     const tx=d.transaction(["meta","blob"],"readwrite"); tx.objectStore("meta").put(x); tx.objectStore("blob").put(blob,x.id);
     await new Promise((r,j)=>{ tx.oncomplete=r; tx.onerror=()=>j(tx.error); }); PROT.push(x); if(nav.v==="bibliothek") render(); return x;
   }catch(e){ toast("PDF konnte nicht in der Bibliothek abgelegt werden"); return null; }
@@ -1647,6 +1663,7 @@ document.addEventListener("click",e=>{
     m.style.top=(r.bottom+6)+"px"; m.style.left=r.left+"px"; m.style.right="auto"; m.style.width=r.width+"px"; m.style.maxWidth="none"; m.hidden=false; $("#scrim").hidden=false; return; }
   const b=e.target.closest("[data-tlwahl]"); if(!b) return; e.preventDefault(); e.stopPropagation(); closeOverlays(); const m=$("#menu"); ["top","left","right","width","maxWidth"].forEach(k=>m.style[k]="");
   const sel=$("#f_tlWer"); if(!sel) return; sel.value=b.dataset.tlwahl; sel.dispatchEvent(new Event("change",{bubbles:true})); },true);
+function sichtPill(){ if(!cur||nav.v!=="saeule") return; const s=cur.s[nav.si], e=document.querySelector(`[data-sicht="${nav.si}"]`); if(!e||!s) return; const r=sichtState(s); e.className=`pill ${r}`; e.textContent=RES_SHORT[r]; }
 function render(){
   const app=$("#app"), ed=EDITOR.includes(nav.v);
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1970,7 +1987,7 @@ function projektView(){
       ${tf("p.geraet","Messgerät",p.geraet)}
       ${tf("p.geraetSn","Seriennummer",p.geraetSn)}
       <div>${tf("p.kal","Kalibrierung gültig bis",p.kal,{ph:"MM.JJJJ"})}<div id="kalWarn">${kalWarnHtml(cur)}</div><p class="sup" style="margin:4px 4px 0">Wiha MFT one: Hersteller empfiehlt Kalibrierung alle 12 Monate.</p></div>
-      ${tf("p.adapter","Prüfadapter",p.adapter,{list:"dl-adapter"})}${datalist("dl-adapter",["Fluke FEV300",...live("pruefungen").map(x=>x.p.adapter)])}
+      ${tf("p.adapter","Prüfadapter",p.adapter,{list:"dl-adapter"})}${tf("p.adapterSn","Seriennr. Prüfadapter",p.adapterSn)}${datalist("dl-adapter",["Fluke FEV300",...live("pruefungen").map(x=>x.p.adapter)])}
     </div></section>
     <section class="card"><h3>Prüfung</h3><div class="fg">
       ${sf("p.art","Prüfart",p.art,PRUEFARTEN)}
@@ -2012,6 +2029,7 @@ function saeuleView(){
         <div><div class="lbl">Ladepunkte</div>${seg("lps",s.lps,[[1,"1"],[2,"2"]])}</div>
         <div><div class="lbl">Anschluss</div>${seg("phasen",s.phasen,[[1,"1-phasig"],[3,"3-phasig"]])}</div>
       </div></section>
+      ${(()=>{ const sr=sichtState(s); return `<section class="card"><div class="gh sicht-k"><div><h3>Sichtprüfung</h3><p>Vor dem Messen, Ladestation und Anschlussraum ansehen</p></div><span class="pill ${sr}" data-sicht="${si}">${RES_SHORT[sr]}</span></div><div class="mgrid">${SICHT.map(r=>{ const val=(s.sicht||{})[r.k]||"", path=`s.${si}.sicht.${r.k}`; return `<div class="mrow"><div class="txt"><div class="l">${esc(r.l)}</div>${r.d?`<div class="s">${esc(r.d)}</div>`:""}</div><div class="ctl wide">${seg("chk",val,[["ok","i.O."],["nok","n.i.O."]],"ev").replace(/data-act="chk"/g,`data-act="chk" data-path="${path}"`)}</div></div>`; }).join("")}</div><div class="sicht-alle"><button type="button" class="btn-text" data-act="sichtAlle" data-si="${si}">Alle i.O. setzen</button></div></section>`; })()}
       <section class="card"><h3>Schutzeinrichtungen im Verteiler</h3><div class="fg">
         ${tf(b+"bmk","Beschriftung im Verteiler",s.bmk,{full:true,ph:"z. B. EVSE Säule / -F12"})}
         <div class="full"><div class="lbl">Leitungsschutzschalter · ${polLS(s)}</div>${seg("abs",s.absTyp,[["LS B","B"],["LS C","C"],["manuell","Sicherung"]])}</div>
@@ -2073,7 +2091,7 @@ function abschlussView(){
     ${cur.s.length>1?`<section class="card"><h3>Im Bericht</h3><p class="sup" style="margin:-8px 0 12px">Abgewählte Ladestationen erscheinen nicht im PDF. Im Prüfumfang wird vermerkt, dass sie nicht Bestandteil dieses Berichts sind.</p>
       <div class="chips">${cur.s.map((s,si)=>{ const aus=(a.pdfOhne||[]).includes(s.id); return `<button type="button" class="chip" data-act="pdfIn" data-id="${esc(s.id)}" aria-pressed="${!aus}">${icon("check")}${esc(sName(s,si))}</button>`; }).join("")}</div></section>`:""}
     <section class="card"><h3>Bewertung</h3><div class="fg">
-      ${ta("a.maengel","Mängel / Maßnahmen",a.maengel,{full:true,ph:"Leer lassen, wenn keine Mängel"})}
+      ${ta("a.maengel","Mängel / Maßnahmen",a.maengel,{full:true,ph:"Leer lassen, wenn keine Mängel"})}${ta("a.abweichung","Abweichungen von den Normen (mit Begründung)",a.abweichung,{full:true,ph:"Leer lassen, wenn keine – im Protokoll steht dann „Keine“"})}
       ${ta("a.funktion","Funktionsprüfung mit Prüfadapter",a.funktion,{full:true})}
       <div class="full"><div class="lbl">Nächste Prüfung empfohlen in</div><div class="chips">${[1,2,3,4].map(n=>`<button type="button" class="chip" data-act="frist" data-v="${n}" aria-pressed="${String(a.fristJ)===String(n)}">${icon("check")}${n} Jahr${n>1?"en":""}</button>`).join("")}</div>
         <p class="sup">${a.naechste?`Empfohlen bis <b>${deDate(a.naechste)}</b> · `:""}Gewerblich (DGUV V3) Richtwert 4 Jahre; die Frist legt der Betreiber fest.</p></div>
@@ -2591,7 +2609,7 @@ function loeschePruefung(p){
 }
 
 const getPath=p=>p.split(".").reduce((o,k)=>o==null?o:o[k],cur);
-function setPath(p,v){ const ks=p.split("."); let o=cur; for(let i=0;i<ks.length-1;i++) o=o[ks[i]]; o[ks[ks.length-1]]=v; }
+function setPath(p,v){ const ks=p.split("."); let o=cur; for(let i=0;i<ks.length-1;i++) o=o[ks[i]]??(o[ks[i]]={}); o[ks[ks.length-1]]=v; }
 document.addEventListener("input",ev=>{ if(ev.target.id==="kpQ"){ const l=$("#kpL"), w=$("#katWahl"); if(l) l.innerHTML=kpListe(ev.target.value,w&&w.value); return; }
   if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="bibliothek"?bibListe():nav.v==="katalog"?katalogListe():nav.v==="kunden"?kundenListe():nav.v==="pruefungen"?pruefungenListe():(query?suche(query):startListen()); return; }
   const el=ev.target.closest("[data-bind]"); if(!el||!cur) return;
@@ -2829,7 +2847,8 @@ document.addEventListener("click",ev=>{
     nummeriere(); commit(); toast(`Auf ${ziel.length} Station${ziel.length>1?"en":""} übertragen`); return; }
   case "bauart": { const s=cur.s[nav.si]; s.bauart=b.dataset.v; nummeriere(); commit(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "lps": case "phasen": { const s=cur.s[nav.si]; s[a]=+b.dataset.v; while(s.lp.length<2) s.lp.push(newLP()); scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
-  case "chk": { const p=b.dataset.path, v=b.dataset.v; setPath(p,getPath(p)===v?"":v); scheduleSave(); b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",getPath(p)===x.dataset.v)); refresh(); return; }
+  case "chk": { const p=b.dataset.path, v=b.dataset.v; setPath(p,getPath(p)===v?"":v); scheduleSave(); b.parentElement.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",getPath(p)===x.dataset.v)); refresh(); sichtPill(); return; }
+  case "sichtAlle": { const sx=cur.s[+b.dataset.si]; sx.sicht=Object.assign(sx.sicht||{},Object.fromEntries(SICHT.map(q=>[q.k,(sx.sicht||{})[q.k]==="nok"?"nok":"ok"]))); scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "sigclear": { cur.a[b.dataset.k]=""; scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "sigOpen": sigOpen(b.dataset.k); return;
   case "fotoAdd": fotoTarget={si:nav.si,k:b.dataset.k}; closeOverlays(); $("#fotoFile").click(); return;
@@ -3000,7 +3019,7 @@ function demoAutohaus(D){
     {maengel:"Wallbox 3: Isolationswiderstand 0,8 MΩ (< 1 MΩ). Anschlussdose trocknen, Dichtung erneuern, danach erneut messen.",fristJ:"1",naechste:"2027-10-14"}));
 }
 function demoLaden(){
-  const D=(kind,r)=>{ r.demo=true; r.id=r.id||uid(); r.created=r.updated=Date.now(); r.createdBy=r.updatedBy={name:"Beispiel",mail:""}; dbPut(kind,r); return r; };
+  const D=(kind,r)=>{ if(kind==="pruefungen") (r.s||[]).forEach(x=>{ x.sicht=Object.fromEntries(SICHT.map(q=>[q.k,"ok"])); }); r.demo=true; r.id=r.id||uid(); r.created=r.updated=Date.now(); r.createdBy=r.updatedBy={name:"Beispiel",mail:""}; dbPut(kind,r); return r; };
   if(!live("kunden").some(k=>k.demo&&k.name===DEMO_AH)) demoAutohaus(D);
   if(live("kunden").some(k=>k.demo&&k.name==="BEISPIEL Musterfirma GmbH")) return;
   const k1=D("kunden",{name:"BEISPIEL Musterfirma GmbH",kdnr:"10234",strasse:"Industriestraße 1",plz:"53359",ort:"Rheinbach",ansprech:"Frau Beispiel (Facility Management)",tel:"02226 0000-0",mail:"facility@example.com",notiz:"Mehrere Standorte"});
@@ -3122,10 +3141,12 @@ function makePDF(name,mail){
   const fehlt=cur.s.flatMap(fotoIds).filter(id=>!fotoCache.has(id));
   if(fehlt.length&&SYNC_ON){ fotoFetch(fehlt); toast("Fotos werden noch geladen – gleich noch einmal tippen"); return; }
   const ohne=(cur.a.pdfOhne||[]).filter(id=>cur.s.some(s=>s.id===id));
-  const P=ohne.length?Object.assign({},cur,{s:cur.s.filter(s=>!ohne.includes(s.id)),_ohne:cur.s.filter(s=>ohne.includes(s.id)).map(s=>s.name)}):cur;
+  const P=ohne.length?Object.assign({},cur,{s:cur.s.filter(s=>!ohne.includes(s.id)),_ohne:cur.s.filter(s=>ohne.includes(s.id)).map(s=>s.name)}):Object.assign({},cur);
+  const fz=PROT.filter(y=>y.pruefungId===cur.id).length+1;
+  P._nr=`${String(cur.p.auftragsnr||"").replace(/\s+/g,"")||String(cur.p.datum||"").replace(/-/g,"")}-${cur.id.slice(-4).toUpperCase()}${fz>1?`/${fz}`:""}`;
   let blob; try{ blob=buildPDF(P); }catch(e){ toast("PDF konnte nicht erstellt werden"); return; }
   name=name||pdfSchema(cur).name||"Prüfprotokoll";
-  const ablage=protAblegen(cur,blob,name);
+  const ablage=protAblegen(Object.assign({},cur,{_nr:P._nr}),blob,name);
   if(mail) pdfTeilen(blob,name); else saveFile(blob,name+".pdf");
   ablage.then(x=>fertigZeigen(x,mail));
   if(SYNC_ON&&ME.signedIn&&!cur.demo){ const id=cur.id;
@@ -3147,7 +3168,7 @@ function buildPDF(P){
     d.setFillColor(...SIG); d.rect(0,24,W,1.4,"F"); y=34; };
   const foot=()=>{ d.setDrawColor(...LINE); d.line(M,284,W-M,284); d.setFont("helvetica","normal"); d.setFontSize(7); d.setTextColor(...GR);
     d.text("Elektro Irrgang | Hahner Weg 2 | 51545 Waldbröl | Tel. 02291 4878 | info@elektro-irrgang.de",M,288);
-    d.text(pt([pfadText(P," | "),P.p.auftragsnr&&`Auftrag ${P.p.auftragsnr}`,P.p.datum&&`Prüfdatum ${deDate(P.p.datum)}`].filter(Boolean).join(" | ")),M,292); d.text(`Seite ${page}`,W-M,292,{align:"right"}); };
+    d.text(pt([pfadText(P," | "),P.p.auftragsnr&&`Auftrag ${P.p.auftragsnr}`,P.p.datum&&`Prüfdatum ${deDate(P.p.datum)}`].filter(Boolean).join(" | ")),M,292); };
   const np=(t,s)=>{ foot(); d.addPage(); page++; head(t,s); };
   const sec=t=>{ d.setFillColor(...SUNK); d.rect(M,y-4.5,CW,7,"F"); d.setFillColor(...SIG); d.rect(M,y-4.5,1.2,7,"F"); d.setTextColor(...NAVY); d.setFont("helvetica","bold"); d.setFontSize(9.5); d.text(pt(t),M+4,y); y+=8; };
   const kv=prs=>{ const cw=CW/2, LH=3.7; d.setFontSize(8.5); for(let i=0;i<prs.length;i+=2){ let n=1; for(let c=0;c<2&&i+c<prs.length;c++){ const [k,v]=prs[i+c],x=M+c*cw;
@@ -3163,7 +3184,7 @@ function buildPDF(P){
   kv([["Auftraggeber",PF.k?[PF.k.name,adrText(PF.k)].filter(Boolean).join(", "):P.p.auftraggeber],["Auftragsnr.",P.p.auftragsnr],["Kundennr.",PF.k&&PF.k.kdnr],["Ansprechpartner",PF.k&&PF.k.ansprech],
       ["Standort",PF.s?[PF.s.name,adrText(PF.s)].filter(Boolean).join(", "):"-"],["Ladepark",PF.l?PF.l.name:"-"],
       ["Verteiler / Anlage",P.p.standort],["Bezeichnung",P.p.projekt],["Prüfdatum",deDate(P.p.datum)],["Prüfer",P.p.pruefer],
-      ["Messgerät",P.p.geraet],["Seriennr.",P.p.geraetSn],["Prüfadapter",P.p.adapter],["Kal. gültig bis",P.p.kal],["Art der Prüfung",P.p.art],["Netzform",`${P.p.netz} | 230/400 V`]]);
+      ["Messgerät",P.p.geraet],["Seriennr.",P.p.geraetSn],["Prüfadapter",P.p.adapter],["Seriennr. Adapter",P.p.adapterSn],["Kal. gültig bis",P.p.kal],["Art der Prüfung",P.p.art],["Netzform",`${P.p.netz} | 230/400 V`],["Protokoll-Nr.",P._nr]]);
   sec("Prüfumfang"); para(P.p.umfang+(P._ohne&&P._ohne.length?` Nicht Bestandteil dieses Berichts: ${P._ohne.join(", ")}.`:""));
   sec("Übersicht Ladestationen");
   d.setFillColor(...NAVY); d.rect(M,y-4,CW,6,"F"); d.setTextColor(255); d.setFontSize(8); d.setFont("helvetica","bold");
@@ -3191,6 +3212,11 @@ function buildPDF(P){
         d.setFont("helvetica","bold"); d.setFontSize(7.5); d.setTextColor(...NAVY); d.text(pt(f.l),x,ty+th+4); });
       fotoLinks.push(link); y=ty+th+11;
     }
+    if(s.sicht){ sec("Sichtprüfung"); const half=Math.ceil(SICHT.length/2), cw=CW/2; d.setFontSize(8); 
+      for(let i=0;i<half;i++){ for(let c=0;c<2;c++){ const r=SICHT[i+c*half]; if(!r) continue; const x=M+c*cw, v=s.sicht[r.k];
+        d.setFont("helvetica","normal"); d.setTextColor(30); d.text(fitTxt(pt(r.l),cw-22),x+2,y);
+        d.setFont("helvetica","bold"); d.setTextColor(...(v==="ok"?OKC:v==="nok"?BADC:GR)); d.text(v==="ok"?"i.O.":v==="nok"?"n.i.O.":"-",x+cw-4,y,{align:"right"}); }
+        d.setDrawColor(...LINE); d.line(M,y+1.8,M+CW,y+1.8); y+=5.2; } y+=4; }
     const groups=GROUPS.map(g=>({g,rows:g.rows.filter(r=>rowVisible(r,s)&&!(r.opt&&s.lp.slice(0,s.lps).every(lp=>!lp.v[r.k])))})).filter(x=>x.rows.length);
     const nR=groups.reduce((n,x)=>n+x.rows.length,0);
     d.setFontSize(8.5); let resH=12;
@@ -3227,6 +3253,7 @@ function buildPDF(P){
   d.setFont("helvetica","bold"); d.setFontSize(10); d.setTextColor(20);
   d.text(pt(g==="ok"?"Keine Mängel festgestellt. Die Ladeeinrichtungen entsprechen den Anforderungen.":g==="bad"?"Mängel festgestellt - Beseitigung erforderlich.":"Prüfung unvollständig - nicht alle Werte erfasst."),M,y); badge(M+CW-1,y,g); y+=9;
   sec("Festgestellte Mängel / Maßnahmen"); para(P.a.maengel||"Keine.");
+  sec("Abweichungen von den Normen"); para(P.a.abweichung||"Keine.");
   sec("Funktionsprüfung mit Prüfadapter"); para(P.a.funktion);
   sec("Nächste Prüfung"); para(P.a.naechste?`Empfohlen bis ${deDate(P.a.naechste)}${P.a.fristJ?` (in ${P.a.fristJ} Jahr${P.a.fristJ>1?"en":""})`:""}. Die Frist legt der Betreiber fest.`:"Nach Festlegung des Betreibers (Gefährdungsbeurteilung).");
   sec("Unterschriften"); y+=2;
@@ -3238,6 +3265,7 @@ function buildPDF(P){
     d.setFont("helvetica","normal"); d.setFontSize(8); d.setTextColor(...GR);
     d.text(pt(`${l}: ${i&&P.a.kAbwesend?"nicht anwesend":(P.a[n]||(i?"":P.p.pruefer)||"")} | ${deDate(P.p.datum)}`),x,y+35); });
   foot();
+  const NP=d.getNumberOfPages(); for(let i=1;i<=NP;i++){ d.setPage(i); d.setFont("helvetica","normal"); d.setFontSize(7); d.setTextColor(...GR); d.text(`Seite ${i} von ${NP}`,W-M,292,{align:"right"}); if(P._nr) d.text(pt(`Protokoll-Nr. ${P._nr}`),W-M,288,{align:"right"}); }
   return d.output("blob");
 }
 
