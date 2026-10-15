@@ -1028,7 +1028,7 @@ let theme="auto"; try{ theme=localStorage.getItem(TH_KEY)||"auto"; }catch(e){}
 applyTheme(theme);
 WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
 
-const APP_VERSION="1.74 · 15.10.2026";
+const APP_VERSION="1.75 · 15.10.2026";
 const BEREICHE=[
   {id:"anlage",t:"Hausinstallation",ic:"home",s:"Elektrische Anlagen prüfen",normen:"DIN VDE 0100-600 (Erstprüfung) · DIN VDE 0105-100 (Wiederholungsprüfung)",
     plan:["Prüfung je Kunde und Standort, gegliedert nach Verteiler und Stromkreisen","Besichtigen, Erproben, Messen (RLO, RISO, Zs/Zi, RCD) mit Grenzwertprüfung","Mängel mit Fotos, Prüfprotokoll als PDF und E-Check-Plakette","Übernahme der Messwerte aus dem Messgerät, sobald das Exportformat geklärt ist"]},
@@ -1112,7 +1112,7 @@ function mehrView(){
       ${!SYNC_ON&&TEST_LOGIN.an&&META.angemeldet?row("testLogout","logout","Abmelden",esc(`Angemeldet: ${META.angemeldet.mail}`)):""}
       ${row("nav:team","person","Mitarbeiter",esc(META.profil.name||""))}
       ${row("theme","theme","Darstellung",TH_LABEL[theme])}</div>
-    <div class="sec-lbl">Apps</div><div class="list">${link("../","home","Übersicht","Startseite mit Statistik und Kunden")}${link("../evse/","ev","EVSE","Prüfung von Wallboxen und Ladesäulen")}${link("../baustelle/","baustelle","Baustelle","Tagesstand, offene Punkte und Material")}</div>
+    <div class="sec-lbl">Apps</div><div class="list">${link("../uebersicht/","home","Übersicht","Startseite mit Statistik und Kunden")}${link("../evse/","ev","EVSE","Prüfung von Wallboxen und Ladesäulen")}${link("../baustelle/","baustelle","Baustelle","Tagesstand, offene Punkte und Material")}</div>
     <div class="sec-lbl">Rechtliches und Info</div><div class="list">
       ${row("nav:impressum","paragraph","Impressum","")}
       ${row("nav:about","info","Über die App",`Version ${APP_VERSION}`)}</div></div>`;

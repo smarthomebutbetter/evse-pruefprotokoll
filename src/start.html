@@ -1007,9 +1007,9 @@ WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) rende
 
 const APP_VERSION="<!--VERSION-->";
 const APPS=[
-  {name:"EVSE",text:"Prüfung von Wallboxen und Ladesäulen",href:"evse/",ic:"<!--ICON_EVSE-->"},
-  {name:"Baustelle",text:"Tagesstand, offene Punkte und Material",href:"baustelle/",ic:"<!--ICON_BAU-->"},
-  {name:"E-Check",text:"Hausinstallation und Geräte · in Vorbereitung",href:"echeck/",ic:"<!--ICON_ECHECK-->"}];
+  {name:"EVSE",text:"Prüfung von Wallboxen und Ladesäulen",href:"../evse/",ic:"<!--ICON_EVSE-->"},
+  {name:"Baustelle",text:"Tagesstand, offene Punkte und Material",href:"../baustelle/",ic:"<!--ICON_BAU-->"},
+  {name:"E-Check",text:"Hausinstallation und Geräte · in Vorbereitung",href:"../echeck/",ic:"<!--ICON_ECHECK-->"}];
 const ENTWICKLUNG=[
   {t:"EVSE",st:"ok",s:"Im Testbetrieb",d:"Prüfablauf, PDF-Protokoll, Wallbox-Katalog, Wiederholungsprüfung, Plausibilitätsprüfung."},
   {t:"Baustelle",st:"ok",s:"Im Testbetrieb",d:"Seit 15.10.2026. Übergaben mit Stand, offenen Punkten, Material und Fotos."},
@@ -1128,8 +1128,8 @@ function kundenView(){
 function bezugListen(kind,id){
   const bs=live("baustellen").filter(b=>kind==="kunden"?b.kundeId===id:b.standortId===id).sort((a,b)=>bAktiv(b)-bAktiv(a));
   const ps=live("pruefungen").filter(p=>kind==="kunden"?p.kundeId===id:p.standortId===id).sort(byDate);
-  const bZ=b=>`<a class="li" href="baustelle/" style="text-decoration:none;color:inherit"><span class="av">${icon("baustelle")}</span><span class="lt"><span class="h">${esc(b.name)}</span><span class="s">${esc([kind==="kunden"&&(standortOf(b.standortId)||{}).name,b.auftragsnr&&`Auftrag ${b.auftragsnr}`].filter(Boolean).join(" · "))}</span><span class="st">${pill((b.status||"aktiv")==="fertig"?"ok":(b.status||"aktiv")==="aktiv"?"wip":"open",B_TXT[b.status||"aktiv"])}</span></span>${icon("chev")}</a>`;
-  const pZ=p=>`<a class="li" href="evse/" style="text-decoration:none;color:inherit"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">${esc(p.p.art||"Prüfung")} · ${esc(deDate(p.p.datum))}</span><span class="s">${esc([(ladeparkOf(p.ladeparkId)||{}).name||(kind==="kunden"&&(standortOf(p.standortId)||{}).name),p.p.auftragsnr&&`Auftrag ${p.p.auftragsnr}`,`${lpZahl(p)} Ladepunkt${lpZahl(p)===1?"":"e"}`].filter(Boolean).join(" · "))}</span><span class="st">${pill(pStand(p)==="open"?"wip":pStand(p))}${p.a&&p.a.naechste?pill("open",`nächste ${deDate(p.a.naechste)}`):""}</span></span>${icon("chev")}</a>`;
+  const bZ=b=>`<a class="li" href="../baustelle/" style="text-decoration:none;color:inherit"><span class="av">${icon("baustelle")}</span><span class="lt"><span class="h">${esc(b.name)}</span><span class="s">${esc([kind==="kunden"&&(standortOf(b.standortId)||{}).name,b.auftragsnr&&`Auftrag ${b.auftragsnr}`].filter(Boolean).join(" · "))}</span><span class="st">${pill((b.status||"aktiv")==="fertig"?"ok":(b.status||"aktiv")==="aktiv"?"wip":"open",B_TXT[b.status||"aktiv"])}</span></span>${icon("chev")}</a>`;
+  const pZ=p=>`<a class="li" href="../evse/" style="text-decoration:none;color:inherit"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">${esc(p.p.art||"Prüfung")} · ${esc(deDate(p.p.datum))}</span><span class="s">${esc([(ladeparkOf(p.ladeparkId)||{}).name||(kind==="kunden"&&(standortOf(p.standortId)||{}).name),p.p.auftragsnr&&`Auftrag ${p.p.auftragsnr}`,`${lpZahl(p)} Ladepunkt${lpZahl(p)===1?"":"e"}`].filter(Boolean).join(" · "))}</span><span class="st">${pill(pStand(p)==="open"?"wip":pStand(p))}${p.a&&p.a.naechste?pill("open",`nächste ${deDate(p.a.naechste)}`):""}</span></span>${icon("chev")}</a>`;
   return `${bs.length?`<div class="sec-lbl">Baustellen</div>${listOf(bs.map(bZ))}`:""}${ps.length?`<div class="sec-lbl">Prüfungen</div>${listOf(ps.slice(0,10).map(pZ))}`:""}`;
 }
 function kundeView(k){

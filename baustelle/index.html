@@ -1057,7 +1057,7 @@ let theme="auto"; try{ theme=localStorage.getItem(TH_KEY)||"auto"; }catch(e){}
 applyTheme(theme);
 WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
 
-const APP_VERSION="1.74 · 15.10.2026";
+const APP_VERSION="1.75 · 15.10.2026";
 const TOPDEST=[["start","Baustellen","baustelle"],["notizen","Notizen","notiz"],["kunden","Kunden","firma"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter",impressum:"Impressum",about:"Über die App"};
 const VIEW_KIND={kunde:"kunden",standort:"standorte"};
@@ -1459,7 +1459,7 @@ function mehrView(){
       ${SYNC_ON?row("syncNow","sync","Jetzt abgleichen",esc(syncText())):""}
       ${row("export","backup","Alle sichern","Baustellen, Übergaben, Fotos und Kunden")}
       ${row("import","upload","Sicherung laden","Daten aus einer Sicherungsdatei übernehmen")}</div>
-    <div class="sec-lbl">Apps</div><div class="list">${`<a class="li" href="../" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">Übersicht</span><span class="s">Startseite mit Statistik und Kunden</span></span>${icon("chev")}</a><a class="li" href="../evse/" style="text-decoration:none;color:inherit"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">EVSE</span><span class="s">Prüfung von Wallboxen und Ladesäulen</span></span>${icon("chev")}</a><a class="li" href="../echeck/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">E-Check</span><span class="s">Hausinstallation und Geräte · in Vorbereitung</span></span>${icon("chev")}</a>`}</div>
+    <div class="sec-lbl">Apps</div><div class="list">${`<a class="li" href="../uebersicht/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">Übersicht</span><span class="s">Startseite mit Statistik und Kunden</span></span>${icon("chev")}</a><a class="li" href="../evse/" style="text-decoration:none;color:inherit"><span class="av">${icon("ev")}</span><span class="lt"><span class="h">EVSE</span><span class="s">Prüfung von Wallboxen und Ladesäulen</span></span>${icon("chev")}</a><a class="li" href="../echeck/" style="text-decoration:none;color:inherit"><span class="av">${icon("home")}</span><span class="lt"><span class="h">E-Check</span><span class="s">Hausinstallation und Geräte · in Vorbereitung</span></span>${icon("chev")}</a>`}</div>
     <div class="sec-lbl">Rechtliches und Info</div><div class="list">
       ${row("nav:impressum","paragraph","Impressum","")}
       ${row("nav:about","info","Über die App",`Version ${APP_VERSION}`)}</div>

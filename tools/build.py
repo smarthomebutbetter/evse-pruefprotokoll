@@ -27,7 +27,7 @@ def baue(quelle, ziel, icon):
     print(f"{ziel}: {len(html)} Zeichen")
 
 
-baue("src/start.html", "index.html", "icon-180.png")
+baue("src/start.html", "uebersicht/index.html", "uebersicht/icon-180.png")
 baue("src/app.html", "evse/index.html", "evse/icon-180.png")
 baue("src/baustelle.html", "baustelle/index.html", "baustelle/icon-180.png")
 baue("src/echeck.html", "echeck/index.html", "echeck/icon-180.png")
