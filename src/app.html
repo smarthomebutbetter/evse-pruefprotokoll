@@ -388,6 +388,8 @@ details.optrows .mrow:first-of-type{border-top:0}
 @media (min-width:600px){.qa-row{justify-content:flex-start;gap:24px}.qa{flex:0 0 auto;width:88px}}
 .katinfo{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 8px;margin:8px 4px 0;font-size:13px;color:var(--on-sv)}
 .katinfo-a{display:flex;gap:4px}.katinfo .btn-text{height:32px;padding:0 8px}
+.kat-teilen{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0}
+.kat-teilen .btn-tonal{display:inline-flex;align-items:center;gap:8px}
 .kath{padding-bottom:10px}
 .kath + .kath{margin-top:12px}
 .kath-k{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px}
@@ -440,6 +442,7 @@ body.is-login .topbar{display:none}
 <div class="dlg" id="dlg" role="dialog" aria-modal="true" hidden></div>
 <div class="snackbar" id="toast" role="status" hidden></div>
 <input type="file" id="importFile" accept=".json,application/json" hidden>
+<input type="file" id="katFile" accept=".json,application/json" hidden>
 <input type="file" id="fotoFile" accept="image/*" hidden>
 <input type="file" id="dateiFile" accept="application/pdf,image/*,.pdf" hidden>
 
@@ -1404,7 +1407,30 @@ function katalogListe(){
 }
 function katalogView(){
   return `<div class="narrow">${searchBar("Hersteller, Modell oder Artikelnr. suchen")}<div id="res">${katalogListe()}</div>
-    <p class="hint">Steckbrief aus dem Datenblatt, dazu eigene Hinweise und Fotos von der Baustelle – zum Beispiel wo der PE angeschlossen wird.</p></div>`;
+    <div class="kat-teilen"><button class="btn-tonal" data-act="katExport">${icon("backup")}Katalog als Datei sichern</button><button class="btn-tonal" data-act="katImport">${icon("upload")}Katalog-Datei laden</button></div>
+    <p class="hint">Nur Modelle, Steckbriefe und Hinweise mit Fotos – keine Kunden oder Prüfungen. Die Datei im Share-Ordner ablegen, andere laden sie dort. Vorhandenes wird ergänzt, nichts geht verloren.</p></div>`;
+}
+async function katExport(){
+  const L=live("katalog"), fotos={}; L.flatMap(katFotoIds).forEach(i=>{ const d=fotoCache.get(i); if(d) fotos[i]=d; });
+  const blob=new Blob([JSON.stringify({app:"evse-katalog",version:1,saved:Date.now(),katalog:L.map(r=>{ const o=strip(r); delete o.anhaenge; delete o.bild; return o; }),fotos})],{type:"application/json"});
+  const name=`EVSE-Katalog_${today()}.json`, f=new File([blob],name,{type:"application/json"});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){ try{ await navigator.share({files:[f],title:name}); return; }catch(e){ if(e&&e.name==="AbortError") return; } }
+  saveFile(blob,name); toast(`${L.length} Modelle gesichert`);
+}
+async function katImport(el){
+  const f=el.files[0]; el.value=""; if(!f) return;
+  try{ const d=JSON.parse(await new Response(f).text()); if(!d||d.app!=="evse-katalog"||!Array.isArray(d.katalog)) throw 0;
+    let neu=0, akt=0;
+    for(const r of d.katalog){ if(!r||!r.id) continue; const loc=DB.katalog.get(r.id);
+      if(!loc){ r._dirty=true; dbPut("katalog",r); neu++; continue; }
+      const hs=new Map((loc.hinweise||[]).map(h=>[h.id,h])); (r.hinweise||[]).forEach(h=>{ if(!hs.has(h.id)) hs.set(h.id,h); });
+      const inhalt=x=>JSON.stringify(Object.keys(x).filter(k=>!/^(_|created|updated|hinweise$|anhaenge$|bild$)/.test(k)).sort().map(k=>[k,x[k]]));
+      const neuer=(r.updated||0)>(loc.updated||0)&&inhalt(r)!==inhalt(loc), m=neuer?Object.assign({},loc,r,{anhaenge:loc.anhaenge,bild:loc.bild}):Object.assign({},loc);
+      const vorher=(loc.hinweise||[]).length; m.hinweise=[...hs.values()];
+      if(neuer||m.hinweise.length!==vorher){ m._etag=loc._etag; m._itemId=loc._itemId; m._dirty=true; dbPut("katalog",m); akt++; } }
+    if(d.fotos) for(const [k,v] of Object.entries(d.fotos)) if(!fotoCache.has(k)){ await fotoPut(k,v); fotoQueue(k); }
+    syncSoon(); render(); toast(`Katalog geladen: ${neu} neu, ${akt} ergänzt`);
+  }catch(e){ toast("Die Datei ist keine Katalog-Datei"); }
 }
 const DC6_TXT={ja:"integriert (RDC-DD) – RCD Typ A zulässig",nein:"nicht integriert – RCD Typ B nötig"};
 function katModellView(r){
@@ -1779,6 +1805,7 @@ document.addEventListener("change",ev=>{
   if(el.id&&el.id.startsWith("stkat_")&&stDlg){ stLesen(); const g=stDlg.gr[+el.id.slice(6)], r=DB.katalog.get(el.value); g.kat=el.value; if(r){ g.typ=""; if(r.art) g.bauart=r.art; } stDialog(); return; }
   if(el.id==="f_tlWer"){ const pw=($("#f_tlPw")||{}).value||""; tlSel=el.value||null; render(); const e=$("#f_tlPw"); if(e){ e.value=pw; } (tlSel==="__andere"?$("#f_tlMail"):e)?.focus(); return; }
   if(el.id==="dateiFile"){ katDateiAufnehmen(el); return; }
+  if(el.id==="katFile"){ katImport(el); return; }
   if(el.matches("#dlg select[data-f]")&&pick){ Object.assign(pick,formVals()); if(el.dataset.f==="k"){ pick.s=""; pick.l=""; } if(el.dataset.f==="s") pick.l=""; pickDialog(); return; }
   if(!el.matches("select[data-bind]")||!cur) return;
   if(/^s\.\d+\.(absTyp|rcd)$/.test(el.dataset.bind)){ const y=scrollY; render(); scrollTo(0,y); } else refresh();
@@ -1856,6 +1883,8 @@ document.addEventListener("click",ev=>{
     if(kind==="standorte") neuePruefung(r.kundeId,r.id,null); else { const s=standortOf(r.standortId); neuePruefung(s.kundeId,s.id,r.id); } return; }
   case "open": oeffne(b.dataset.id); return;
   case "katNeu": katDialog(null); return;
+  case "katExport": katExport(); return;
+  case "katImport": $("#katFile").click(); return;
   case "webSuchen": { const k=DB.kunden.get(nav.id); if(!k) return; window.open("https://www.google.com/search?q="+encodeURIComponent([k.name,k.ort].filter(Boolean).join(" ")),"_blank","noopener");
     dialog("Webseite eintragen",`<div class="fg1">${tf("web","Webseite",k.web||"",{form:true,type:"url",ph:"z. B. musterfirma.de"})}</div><p class="sup" style="margin:12px 0 0">Die Suche ist in einem neuen Fenster geöffnet. Adresse dort kopieren und hier einsetzen.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="webSave">Speichern</button>`); return; }
   case "webSave": { const k=DB.kunden.get(nav.id), v=webText(formVals().web.trim()); if(!k||!canEdit(k)) return; k.web=v; saveRec("kunden",k); closeOverlays(); render(); return; }
