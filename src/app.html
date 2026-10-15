@@ -895,6 +895,22 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 .pick-i{display:block;width:100%;min-height:42px;border:0;border-radius:10px;background:transparent;color:var(--on-surface);text-align:left;padding:8px 12px;font-size:15px;font-weight:600}
 .pick-i:hover{background:color-mix(in srgb,var(--on-surface) 8%,transparent)}
 .pick-i.an{background:var(--sec-c);color:var(--on-sec-c)}
+
+/* Vorschlagsliste statt System-Datalist */
+.vl{position:fixed;z-index:96;background:var(--sc-high);border-radius:16px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.24),0 2px 6px rgba(0,0,0,.12);overflow:auto;overscroll-behavior:contain;animation:menuAuf .16s cubic-bezier(.2,.8,.2,1);transform-origin:top center}
+.vl button{display:block;width:100%;min-height:44px;border:0;background:transparent;color:var(--on-surface);text-align:left;font:inherit;font-size:16px;padding:10px 14px;border-radius:10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vl button:hover,.vl button.hl{background:color-mix(in srgb,var(--on-surface) 8%,transparent)}
+.vl button b{font-weight:600;color:var(--primary)}
+
+@media (max-width:743.98px){
+  .dlg.kp-dlg{width:calc(100% - 16px);height:calc(100dvh - 32px);max-height:none;display:flex;flex-direction:column;padding:20px 16px 12px;overflow:hidden}
+  .dlg.kp-dlg .db{flex:1;min-height:0;display:flex;flex-direction:column}
+  .dlg.kp-dlg .kp{flex:1;min-height:0;display:flex;flex-direction:column}
+  .dlg.kp-dlg .kp-l{flex:1;min-height:0;max-height:none;overflow:auto;margin:0 -4px;padding:0 4px}
+  .dlg.kp-dlg .kp-s{margin:0 0 8px!important}
+  .dlg.kp-dlg .da{flex-wrap:wrap;row-gap:4px}
+  .dlg.kp-dlg .kp-i{width:100%}
+}
 </style>
 </head>
 <body class="is-list">
@@ -1672,7 +1688,7 @@ function kpListe(q,sel){ q=String(q||"").toLowerCase().trim(); const grp={};
     return `<button type="button" class="li kp-i${r.id===sel?" an":""}" data-act="kpWahl" data-v="${esc(r.id)}"><span class="av${src?" av-img":""}">${src?katImg(r):icon("ev")}</span><span class="lt"><span class="h">${esc(katName(r))}</span><span class="s">${esc(katKurz(r)||"")}</span></span>${r.id===sel?icon("check"):""}</button>`; }).join("")}</div>`).join(""); }
 function katPickOeffnen(){ const sel=$("#katWahl"); if(!sel) return;
   dialog("Modell aus dem Katalog",`<div class="kp"><div class="search kp-s">${icon("search")}<input id="kpQ" type="search" placeholder="Hersteller oder Modell suchen" autocomplete="off" aria-label="Suchen"></div><div class="kp-l" id="kpL">${kpListe("",sel.value)}</div></div>`,
-    `<button class="btn-text" data-act="kpWahl" data-v="__neu">+ Neues Modell</button><span style="flex:1"></span><button class="btn-text" data-act="kpWahl" data-v="">Ohne Katalogmodell</button><button class="btn-text" data-act="cancel">Abbrechen</button>`); }
+    `<button class="btn-text" data-act="kpWahl" data-v="__neu">+ Neues Modell</button><span style="flex:1"></span><button class="btn-text" data-act="kpWahl" data-v="">Ohne Katalogmodell</button><button class="btn-text" data-act="cancel">Abbrechen</button>`); $("#dlg").classList.add("kp-dlg"); }
 const tlIni=m=>String(m.name||m.mail).split(/[\s.@]+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join("");
 document.addEventListener("click",e=>{
   const f=e.target.closest("#tlFeld");
@@ -1682,11 +1698,9 @@ document.addEventListener("click",e=>{
   const b=e.target.closest("[data-tlwahl]"); if(!b) return; e.preventDefault(); e.stopPropagation(); closeOverlays(); const m=$("#menu"); ["top","left","right","width","maxWidth"].forEach(k=>m.style[k]="");
   const sel=$("#f_tlWer"); if(!sel) return; sel.value=b.dataset.tlwahl; sel.dispatchEvent(new Event("change",{bubbles:true})); },true);
 function sichtPill(){ if(!cur||nav.v!=="saeule") return; const s=cur.s[nav.si], e=document.querySelector(`[data-sicht="${nav.si}"]`); if(!e||!s) return; const r=sichtState(s); e.className=`pill ${r}`; e.textContent=RES_SHORT[r]; }
-function weiterKnopf(s,st){ const si=nav.si, li=st==="geraet"?-1:+st.slice(2);
-  if(li<s.lps-1) return `<div class="weiter"><button class="btn-filled" data-act="weiterS" data-v="lp${li+1}">Weiter zu Ladepunkt ${li+2}${icon("chev")}</button></div>`;
-  const U=umfangS(cur), idx=U.indexOf(s), nach=[...U.slice(idx+1),...U.slice(0,idx)].find(x=>!fertigS(x));
-  if(nach){ const ni=cur.s.indexOf(nach); return `<div class="weiter"><button class="btn-filled" data-act="weiterS" data-v="${ni}">Weiter zu ${esc(sName(nach,ni))}${icon("chev")}</button></div>`; }
-  return `<div class="weiter"><button class="btn-filled" data-act="weiterS" data-v="abschluss">Zum Abschluss${icon("chev")}</button></div>`; }
+function weiterKnopf(s,st){ const li=st==="geraet"?-1:+st.slice(2), k=(v,t)=>`<div class="weiter"><button class="btn-filled" data-act="weiterS" data-v="${v}">${t}${icon("chev")}</button></div>`;
+  if(li<s.lps-1) return k(`lp${li+1}`,s.lps>1?`Weiter zu Ladepunkt ${li+2}`:"Weiter zum Ladepunkt");
+  return k("liste","Zurück zu den Ladestationen"); }
 (()=>{ let offen=null;
   const zu=()=>{ $("#pick")?.remove(); $("#pickBg")?.remove(); offen=null; };
   document.addEventListener("click",e=>{
@@ -1705,6 +1719,31 @@ function weiterKnopf(s,st){ const si=nav.si, li=st==="geraet"?-1:+st.slice(2);
     const a=m.querySelector(".an"); if(a) a.scrollIntoView({block:"center"});
   },true);
   addEventListener("resize",zu); document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&offen) zu(); });
+})();
+(()=>{ let inp=null, hl=-1, still=0;
+  const zu=()=>{ $("#vlist")?.remove(); inp=null; hl=-1; };
+  const werte=i=>{ const d=document.getElementById(i.dataset.vl); return d?[...d.options].map(o=>o.value):[]; };
+  const lage=()=>{ const m=$("#vlist"); if(!m||!inp) return; const r=inp.closest(".tf")?.getBoundingClientRect()||inp.getBoundingClientRect(), vv=window.visualViewport, vh=vv?vv.height+vv.offsetTop:innerHeight;
+    if(r.bottom<0||r.top>vh){ zu(); return; }
+    const unten=vh-r.bottom-12, oben=r.top-12, voll=m.scrollHeight, h=Math.min(voll,264,Math.max(unten,oben));
+    m.style.left=Math.max(8,r.left)+"px"; m.style.width=Math.min(r.width,innerWidth-16)+"px"; m.style.maxHeight=h+"px";
+    m.style.top=(unten>=Math.min(voll,160)||unten>=oben?r.bottom+6:r.top-6-h)+"px"; };
+  const zeig=i=>{ const q=i.value.trim().toLowerCase(), L=werte(i).filter(v=>v.toLowerCase()!==q&&(!q||v.toLowerCase().includes(q))).slice(0,40);
+    if(!L.length){ $("#vlist")?.remove(); return; }
+    let m=$("#vlist"); if(!m){ m=document.createElement("div"); m.id="vlist"; m.className="vl"; m.setAttribute("role","listbox"); document.body.appendChild(m); }
+    inp=i; hl=-1;
+    m.innerHTML=L.map(v=>{ const p=q?v.toLowerCase().indexOf(q):-1; const t=p<0?esc(v):esc(v.slice(0,p))+"<b>"+esc(v.slice(p,p+q.length))+"</b>"+esc(v.slice(p+q.length)); return `<button type="button" role="option" data-vw="${esc(v)}">${t}</button>`; }).join("");
+    lage(); };
+  const nimm=v=>{ const i=inp; zu(); if(!i) return; i.value=v; still=Date.now()+300; i.dispatchEvent(new Event("input",{bubbles:true})); i.dispatchEvent(new Event("change",{bubbles:true})); };
+  document.addEventListener("focusin",e=>{ const i=e.target.closest&&e.target.closest("input[data-vl]"); if(i&&Date.now()>still) zeig(i); });
+  document.addEventListener("input",e=>{ const i=e.target.closest&&e.target.closest("input[data-vl]"); if(i&&e.isTrusted) zeig(i); });
+  document.addEventListener("focusout",e=>{ if(e.target===inp) setTimeout(()=>{ if(document.activeElement!==inp) zu(); },150); });
+  document.addEventListener("pointerdown",e=>{ if(e.target.closest("#vlist")) e.preventDefault(); },true);
+  document.addEventListener("click",e=>{ const b=e.target.closest("#vlist [data-vw]"); if(b){ e.preventDefault(); e.stopPropagation(); nimm(b.dataset.vw); } },true);
+  document.addEventListener("keydown",e=>{ const m=$("#vlist"); if(!m||e.target!==inp) return; const bs=[...m.querySelectorAll("button")];
+    if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); hl=(hl+(e.key==="ArrowDown"?1:-1)+bs.length)%bs.length; bs.forEach((b,k)=>b.classList.toggle("hl",k===hl)); bs[hl].scrollIntoView({block:"nearest"}); }
+    else if(e.key==="Enter"&&hl>=0){ e.preventDefault(); nimm(bs[hl].dataset.vw); } else if(e.key==="Escape"){ e.preventDefault(); zu(); } });
+  addEventListener("scroll",lage,true); addEventListener("resize",lage); window.visualViewport&&visualViewport.addEventListener("resize",lage);
 })();
 function render(){
   const app=$("#app"), ed=EDITOR.includes(nav.v);
@@ -1767,7 +1806,7 @@ function applyRO(){
 function tf(path,label,val,o={}){
   const cls=["tf"]; if(o.full) cls.push("full"); if(o.ph||o.type==="date") cls.push("fl"); if(o.sfx) cls.push("has-sfx");
   const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
-  return `<div class="${cls.join(" ")}"><input id="${esc(id)}" ${bind} ${o.list?`list="${o.list}"`:""} type="${o.type||"text"}" ${o.im?`inputmode="${o.im}"`:""} value="${esc(val)}" placeholder="${esc(o.ph||" ")}" autocomplete="off"><label for="${esc(id)}">${esc(label)}</label>${o.sfx?`<span class="sfx">${esc(o.sfx)}</span>`:""}</div>`;
+  return `<div class="${cls.join(" ")}"><input id="${esc(id)}" ${bind} ${o.list?`data-vl="${o.list}"`:""} type="${o.type||"text"}" ${o.im?`inputmode="${o.im}"`:""} value="${esc(val)}" placeholder="${esc(o.ph||" ")}" autocomplete="off"><label for="${esc(id)}">${esc(label)}</label>${o.sfx?`<span class="sfx">${esc(o.sfx)}</span>`:""}</div>`;
 }
 function ta(path,label,val,o={}){
   const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
@@ -1777,7 +1816,7 @@ function sf(path,label,val,opts,o={}){
   const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
   return `<div class="tf fl${o.full?" full":""}"><select id="${esc(id)}" ${bind}>${opts.map(x=>{ const [v,t]=Array.isArray(x)?x:[x,x]; return `<option value="${esc(v)}" ${v===val?"selected":""}>${esc(t||"–")}</option>`; }).join("")}</select><label for="${esc(id)}">${esc(label)}</label><span class="arr">${icon("drop")}</span></div>`;
 }
-const datalist=(id,vals)=>`<datalist id="${id}">${[...new Set(vals.map(v=>String(v||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de")).map(v=>`<option value="${esc(v)}">`).join("")}</datalist>`;
+const datalist=(id,vals)=>`<datalist id="${id}">${[...new Set(vals.map(v=>String(v||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de",{numeric:true})).map(v=>`<option value="${esc(v)}">`).join("")}</datalist>`;
 const LEITUNGEN=["NYM-J 5×2,5 mm²","NYM-J 5×4 mm²","NYM-J 5×6 mm²","NYM-J 5×10 mm²","NYM-J 5×16 mm²","NYY-J 5×6 mm²","NYY-J 5×10 mm²","NYY-J 5×16 mm²","NYY-J 5×25 mm²","NYM-J 3×2,5 mm²","NYM-J 3×6 mm²"];
 const chipSel=(act,cur,vals,unit,anders)=>`<div class="chips">${vals.map(v=>`<button type="button" class="chip" data-act="pick" data-f="${act}" data-v="${v}" aria-pressed="${!anders&&String(cur)===v}">${icon("check")}${v} ${unit}</button>`).join("")}${act==="absIn"?`<button type="button" class="chip" data-act="pick" data-f="${act}" data-v="x" aria-pressed="${!!anders||(!!cur&&!vals.includes(String(cur)))}">${icon("check")}Andere</button>`:""}</div>`;
 const seg=(act,cur,opts,cls="")=>`<div class="seg ${cls}" role="group">${opts.map(([v,t])=>`<button type="button" data-act="${act}" data-v="${v}" aria-pressed="${String(cur)===String(v)}">${icon("check")}${esc(t)}</button>`).join("")}</div>`;
@@ -2051,11 +2090,12 @@ function saeulenView(){
       <span class="s">${esc([/^(Ladesäule|Wallbox) \d+$/.test(sName(s,si))?"":BAUART(s),s.typ,s.ort].filter(Boolean).join(" · ")||"Gerätedaten fehlen")}</span>
       <span class="lps">${(()=>{ const r=sichtState(s); return s.sicht?pill(r,`Sichtprüfung: ${RES_SHORT[r]}`):""; })()}${Array.from({length:s.lps},(_,i)=>{const r=lpState(s,i);return pill(r,`Ladepunkt ${i+1}: ${RES_SHORT[r]}`);}).join("")}</span></span>${icon("chev")}</div></div>`:"").join("")}</div>
     ${aus?`<p class="hint">${aus} weitere ${aus>1?"Ladestationen sind":"Ladestation ist"} nicht Teil dieser Prüfung. <button class="btn-text inl" data-act="umfangDlg">Umfang ändern</button></p>`:""}
-    ${canEdit(cur)&&cur.s.length>1?`<p class="hint">Nach links wischen: Ladestation entfernen</p>`:""}</div>`;
+    ${canEdit(cur)&&cur.s.length>1?`<p class="hint">Nach links wischen: Ladestation entfernen</p>`:""}
+    ${fertig===U.length?`<div class="weiter"><button class="btn-filled" data-act="weiterS" data-v="abschluss">Abschließen${icon("chev")}</button></div>`:""}</div>`;
 }
 function saeuleTabs(s){
   const st=nav.st||"geraet";
-  const t=[["geraet","Gerät",null],...Array.from({length:s.lps},(_,i)=>[`lp${i}`,`Ladepunkt ${i+1}`,lpState(s,i)])];
+  const t=[["geraet","Gerät",null],...Array.from({length:s.lps},(_,i)=>[`lp${i}`,s.lps>1?`Ladepunkt ${i+1}`:"Ladepunkt",lpState(s,i)])];
   return t.map(([k,l,r])=>`<button class="tab" role="tab" data-act="sub" data-v="${k}" aria-selected="${st===k}"><span class="tl">${l}${r?`<i class="sd ${r}" data-lpres="${k}"></i>`:""}</span></button>`).join("");
 }
 function saeuleView(){
@@ -2401,7 +2441,8 @@ function openMenu(){
 function dialog(title,body,actions){
   $("#dlg").innerHTML=`<h2>${esc(title)}</h2><div class="db">${body}</div>${actions?`<div class="da">${actions}</div>`:""}`;
   $("#menu").hidden=true; $("#dlg").hidden=false; $("#scrim").hidden=false; $("#scrim").classList.add("dim");
-  const f=$("#dlg").querySelector("input:not([type=hidden])"); if(f&&!f.value) setTimeout(()=>f.focus(),50);
+  $("#dlg").classList.remove("kp-dlg");
+  const f=$("#dlg").querySelector("input:not([type=hidden])"); if(f&&!f.value&&!(f.type==="search"&&matchMedia("(pointer:coarse)").matches)) setTimeout(()=>f.focus(),50);
 }
 const confirmDlg=(title,text,label,act)=>dialog(title,esc(text),`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text danger" data-act="${act}">${esc(label)}</button>`);
 const formVals=()=>{ const o={}; $("#dlg").querySelectorAll("[data-f]").forEach(e=>o[e.dataset.f]=e.value.trim()); return o; };
@@ -2869,7 +2910,7 @@ document.addEventListener("click",ev=>{
   case "umfangDlg": umfangDlg(); return;
   case "umfangAlle": cur.a.pdfOhne=[]; scheduleSave(); umfangDlg(); return;
   case "umfangOk": closeOverlays(); { const y=scrollY; render(); scrollTo(0,y); } return;
-  case "weiterS": { saveNow(); const v=b.dataset.v; if(v==="abschluss") go({v:"abschluss"}); else if(v.startsWith("lp")) { nav={...nav,st:v}; render(); window.scrollTo(0,0); } else go({v:"saeule",si:+v,st:"geraet"}); return; }
+  case "weiterS": { saveNow(); const v=b.dataset.v; if(v==="abschluss") go({v:"abschluss"}); else if(v==="liste") go({v:"saeulen"}); else if(v.startsWith("lp")) { nav={...nav,st:v}; render(); window.scrollTo(0,0); } else go({v:"saeule",si:+v,st:"geraet"}); return; }
   case "frist": { const n=b.dataset.v; if(String(cur.a.fristJ)===n){ delete cur.a.fristJ; cur.a.naechste=""; } else { cur.a.fristJ=n; const d=new Date((cur.p.datum||today())+"T12:00:00"); d.setFullYear(d.getFullYear()+(+n)); cur.a.naechste=d.toISOString().slice(0,10); }
     scheduleSave(); const y=scrollY; render(); scrollTo(0,y); return; }
   case "kAbw": cur.a.kAbwesend=!cur.a.kAbwesend; if(cur.a.kAbwesend){ cur.a.sigK=""; } scheduleSave(); { const y=scrollY; render(); scrollTo(0,y); } return;

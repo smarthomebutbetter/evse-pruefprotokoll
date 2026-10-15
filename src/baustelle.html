@@ -907,6 +907,12 @@ html,body{overscroll-behavior-y:none}
 .pick-i{display:block;width:100%;min-height:42px;border:0;border-radius:10px;background:transparent;color:var(--on-surface);text-align:left;padding:8px 12px;font-size:15px;font-weight:600}
 .pick-i:hover{background:color-mix(in srgb,var(--on-surface) 8%,transparent)}
 .pick-i.an{background:var(--sec-c);color:var(--on-sec-c)}
+
+/* Vorschlagsliste statt System-Datalist */
+.vl{position:fixed;z-index:96;background:var(--sc-high);border-radius:16px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.24),0 2px 6px rgba(0,0,0,.12);overflow:auto;overscroll-behavior:contain;animation:menuAuf .16s cubic-bezier(.2,.8,.2,1);transform-origin:top center}
+.vl button{display:block;width:100%;min-height:44px;border:0;background:transparent;color:var(--on-surface);text-align:left;font:inherit;font-size:16px;padding:10px 14px;border-radius:10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vl button:hover,.vl button.hl{background:color-mix(in srgb,var(--on-surface) 8%,transparent)}
+.vl button b{font-weight:600;color:var(--primary)}
 </style>
 </head>
 <body class="is-list">
@@ -1187,7 +1193,7 @@ const initials=n=>(n||"?").split(/[\s.@]+/).filter(Boolean).slice(0,2).map(x=>x[
 function tf(path,label,val,o={}){
   const cls=["tf"]; if(o.full) cls.push("full"); if(o.ph||o.type==="date") cls.push("fl"); if(o.sfx) cls.push("has-sfx");
   const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
-  return `<div class="${cls.join(" ")}"><input id="${esc(id)}" ${bind} ${o.list?`list="${o.list}"`:""} type="${o.type||"text"}" ${o.im?`inputmode="${o.im}"`:""} value="${esc(val)}" placeholder="${esc(o.ph||" ")}" autocomplete="off"><label for="${esc(id)}">${esc(label)}</label>${o.sfx?`<span class="sfx">${esc(o.sfx)}</span>`:""}</div>`;
+  return `<div class="${cls.join(" ")}"><input id="${esc(id)}" ${bind} ${o.list?`data-vl="${o.list}"`:""} type="${o.type||"text"}" ${o.im?`inputmode="${o.im}"`:""} value="${esc(val)}" placeholder="${esc(o.ph||" ")}" autocomplete="off"><label for="${esc(id)}">${esc(label)}</label>${o.sfx?`<span class="sfx">${esc(o.sfx)}</span>`:""}</div>`;
 }
 function ta(path,label,val,o={}){
   const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
@@ -1197,7 +1203,7 @@ function sf(path,label,val,opts,o={}){
   const bind=o.form?`data-f="${esc(path)}"`:`data-bind="${esc(path)}"`, id=o.form?"f_"+path:path;
   return `<div class="tf fl${o.full?" full":""}"><select id="${esc(id)}" ${bind}>${opts.map(x=>{ const [v,t]=Array.isArray(x)?x:[x,x]; return `<option value="${esc(v)}" ${v===val?"selected":""}>${esc(t||"–")}</option>`; }).join("")}</select><label for="${esc(id)}">${esc(label)}</label><span class="arr">${icon("drop")}</span></div>`;
 }
-const datalist=(id,vals)=>`<datalist id="${id}">${[...new Set(vals.map(v=>String(v||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de")).map(v=>`<option value="${esc(v)}">`).join("")}</datalist>`;
+const datalist=(id,vals)=>`<datalist id="${id}">${[...new Set(vals.map(v=>String(v||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de",{numeric:true})).map(v=>`<option value="${esc(v)}">`).join("")}</datalist>`;
 const seg=(act,cur,opts,cls="")=>`<div class="seg ${cls}" role="group">${opts.map(([v,t])=>`<button type="button" data-act="${act}" data-v="${v}" aria-pressed="${String(cur)===String(v)}">${icon("check")}${esc(t)}</button>`).join("")}</div>`;
 const listOf=items=>items.length?`<div class="list">${items.join("")}</div>`:"";
 const searchBar=ph=>`<div class="search">${icon("search")}<input id="q" type="search" placeholder="${esc(ph)}" value="${esc(query)}" autocomplete="off" aria-label="Suchen"></div>`;
@@ -1479,6 +1485,31 @@ document.addEventListener("click",e=>{
     const a=m.querySelector(".an"); if(a) a.scrollIntoView({block:"center"});
   },true);
   addEventListener("resize",zu); document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&offen) zu(); });
+})();
+(()=>{ let inp=null, hl=-1, still=0;
+  const zu=()=>{ $("#vlist")?.remove(); inp=null; hl=-1; };
+  const werte=i=>{ const d=document.getElementById(i.dataset.vl); return d?[...d.options].map(o=>o.value):[]; };
+  const lage=()=>{ const m=$("#vlist"); if(!m||!inp) return; const r=inp.closest(".tf")?.getBoundingClientRect()||inp.getBoundingClientRect(), vv=window.visualViewport, vh=vv?vv.height+vv.offsetTop:innerHeight;
+    if(r.bottom<0||r.top>vh){ zu(); return; }
+    const unten=vh-r.bottom-12, oben=r.top-12, voll=m.scrollHeight, h=Math.min(voll,264,Math.max(unten,oben));
+    m.style.left=Math.max(8,r.left)+"px"; m.style.width=Math.min(r.width,innerWidth-16)+"px"; m.style.maxHeight=h+"px";
+    m.style.top=(unten>=Math.min(voll,160)||unten>=oben?r.bottom+6:r.top-6-h)+"px"; };
+  const zeig=i=>{ const q=i.value.trim().toLowerCase(), L=werte(i).filter(v=>v.toLowerCase()!==q&&(!q||v.toLowerCase().includes(q))).slice(0,40);
+    if(!L.length){ $("#vlist")?.remove(); return; }
+    let m=$("#vlist"); if(!m){ m=document.createElement("div"); m.id="vlist"; m.className="vl"; m.setAttribute("role","listbox"); document.body.appendChild(m); }
+    inp=i; hl=-1;
+    m.innerHTML=L.map(v=>{ const p=q?v.toLowerCase().indexOf(q):-1; const t=p<0?esc(v):esc(v.slice(0,p))+"<b>"+esc(v.slice(p,p+q.length))+"</b>"+esc(v.slice(p+q.length)); return `<button type="button" role="option" data-vw="${esc(v)}">${t}</button>`; }).join("");
+    lage(); };
+  const nimm=v=>{ const i=inp; zu(); if(!i) return; i.value=v; still=Date.now()+300; i.dispatchEvent(new Event("input",{bubbles:true})); i.dispatchEvent(new Event("change",{bubbles:true})); };
+  document.addEventListener("focusin",e=>{ const i=e.target.closest&&e.target.closest("input[data-vl]"); if(i&&Date.now()>still) zeig(i); });
+  document.addEventListener("input",e=>{ const i=e.target.closest&&e.target.closest("input[data-vl]"); if(i&&e.isTrusted) zeig(i); });
+  document.addEventListener("focusout",e=>{ if(e.target===inp) setTimeout(()=>{ if(document.activeElement!==inp) zu(); },150); });
+  document.addEventListener("pointerdown",e=>{ if(e.target.closest("#vlist")) e.preventDefault(); },true);
+  document.addEventListener("click",e=>{ const b=e.target.closest("#vlist [data-vw]"); if(b){ e.preventDefault(); e.stopPropagation(); nimm(b.dataset.vw); } },true);
+  document.addEventListener("keydown",e=>{ const m=$("#vlist"); if(!m||e.target!==inp) return; const bs=[...m.querySelectorAll("button")];
+    if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); hl=(hl+(e.key==="ArrowDown"?1:-1)+bs.length)%bs.length; bs.forEach((b,k)=>b.classList.toggle("hl",k===hl)); bs[hl].scrollIntoView({block:"nearest"}); }
+    else if(e.key==="Enter"&&hl>=0){ e.preventDefault(); nimm(bs[hl].dataset.vw); } else if(e.key==="Escape"){ e.preventDefault(); zu(); } });
+  addEventListener("scroll",lage,true); addEventListener("resize",lage); window.visualViewport&&visualViewport.addEventListener("resize",lage);
 })();
 function render(){
   const app=$("#app");
