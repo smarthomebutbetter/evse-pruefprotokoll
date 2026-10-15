@@ -771,6 +771,32 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
   .spick:hover,.spick:active{background:var(--sc-highest)!important}
   .spick:has(.sd.bad){background:var(--err-c)!important;color:var(--on-err-c)}
 }
+
+/* iPad/PC: ohne Häkchen und Fokusrahmen, gleitende Umschalter */
+@media (min-width:744px){
+  .seg button .ic,.chip .ic{display:none!important}
+  .chip[aria-pressed="true"]{padding-left:16px!important}
+  .tf input:focus,.tf select:focus,.tf textarea:focus{box-shadow:none!important;outline:none!important;background:color-mix(in srgb,var(--primary) 9%,var(--feld))!important}
+  .seg{position:relative;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+  .seg.hat-ind button{background:transparent!important;position:relative;z-index:1;transition:color .2s}
+  .seg.hat-ind button[aria-pressed="true"]{color:var(--on-sec-c)}
+  .seg-ind{position:absolute;left:0;top:3px;bottom:3px;width:0;border-radius:19px;background:var(--sec-c);z-index:0;pointer-events:none;opacity:0;transition:translate .32s cubic-bezier(.32,.72,0,1),width .32s cubic-bezier(.32,.72,0,1),background .2s,scale .2s}
+  .seg.zieht .seg-ind{transition:width .2s,background .2s,scale .2s;scale:1.03}
+  .seg.ev .seg-ind[data-v="ok"]{background:var(--ok-c)}.seg.ev .seg-ind[data-v="nok"]{background:var(--err-c)}
+  .seg.ev.hat-ind button[aria-pressed="true"][data-v="ok"]{color:var(--on-ok-c)}.seg.ev.hat-ind button[aria-pressed="true"][data-v="nok"]{color:var(--on-err-c)}
+  .kat-wahl select{position:absolute!important;inset:0;opacity:0;pointer-events:none}
+  .kat-feld{display:block;width:100%;height:56px;border:0;border-radius:14px;background:var(--feld);color:var(--on-surface);text-align:left;padding:24px 44px 8px 16px;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kat-feld:active{background:color-mix(in srgb,var(--primary) 9%,var(--feld))}
+  .dlg:has(.kp){width:min(640px,calc(100% - 48px));padding:20px 20px 16px}
+  .kp-s{margin:0 0 8px!important}
+  .kp-l{max-height:min(60vh,560px);overflow:auto;margin:0 -4px;padding:0 4px}
+  .kp-l .sec-lbl:first-child{margin-top:8px}
+  .kp-i{width:100%}
+  .kp-i.an{background:color-mix(in srgb,var(--primary) 12%,var(--sc))!important}
+  .kp-i > .ic:last-child{color:var(--primary);opacity:1;width:22px;height:22px}
+  .av.av-img{background:#fff;overflow:hidden}.av.av-img img{width:100%;height:100%;object-fit:contain}
+}
+@media (max-width:743.98px){.kat-feld{display:none}}
 </style>
 </head>
 <body class="is-list">
@@ -1491,6 +1517,36 @@ function spickOeffnen(b){ const st=nav.st||"geraet";
   $("#menu").innerHTML=spickListe().map(([k,l,r])=>`<button class="mi spick-mi${k===st?" an":""}" role="menuitem" data-act="sub" data-v="${k}">${r?`<i class="sd ${r}"></i>`:`<span class="spick-ic">${icon("wallbox")}</span>`}<span>${l}</span>${r?`<small>${SP_TXT[r]||""}</small>`:""}${k===st?icon("check"):""}</button>`).join("");
   const m=$("#menu"), r=b.getBoundingClientRect(); m.style.top=(r.bottom+6)+"px"; m.style.right=(innerWidth-r.right)+"px"; m.style.minWidth=Math.max(240,r.width)+"px";
   m.hidden=false; $("#scrim").hidden=false; }
+const SEG_ALT=new Map();
+function segInd(){ if(!WIDE.matches) return; const zahl={};
+  document.querySelectorAll("#app .seg").forEach(sg=>{ const b0=sg.querySelector("button[data-act]"); if(!b0) return; const a=b0.dataset.act, k=a+":"+(zahl[a]=(zahl[a]||0)+1);
+    let ind=sg.querySelector(".seg-ind"); const neu=!ind; if(neu){ ind=document.createElement("span"); ind.className="seg-ind"; sg.prepend(ind); sg.classList.add("hat-ind"); }
+    const b=sg.querySelector('button[aria-pressed="true"]'); if(!b){ ind.style.opacity=0; SEG_ALT.delete(k); return; }
+    const pos=[b.offsetLeft,b.offsetWidth], alt=SEG_ALT.get(k);
+    if(neu&&alt&&(alt[0]!==pos[0]||alt[1]!==pos[1])){ ind.style.transition="none"; ind.style.opacity=1; ind.style.translate=alt[0]+"px 0"; ind.style.width=alt[1]+"px"; ind.dataset.v=alt[2]||""; ind.offsetWidth; ind.style.transition=""; }
+    ind.style.opacity=1; ind.style.translate=pos[0]+"px 0"; ind.style.width=pos[1]+"px"; ind.dataset.v=b.dataset.v||""; SEG_ALT.set(k,[pos[0],pos[1],b.dataset.v]); });
+}
+document.addEventListener("click",()=>setTimeout(segInd,0));
+(()=>{ let z=null, sperre=0;
+  document.addEventListener("pointerdown",e=>{ if(!WIDE.matches||e.button>0) return; const sg=e.target.closest("#app .seg.hat-ind"); if(!sg||sg.querySelector("button:disabled")) return; z={sg,x0:e.clientX,id:e.pointerId,an:false,ziel:null}; });
+  document.addEventListener("pointermove",e=>{ if(!z||e.pointerId!==z.id) return; if(!z.an){ if(Math.abs(e.clientX-z.x0)<8) return; z.an=true; z.sg.classList.add("zieht"); }
+    const bs=[...z.sg.querySelectorAll("button[data-act]")], ind=z.sg.querySelector(".seg-ind"), r=z.sg.getBoundingClientRect(), x=e.clientX-r.left;
+    let ziel=bs[0], best=1e9; bs.forEach(b=>{ const d=Math.abs(b.offsetLeft+b.offsetWidth/2-x); if(d<best){ best=d; ziel=b; } });
+    const w=ziel.offsetWidth, min=bs[0].offsetLeft, max=bs[bs.length-1].offsetLeft+bs[bs.length-1].offsetWidth-w;
+    ind.style.translate=Math.max(min,Math.min(max,x-w/2))+"px 0"; ind.style.width=w+"px"; ind.dataset.v=ziel.dataset.v||""; z.ziel=ziel; });
+  const ende=e=>{ if(!z||e.pointerId!==z.id) return; const d=z; z=null; if(!d.an) return; d.sg.classList.remove("zieht"); sperre=Date.now()+400;
+    if(d.ziel&&d.ziel.getAttribute("aria-pressed")!=="true") d.ziel.click(); else segInd(); };
+  document.addEventListener("pointerup",ende); document.addEventListener("pointercancel",ende);
+  document.addEventListener("click",e=>{ if(e.isTrusted&&Date.now()<sperre&&e.target.closest(".seg")){ sperre=0; e.stopPropagation(); e.preventDefault(); } },true);
+})();
+function kpListe(q,sel){ q=String(q||"").toLowerCase().trim(); const grp={};
+  live("katalog").filter(r=>!q||katVoll(r).toLowerCase().includes(q)||String(r.hersteller||"").toLowerCase().includes(q)).forEach(r=>(grp[r.hersteller||"Sonstige"]=grp[r.hersteller||"Sonstige"]||[]).push(r));
+  const ks=Object.keys(grp).sort((a,b)=>a.localeCompare(b,"de")); if(!ks.length) return `<p class="meta">Kein Modell gefunden.</p>`;
+  return ks.map(h=>`<div class="sec-lbl">${esc(h)}</div><div class="list">${grp[h].sort((a,b)=>katName(a).localeCompare(katName(b),"de")).map(r=>{ const src=katBildSrc(r);
+    return `<button type="button" class="li kp-i${r.id===sel?" an":""}" data-act="kpWahl" data-v="${esc(r.id)}"><span class="av${src?" av-img":""}">${src?katImg(r):icon("ev")}</span><span class="lt"><span class="h">${esc(katName(r))}</span><span class="s">${esc(katKurz(r)||"")}</span></span>${r.id===sel?icon("check"):""}</button>`; }).join("")}</div>`).join(""); }
+function katPickOeffnen(){ const sel=$("#katWahl"); if(!sel) return;
+  dialog("Modell aus dem Katalog",`<div class="kp"><div class="search kp-s">${icon("search")}<input id="kpQ" type="search" placeholder="Hersteller oder Modell suchen" autocomplete="off" aria-label="Suchen"></div><div class="kp-l" id="kpL">${kpListe("",sel.value)}</div></div>`,
+    `<button class="btn-text" data-act="kpWahl" data-v="__neu">+ Neues Modell</button><span style="flex:1"></span><button class="btn-text" data-act="kpWahl" data-v="">Ohne Katalogmodell</button><button class="btn-text" data-act="cancel">Abbrechen</button>`); }
 function render(){
   const app=$("#app"), ed=EDITOR.includes(nav.v);
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1536,7 +1592,7 @@ function render(){
     if(!canEdit(cur)) body=`<div class="robanner">${icon("lock")}<span>Nur lesen – erstellt von ${esc(vonText(cur)||"jemand anderem")}. Bearbeiten darf nur der Ersteller oder ein Admin.</span></div>`+body;
   }
   if(SY.state==="anmelden"&&!login) body=`<div class="robanner warn">${icon("sync")}<span>Anmeldung abgelaufen – Änderungen werden nur auf dem Gerät gespeichert.</span><button class="btn-text" data-act="relogin">Anmelden</button></div>`+body;
-  app.innerHTML=(WIDE.matches&&!login?seitenKopf(title,sub,fab):"")+body; backSetzen(); navIndSetzen();
+  app.innerHTML=(WIDE.matches&&!login?seitenKopf(title,sub,fab):"")+body; backSetzen(); navIndSetzen(); segInd();
   $("#topTitle").innerHTML=title?`<span>${esc(title)}</span>${sub?`<small>${esc(sub)}</small>`:""}`:"";
   const f=$("#fab"); f.hidden=!fab; document.body.classList.toggle("has-fab",!!fab);
   f.classList.toggle("fab-rund",!!fab&&!fab[1]); $("#fabm")?.remove();
@@ -1546,7 +1602,7 @@ function render(){
 }
 function applyRO(){
   $("#app").querySelectorAll("input,select,textarea").forEach(e=>e.disabled=true);
-  $("#app").querySelectorAll('[data-act="pdfIn"],[data-act="sigOpen"],[data-act="frist"],[data-act="kAbw"],[data-act="pick"],[data-act="leistung"],[data-act="abs"],[data-act="rcdTyp"],[data-act="rdc"],[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="bauart"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
+  $("#app").querySelectorAll('[data-act="pdfIn"],[data-act="katPick"],[data-act="sigOpen"],[data-act="frist"],[data-act="kAbw"],[data-act="pick"],[data-act="leistung"],[data-act="abs"],[data-act="rcdTyp"],[data-act="rdc"],[data-act="freigabe"],[data-act="chk"],[data-act="lps"],[data-act="phasen"],[data-act="bauart"],[data-act="norm"],[data-act="fotoAdd"],[data-act="sigclear"],[data-act="move"]').forEach(e=>e.disabled=true);
 }
 
 function tf(path,label,val,o={}){
@@ -2242,7 +2298,7 @@ function stAv(s,gross){ const r=katVon(s), src=r&&katBildSrc(r), ic=icon(BAUART(
 const katKurz=r=>[r.art,r.leistung&&`${r.leistung} kW`,r.phasen&&`${r.phasen}-phasig`,r.lps&&`${r.lps} Ladepunkt${r.lps==="1"?"":"e"}`,r.dc6==="ja"?"DC-Erkennung integriert":r.dc6==="nein"?"keine DC-Erkennung":""].filter(Boolean).join(" · ");
 function katOptionen(sel,leer){ const grp={}; live("katalog").forEach(r=>(grp[r.hersteller||"Sonstige"]=grp[r.hersteller||"Sonstige"]||[]).push(r));
   return `<option value="">${esc(leer)}</option>`+Object.keys(grp).sort((a,b)=>a.localeCompare(b,"de")).map(h=>`<optgroup label="${esc(h)}">${grp[h].sort((a,b)=>katName(a).localeCompare(katName(b),"de")).map(r=>`<option value="${esc(r.id)}" ${r.id===sel?"selected":""}>${esc(katName(r))}</option>`).join("")}</optgroup>`).join(""); }
-const katSelect=(id,label,sel,leer,neu)=>`<div class="tf fl"><select id="${id}">${katOptionen(sel,leer)}${neu?`<option value="__neu">+ Neues Modell im Katalog anlegen …</option>`:""}</select><label for="${id}">${esc(label)}</label><span class="arr">${icon("drop")}</span></div>`;
+const katSelect=(id,label,sel,leer,neu)=>`<div class="tf fl${id==="katWahl"?" kat-wahl":""}">${id==="katWahl"?`<button type="button" class="kat-feld" data-act="katPick">${esc((sel&&DB.katalog.get(sel)?katName(DB.katalog.get(sel)):"")||leer)}</button>`:""}<select id="${id}">${katOptionen(sel,leer)}${neu?`<option value="__neu">+ Neues Modell im Katalog anlegen …</option>`:""}</select><label for="${id}">${esc(label)}</label><span class="arr">${icon("drop")}</span></div>`;
 function katAnwenden(s,r){ if(!r) return; s.katId=r.id; s.typ=katVoll(r);
   if(r.art) s.bauart=r.art;
   if(r.phasen) s.phasen=+r.phasen; if(r.lps) s.lps=+r.lps; while(s.lp.length<2) s.lp.push(newLP());
@@ -2436,7 +2492,7 @@ function loeschePruefung(p){
 
 const getPath=p=>p.split(".").reduce((o,k)=>o==null?o:o[k],cur);
 function setPath(p,v){ const ks=p.split("."); let o=cur; for(let i=0;i<ks.length-1;i++) o=o[ks[i]]; o[ks[ks.length-1]]=v; }
-document.addEventListener("input",ev=>{
+document.addEventListener("input",ev=>{ if(ev.target.id==="kpQ"){ const l=$("#kpL"), w=$("#katWahl"); if(l) l.innerHTML=kpListe(ev.target.value,w&&w.value); return; }
   if(ev.target.id==="q"){ query=ev.target.value; const r=$("#res"); if(r) r.innerHTML=nav.v==="bibliothek"?bibListe():nav.v==="katalog"?katalogListe():nav.v==="kunden"?kundenListe():nav.v==="pruefungen"?pruefungenListe():(query?suche(query):startListen()); return; }
   const el=ev.target.closest("[data-bind]"); if(!el||!cur) return;
   const path=el.dataset.bind, alt=path==="p.adapter"?cur.p.adapter:null; setPath(path,el.value); scheduleSave();
@@ -2490,6 +2546,8 @@ document.addEventListener("click",ev=>{
   switch(a){
   case "crumb": crumbGo(+b.dataset.i); return;
   case "skZurueck": zurueck(); return;
+  case "katPick": katPickOeffnen(); return;
+  case "kpWahl": { closeOverlays(); const sel=$("#katWahl"); if(!sel) return; sel.value=b.dataset.v; sel.dispatchEvent(new Event("change",{bubbles:true})); return; }
   case "spick": spickOeffnen(b); return;
   case "bfilter": BIB_F=b.dataset.v; render(); return;
   case "bibOpen": pvOeffnen(b.dataset.id); return;

@@ -805,6 +805,32 @@ html,body{overscroll-behavior-y:none}
   .spick:hover,.spick:active{background:var(--sc-highest)!important}
   .spick:has(.sd.bad){background:var(--err-c)!important;color:var(--on-err-c)}
 }
+
+/* iPad/PC: ohne Häkchen und Fokusrahmen, gleitende Umschalter */
+@media (min-width:744px){
+  .seg button .ic,.chip .ic{display:none!important}
+  .chip[aria-pressed="true"]{padding-left:16px!important}
+  .tf input:focus,.tf select:focus,.tf textarea:focus{box-shadow:none!important;outline:none!important;background:color-mix(in srgb,var(--primary) 9%,var(--feld))!important}
+  .seg{position:relative;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+  .seg.hat-ind button{background:transparent!important;position:relative;z-index:1;transition:color .2s}
+  .seg.hat-ind button[aria-pressed="true"]{color:var(--on-sec-c)}
+  .seg-ind{position:absolute;left:0;top:3px;bottom:3px;width:0;border-radius:19px;background:var(--sec-c);z-index:0;pointer-events:none;opacity:0;transition:translate .32s cubic-bezier(.32,.72,0,1),width .32s cubic-bezier(.32,.72,0,1),background .2s,scale .2s}
+  .seg.zieht .seg-ind{transition:width .2s,background .2s,scale .2s;scale:1.03}
+  .seg.ev .seg-ind[data-v="ok"]{background:var(--ok-c)}.seg.ev .seg-ind[data-v="nok"]{background:var(--err-c)}
+  .seg.ev.hat-ind button[aria-pressed="true"][data-v="ok"]{color:var(--on-ok-c)}.seg.ev.hat-ind button[aria-pressed="true"][data-v="nok"]{color:var(--on-err-c)}
+  .kat-wahl select{position:absolute!important;inset:0;opacity:0;pointer-events:none}
+  .kat-feld{display:block;width:100%;height:56px;border:0;border-radius:14px;background:var(--feld);color:var(--on-surface);text-align:left;padding:24px 44px 8px 16px;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kat-feld:active{background:color-mix(in srgb,var(--primary) 9%,var(--feld))}
+  .dlg:has(.kp){width:min(640px,calc(100% - 48px));padding:20px 20px 16px}
+  .kp-s{margin:0 0 8px!important}
+  .kp-l{max-height:min(60vh,560px);overflow:auto;margin:0 -4px;padding:0 4px}
+  .kp-l .sec-lbl:first-child{margin-top:8px}
+  .kp-i{width:100%}
+  .kp-i.an{background:color-mix(in srgb,var(--primary) 12%,var(--sc))!important}
+  .kp-i > .ic:last-child{color:var(--primary);opacity:1;width:22px;height:22px}
+  .av.av-img{background:#fff;overflow:hidden}.av.av-img img{width:100%;height:100%;object-fit:contain}
+}
+@media (max-width:743.98px){.kat-feld{display:none}}
 </style>
 </head>
 <body class="is-list">
@@ -1328,6 +1354,28 @@ function bibliothekView(){
     if(d.an&&d.dx>90) zurueck(); };
   document.addEventListener("touchend",ende); document.addEventListener("touchcancel",ende);
 })();
+const SEG_ALT=new Map();
+function segInd(){ if(!WIDE.matches) return; const zahl={};
+  document.querySelectorAll("#app .seg").forEach(sg=>{ const b0=sg.querySelector("button[data-act]"); if(!b0) return; const a=b0.dataset.act, k=a+":"+(zahl[a]=(zahl[a]||0)+1);
+    let ind=sg.querySelector(".seg-ind"); const neu=!ind; if(neu){ ind=document.createElement("span"); ind.className="seg-ind"; sg.prepend(ind); sg.classList.add("hat-ind"); }
+    const b=sg.querySelector('button[aria-pressed="true"]'); if(!b){ ind.style.opacity=0; SEG_ALT.delete(k); return; }
+    const pos=[b.offsetLeft,b.offsetWidth], alt=SEG_ALT.get(k);
+    if(neu&&alt&&(alt[0]!==pos[0]||alt[1]!==pos[1])){ ind.style.transition="none"; ind.style.opacity=1; ind.style.translate=alt[0]+"px 0"; ind.style.width=alt[1]+"px"; ind.dataset.v=alt[2]||""; ind.offsetWidth; ind.style.transition=""; }
+    ind.style.opacity=1; ind.style.translate=pos[0]+"px 0"; ind.style.width=pos[1]+"px"; ind.dataset.v=b.dataset.v||""; SEG_ALT.set(k,[pos[0],pos[1],b.dataset.v]); });
+}
+document.addEventListener("click",()=>setTimeout(segInd,0));
+(()=>{ let z=null, sperre=0;
+  document.addEventListener("pointerdown",e=>{ if(!WIDE.matches||e.button>0) return; const sg=e.target.closest("#app .seg.hat-ind"); if(!sg||sg.querySelector("button:disabled")) return; z={sg,x0:e.clientX,id:e.pointerId,an:false,ziel:null}; });
+  document.addEventListener("pointermove",e=>{ if(!z||e.pointerId!==z.id) return; if(!z.an){ if(Math.abs(e.clientX-z.x0)<8) return; z.an=true; z.sg.classList.add("zieht"); }
+    const bs=[...z.sg.querySelectorAll("button[data-act]")], ind=z.sg.querySelector(".seg-ind"), r=z.sg.getBoundingClientRect(), x=e.clientX-r.left;
+    let ziel=bs[0], best=1e9; bs.forEach(b=>{ const d=Math.abs(b.offsetLeft+b.offsetWidth/2-x); if(d<best){ best=d; ziel=b; } });
+    const w=ziel.offsetWidth, min=bs[0].offsetLeft, max=bs[bs.length-1].offsetLeft+bs[bs.length-1].offsetWidth-w;
+    ind.style.translate=Math.max(min,Math.min(max,x-w/2))+"px 0"; ind.style.width=w+"px"; ind.dataset.v=ziel.dataset.v||""; z.ziel=ziel; });
+  const ende=e=>{ if(!z||e.pointerId!==z.id) return; const d=z; z=null; if(!d.an) return; d.sg.classList.remove("zieht"); sperre=Date.now()+400;
+    if(d.ziel&&d.ziel.getAttribute("aria-pressed")!=="true") d.ziel.click(); else segInd(); };
+  document.addEventListener("pointerup",ende); document.addEventListener("pointercancel",ende);
+  document.addEventListener("click",e=>{ if(e.isTrusted&&Date.now()<sperre&&e.target.closest(".seg")){ sperre=0; e.stopPropagation(); e.preventDefault(); } },true);
+})();
 function render(){
   const app=$("#app");
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -1361,7 +1409,7 @@ function render(){
     title=r.name; sub=kind==="kunden"?"Kunde":(kundeOf(r.kundeId)||{}).name||""; body=kind==="kunden"?kundeView(r):standortView(r);
     fab=kind==="kunden"?["newStandort","Standort","add"]:["neueBaustelleHier","Baustelle","add"]; }
   if(SY.state==="anmelden"&&!login) body=`<div class="robanner warn">${icon("sync")}<span>Anmeldung abgelaufen – Änderungen werden nur auf dem Gerät gespeichert.</span><button class="btn-text" data-act="relogin">Anmelden</button></div>`+body;
-  app.innerHTML=(WIDE.matches&&!login?seitenKopf(title,sub,fab):"")+body; backSetzen(); navIndSetzen(); if(nav.v==="notiz") requestAnimationFrame(nGrow);
+  app.innerHTML=(WIDE.matches&&!login?seitenKopf(title,sub,fab):"")+body; backSetzen(); navIndSetzen(); segInd(); if(nav.v==="notiz") requestAnimationFrame(nGrow);
   $("#topTitle").innerHTML=title?`<span>${esc(title)}</span>${sub?`<small>${esc(sub)}</small>`:""}`:"";
   const f=$("#fab"); f.hidden=!fab; document.body.classList.toggle("has-fab",!!fab);
   if(fab){ f.dataset.act=fab[0]; f.setAttribute("aria-label",fab[1]); f.innerHTML=`${icon(fab[2])}<span>${fab[1]}</span>`; }
