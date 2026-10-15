@@ -1057,7 +1057,7 @@ let theme="auto"; try{ theme=localStorage.getItem(TH_KEY)||"auto"; }catch(e){}
 applyTheme(theme);
 WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
 
-const APP_VERSION="1.73 · 15.10.2026";
+const APP_VERSION="1.74 · 15.10.2026";
 const TOPDEST=[["start","Baustellen","baustelle"],["notizen","Notizen","notiz"],["kunden","Kunden","firma"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter",impressum:"Impressum",about:"Über die App"};
 const VIEW_KIND={kunde:"kunden",standort:"standorte"};

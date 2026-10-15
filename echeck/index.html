@@ -1028,7 +1028,7 @@ let theme="auto"; try{ theme=localStorage.getItem(TH_KEY)||"auto"; }catch(e){}
 applyTheme(theme);
 WIDE.addEventListener?.("change",()=>{ if(typeof render==="function"&&nav) render(); });
 
-const APP_VERSION="1.73 · 15.10.2026";
+const APP_VERSION="1.74 · 15.10.2026";
 const BEREICHE=[
   {id:"anlage",t:"Hausinstallation",ic:"home",s:"Elektrische Anlagen prüfen",normen:"DIN VDE 0100-600 (Erstprüfung) · DIN VDE 0105-100 (Wiederholungsprüfung)",
     plan:["Prüfung je Kunde und Standort, gegliedert nach Verteiler und Stromkreisen","Besichtigen, Erproben, Messen (RLO, RISO, Zs/Zi, RCD) mit Grenzwertprüfung","Mängel mit Fotos, Prüfprotokoll als PDF und E-Check-Plakette","Übernahme der Messwerte aus dem Messgerät, sobald das Exportformat geklärt ist"]},

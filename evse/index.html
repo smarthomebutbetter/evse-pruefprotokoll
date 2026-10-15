@@ -434,6 +434,9 @@ body.is-login .topbar{display:none}
 .btn-filled{height:48px;border:0;border-radius:24px;background:var(--fab);color:var(--on-fab);font-size:15px;font-weight:700;padding:0 24px 0 18px;display:inline-flex;align-items:center;gap:10px;box-shadow:var(--e1)}
 @media (prefers-reduced-motion:no-preference){#app{animation:fade .18s ease-out}@keyframes fade{from{opacity:.6}to{opacity:1}}}
 .sw .li{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.av.av-bild{position:relative;background:#fff;box-shadow:inset 0 0 0 1px var(--outline-v);overflow:hidden;color:#7a7d85}
+.av.av-bild img{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);object-fit:contain;background:#fff;border-radius:50%}
+.av.gross{width:64px;height:64px}.av.gross .ic{width:30px;height:30px}
 .pm .li{min-height:60px}
 .pm .lt .h,.pm .lt .s{white-space:normal;overflow:visible}
 .pm .li.danger{color:var(--err)}
@@ -1436,7 +1439,7 @@ const WIDE=matchMedia("(min-width:840px)"); WIDE.addEventListener?.("change",()=
 let railOpen=window.innerWidth>=1100; try{const r=localStorage.getItem("evse_rail"); if(r) railOpen=r==="1";}catch(e){} document.body.classList.toggle("rail-open",railOpen);
 const TOPDEST=[["start","Start","home"],["kunden","Kunden","firma"],["pruefungen","Prüfungen","doc"],["faellig","Fällig","pending"],["katalog","Katalog","book"],["mehr","Mehr","mehr"]];
 const TOP=TOPDEST.map(x=>x[0]), MEHR_SUB={team:"Mitarbeiter und Mail",archiv:"Archiv",impressum:"Impressum",datenschutz:"Datenschutz",about:"Über die App"};
-const APP_VERSION="1.73 · 15.10.2026";
+const APP_VERSION="1.74 · 15.10.2026";
 const EDITOR=["projekt","saeulen","saeule","abschluss"];
 const KIND_ICON={kunden:"firma",standorte:"ort",ladeparks:"ev"};
 const KIND_NAME={kunden:"Kunde",standorte:"Standort",ladeparks:"Ladepark"};
@@ -1783,7 +1786,7 @@ function saeulenView(){
   const res=cur.s.map(saeuleResult), ok=res.filter(r=>r==="ok").length, bad=res.filter(r=>r==="bad").length;
   return `<div class="narrow"><p class="meta">${cur.s.length} ${cur.s.length>1?"Ladestationen":"Ladestation"} · ${ok} bestanden${bad?` · ${bad} mit Mängeln`:""}</p><div class="list">${cur.s.map((s,si)=>
     `<div class="sw" data-id="s${si}" data-si="${si}"><div class="sw-bg"><span class="l"></span><span class="r">Entfernen${icon("del")}</span></div>
-    <div class="li" role="button" tabindex="0" data-act="openS" data-si="${si}"><span class="av">${icon(BAUART(s)==="Wallbox"?"wallbox":"ev")}</span><span class="lt"><span class="h">${esc(sName(s,si))}</span>
+    <div class="li" role="button" tabindex="0" data-act="openS" data-si="${si}">${stAv(s)}<span class="lt"><span class="h">${esc(sName(s,si))}</span>
       <span class="s">${esc([/^(Ladesäule|Wallbox) \d+$/.test(sName(s,si))?"":BAUART(s),s.typ,s.ort].filter(Boolean).join(" · ")||"Gerätedaten fehlen")}</span>
       <span class="lps">${Array.from({length:s.lps},(_,i)=>{const r=lpState(s,i);return pill(r,`Ladepunkt ${i+1}: ${RES_SHORT[r]}`);}).join("")}</span></span>${icon("chev")}</div></div>`).join("")}</div>
     ${canEdit(cur)&&cur.s.length>1?`<p class="hint">Nach links wischen: Ladestation entfernen</p>`:""}</div>`;
@@ -2188,6 +2191,10 @@ const stTypListe=()=>[...live("katalog").map(r=>[r.hersteller,katName(r)].filter
 function katZuTyp(typ){ const t=katNorm(typ); if(!t) return null;
   return live("katalog").find(r=>katNorm([r.hersteller,katName(r)].join(" "))===t)||live("katalog").find(r=>r.modell&&t.includes(katNorm(r.modell)))||null; }
 const katVoll=r=>[r.hersteller,katName(r)].filter(Boolean).join(" ");
+function katVon(s){ if(s.katId){ const r=DB.katalog.get(s.katId); if(r&&!r.deleted) return r; }
+  const t=String(s.typ||"").trim().toLowerCase(); return t?live("katalog").find(r=>katVoll(r).toLowerCase()===t)||null:null; }
+function stAv(s,gross){ const r=katVon(s), src=r&&katBildSrc(r), ic=icon(BAUART(s)==="Wallbox"?"wallbox":"ev");
+  return src?`<span class="av av-bild${gross?" gross":""}">${ic}<img src="${esc(src)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()"></span>`:`<span class="av${gross?" gross":""}">${ic}</span>`; }
 const katKurz=r=>[r.art,r.leistung&&`${r.leistung} kW`,r.phasen&&`${r.phasen}-phasig`,r.lps&&`${r.lps} Ladepunkt${r.lps==="1"?"":"e"}`,r.dc6==="ja"?"DC-Erkennung integriert":r.dc6==="nein"?"keine DC-Erkennung":""].filter(Boolean).join(" · ");
 function katOptionen(sel,leer){ const grp={}; live("katalog").forEach(r=>(grp[r.hersteller||"Sonstige"]=grp[r.hersteller||"Sonstige"]||[]).push(r));
   return `<option value="">${esc(leer)}</option>`+Object.keys(grp).sort((a,b)=>a.localeCompare(b,"de")).map(h=>`<optgroup label="${esc(h)}">${grp[h].sort((a,b)=>katName(a).localeCompare(katName(b),"de")).map(r=>`<option value="${esc(r.id)}" ${r.id===sel?"selected":""}>${esc(katName(r))}</option>`).join("")}</optgroup>`).join(""); }
@@ -2335,7 +2342,7 @@ function geraeteAmOrt(standortId,ladeparkId){
   return [...m.values()];
 }
 function geraetItem(t){ const T=geraeteTreffer(t.s.sn), r=saeuleResult(t.s);
-  return `<div class="li" role="button" tabindex="0" data-act="akte" data-sn="${esc(t.s.sn)}"><span class="av">${icon(BAUART(t.s)==="Wallbox"?"wallbox":"ev")}</span><span class="lt"><span class="h">${esc(sName(t.s,t.i))}</span>
+  return `<div class="li" role="button" tabindex="0" data-act="akte" data-sn="${esc(t.s.sn)}">${stAv(t.s)}<span class="lt"><span class="h">${esc(sName(t.s,t.i))}</span>
     <span class="s">${esc([t.s.typ,`SN ${t.s.sn}`].filter(Boolean).join(" · "))}</span><span class="st">${pill(r==="open"?"open":r,r==="ok"?"zuletzt i. O.":r==="bad"?"zuletzt Mängel":"zuletzt offen")}${pill("open",`${T.length} Prüfung${T.length===1?"":"en"}`)}</span></span>${icon("chev")}</div>`; }
 function geraeteSektion(standortId,ladeparkId){ const G=geraeteAmOrt(standortId,ladeparkId); if(!G.length) return "";
   return `<div class="sec-lbl">Geräte · ${G.length}</div>${listOf(G.map(geraetItem))}`; }
@@ -2349,7 +2356,7 @@ function akteView(sn){
     const v=lp.v[r.k]; if(v==null||v==="") return "<td class='leer'>–</td>"; let e="open"; try{ e=evalRow(r,v,t.s); }catch(x){}
     return `<td class="${e==="bad"?"bad":""}">${esc(v)}</td>`; };
   const zeilen=T.map(t=>Array.from({length:Math.max(1,+t.s.lps||1)},(_,li)=>`<tr${li?" class='lp2'":""}>${li?`<td></td>`:`<td class="d"><b>${esc(deDate(t.p.p.datum))}</b><small>${esc(t.p.p.art)}</small></td>`}<td>${(+t.s.lps||1)>1?`LP ${li+1}`:""}</td>${AKTE_SP.map(([k])=>zelle(t,li,k)).join("")}<td>${li?"":pill(saeuleResult(t.s))}</td></tr>`).join("")).join("");
-  return `<div class="narrow"><section class="card akte-k"><div class="ak-h"><span class="av">${icon(BAUART(s)==="Wallbox"?"wallbox":"ev")}</span><div><h2>${esc(s.typ||sName(s,L.i))}</h2>
+  return `<div class="narrow"><section class="card akte-k"><div class="ak-h">${stAv(s,true)}<div><h2>${esc(s.typ||sName(s,L.i))}</h2>
       <p>${esc([BAUART(s),`SN ${s.sn}`,s.ort&&`Stellplatz ${s.ort}`].filter(Boolean).join(" · "))}</p><p>${esc(orte.join(" · "))}</p></div></div>
       <div class="kpis3"><div><b>${T.length}</b><span>Prüfung${T.length===1?"":"en"}</span></div><div><b>${esc(deDate(T[T.length-1].p.p.datum))}</b><span>erste Prüfung</span></div><div><b>${esc(deDate(L.p.p.datum))}</b><span>letzte Prüfung</span></div></div>
       ${kat?`<button class="btn-text" data-act="nav" data-v="katmodell" data-id="${esc(kat.id)}">${icon("book")}Steckbrief im Katalog</button>`:""}</section>
@@ -2736,8 +2743,10 @@ function demoLP(o={}){
   return {v:Object.assign(v,o.v||{}), bem:o.bem||""};
 }
 function demoSaeule(n,sn,lp1,lp2,extra={}){
-  return Object.assign({id:uid(), bauart:"Ladesäule", name:`Ladesäule ${n}`, typ:"Mennekes AMTRON Charge Control", sn, ort:`Stellplatz ${2*n-1}/${2*n}`, fw:"5.22.3",
+  const s=Object.assign({id:uid(), bauart:"Ladesäule", name:`Ladesäule ${n}`, typ:"Mennekes AMTRON Charge Control", sn, ort:`Stellplatz ${2*n-1}/${2*n}`, fw:"5.22.3",
     absTyp:"LS B", absIn:"32", zsMan:"", inenn:"32", rcd:"A + RDC-DD 6 mA", idn:"30", freigabe:"Ladekarte", phasen:3, lps:2, lp:[lp1,lp2], fotos:{}}, extra);
+  if(!extra.typ&&s.typ==="Mennekes AMTRON Charge Control"){ const r=DB.katalog.get("kat-mennekes-amedio-professional-plus-22-kw"); if(r){ s.katId=r.id; s.typ=katVoll(r); } }
+  return s;
 }
 const DEMO_AH="BEISPIEL Autohaus Sonnenberg GmbH";
 const demoFehlt=()=>!live("kunden").some(k=>k.demo&&k.name==="BEISPIEL Musterfirma GmbH")||!live("kunden").some(k=>k.demo&&k.name===DEMO_AH);
@@ -2745,8 +2754,9 @@ function demoAutohaus(D){
   const zahl=(b,i,sp,st=2)=>(b+(((i*37+11)%17)/16-0.5)*sp).toFixed(st).replace(".",",");
   const lp=(i,o={})=>demoLP({v:Object.assign({rpe:zahl(0.07,i,0.04),riso:i%3?"200":zahl(48,i,30,0),zs1:zahl(0.38,i,0.08),zs2:zahl(0.37,i,0.08),zs3:zahl(0.39,i,0.08),
     u1:zahl(232,i,6,1),u2:zahl(231,i,6,1),u3:zahl(233,i,6,1),unpe:zahl(0.5,i,0.6,1),ria:String(19+(i*7)%9),r1:zahl(24,i,10,1),ub:zahl(1.2,i,0.8,1),dc6:zahl(1.8,i,1.2,1),r5:zahl(6,i,3,1)},o.v||{}),bem:o.bem||""});
-  const saeule=(n,sn,i,o1,o2)=>demoSaeule(n,sn,lp(i,o1),lp(i+50,o2),{typ:"Mennekes AMTRON Charge Control",ort:`Stellplatz ${2*n-1}/${2*n}`,absIn:"32",inenn:"32",freigabe:"Ladekarte"});
-  const wallbox=(n,sn,i,o)=>Object.assign(demoSaeule(n,sn,lp(i,o),newLP()),{bauart:"Wallbox",name:`Wallbox ${n}`,typ:"Mennekes AMTRON Professional+ 11 C2",absIn:"16",inenn:"16",lps:1,ort:`Mitarbeiterplatz ${n}`,freigabe:"App",fw:"5.32.0"});
+  const kat=(s,id)=>{ katAnwenden(s,DB.katalog.get(id)); return s; };
+  const saeule=(n,sn,i,o1,o2)=>kat(demoSaeule(n,sn,lp(i,o1),lp(i+50,o2),{ort:`Stellplatz ${2*n-1}/${2*n}`,absIn:"32",inenn:"32",freigabe:"Ladekarte"}),"kat-mennekes-amedio-professional-plus-22-kw");
+  const wallbox=(n,sn,i,o)=>kat(Object.assign(demoSaeule(n,sn,lp(i,o),newLP()),{bauart:"Wallbox",name:`Wallbox ${n}`,absIn:"16",inenn:"16",lps:1,ort:`Mitarbeiterplatz ${n}`,freigabe:"App",fw:"5.32.0"}),"kat-mennekes-amtron-charge-control-11-kw");
   const SN_S=[1,2,3,4,5,6].map(n=>`1522${(4100+n*13)}MA.0${7000+n*41}`), SN_W=[1,2,3,4].map(n=>`1491${(3300+n*7)}PP.0${5200+n*29}`);
   const k=D("kunden",{name:DEMO_AH,kdnr:"30455",strasse:"Gewerbepark 12",plz:"51545",ort:"Waldbröl",ansprech:"Herr Sonnenberg (Geschäftsführung)",tel:"02291 000000",mail:"info@example.com",notiz:"Beispiel: 6 Ladesäulen und 4 Wallboxen auf zwei Parkplätzen, Erst- und Wiederholungsprüfung"});
   const s=D("standorte",{kundeId:k.id,name:"Autohaus Waldbröl",strasse:"Gewerbepark 12",plz:"51545",ort:"Waldbröl",ansprech:"Herr Werkstattmeister",tel:"02291 000000-20",notiz:"Unterverteilung UV-Lade im Technikraum hinter der Werkstatt"});
@@ -2783,11 +2793,11 @@ function demoLaden(){
   D("pruefungen",base({p:{auftragsnr:"2510-104",art:"Erstprüfung",standort:"HV Besucherparkplatz"},x:{kundeId:k1.id,standortId:s1.id,ladeparkId:l2.id,
     s:[demoSaeule(1,"GE-204411",demoLP(),{v:{risov:"500 V",rpe:"0,07",riso:"200"},bem:"Messung LP 2 noch offen – Freigabe durch Betreiber ausstehend."})]}}));
   D("pruefungen",base({p:{auftragsnr:"2509-017",datum:"2025-12-03",art:"Erstprüfung",standort:"HV Keller"},x:{kundeId:k1.id,standortId:s2.id,ladeparkId:null,a:{...newProto().a,naechste:"2026-12-03",fristJ:"1"},
-    s:[Object.assign(demoSaeule(1,"GE-118822",demoLP({v:{zs1:"0,92",zs2:"0,88",zs3:"0,90"}}),newLP()),{bauart:"Wallbox",name:"Wallbox 1",typ:"go-e Charger Gemini 11 kW",absIn:"16",inenn:"16",lps:1,ort:"Chefparkplatz"})]}}));
+    s:[Object.assign(demoSaeule(1,"GE-118822",demoLP({v:{zs1:"0,92",zs2:"0,88",zs3:"0,90"}}),newLP()),{bauart:"Wallbox",name:"Wallbox 1",typ:"go-e Charger Gemini 11 kW",katId:"",absIn:"16",inenn:"16",lps:1,ort:"Chefparkplatz"})]}}));
   const k2=D("kunden",{name:"BEISPIEL Erika Mustermann",kdnr:"20871",strasse:"Am Weiher 3",plz:"51545",ort:"Waldbröl",tel:"02291 000000"});
   const s3=D("standorte",{kundeId:k2.id,name:"Einfamilienhaus",strasse:"Am Weiher 3",plz:"51545",ort:"Waldbröl"});
   D("pruefungen",base({p:{auftragsnr:"2510-120",art:"Erstprüfung",standort:"HV Garage"},x:{kundeId:k2.id,standortId:s3.id,ladeparkId:null,
-    s:[Object.assign(demoSaeule(1,"GE-204499",demoLP({v:{zs1:"0,92",zs2:"0,88",zs3:"0,90",r1:"21,3"}}),newLP()),{bauart:"Wallbox",name:"Wallbox Garage",typ:"go-e Charger Gemini 11 kW",absIn:"16",inenn:"16",lps:1,ort:"Garage links",freigabe:"App"})]}}));
+    s:[Object.assign(demoSaeule(1,"GE-204499",demoLP({v:{zs1:"0,92",zs2:"0,88",zs3:"0,90",r1:"21,3"}}),newLP()),{bauart:"Wallbox",name:"Wallbox Garage",typ:"go-e Charger Gemini 11 kW",katId:"",absIn:"16",inenn:"16",lps:1,ort:"Garage links",freigabe:"App"})]}}));
   if(!META.pins.includes(s1.id)){ META.pins.push(s1.id); metaSave(); }
 }
 
