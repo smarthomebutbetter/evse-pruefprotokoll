@@ -717,7 +717,7 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 
 @media (min-width:744px){
   .sk .stabs{flex:none;margin-top:2px!important;height:48px}
-  .sk:has(.schips){position:sticky;top:var(--tbh,72px);z-index:5;background:var(--surface);margin:0 -12px 12px!important;padding:12px 12px 8px}
+  .sk:has(.spick){position:sticky;top:var(--tbh,72px);z-index:5;background:var(--surface);margin:0 -12px 12px!important;padding:12px 12px 8px}
 }
 
 @media (min-width:744px){
@@ -729,6 +729,22 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
   .schip:has(.sd.ok):not([aria-selected="true"]){border-color:color-mix(in srgb,var(--ok) 55%,var(--outline))}
   .schip:has(.sd.bad):not([aria-selected="true"]){border-color:var(--err);color:var(--err)}
   .schip[aria-selected="true"]:has(.sd.bad){background:var(--err-c);color:var(--on-err-c);border-color:var(--err-c)}
+}
+
+@media (min-width:744px){
+  .spick{flex:none;margin-top:4px;height:44px;min-width:210px;display:flex;align-items:center;gap:10px;padding:0 10px 0 14px;border-radius:12px;border:1px solid var(--outline);background:var(--sc);color:var(--on-surface);font-size:16px;font-weight:650;-webkit-tap-highlight-color:transparent;transition:background .15s}
+  .spick:hover,.spick:active{background:var(--sc-high)}
+  .spick .sd{width:10px;height:10px;flex:none}
+  .spick-t{flex:1;text-align:left;white-space:nowrap}
+  .spick-p{display:grid;transform:rotate(90deg);color:var(--on-sv)}
+  .spick-p .ic,.spick-ic .ic{width:20px;height:20px}
+  .spick-ic{display:grid;color:var(--on-sv)}
+  .spick:has(.sd.bad){border-color:var(--err)}
+  .spick-mi .sd{width:10px;height:10px;flex:none;margin:0 7px}
+  .spick-mi > span:not(.spick-ic){flex:1}.spick-mi .spick-ic{flex:none;width:24px;place-items:center}.spick-mi .sd{margin:0 7px!important}
+  .spick-mi small{font-size:12px;color:var(--on-sv);font-weight:600}
+  .spick-mi.an{background:color-mix(in srgb,var(--primary) 12%,transparent)}
+  .spick-mi > .ic:last-child{color:var(--primary)}
 }
 </style>
 </head>
@@ -1442,9 +1458,14 @@ addEventListener("resize",()=>{ if(PV){ clearTimeout(PV.rt); PV.rt=setTimeout(pv
     if(d.an&&d.dx>90) zurueck(); };
   document.addEventListener("touchend",ende); document.addEventListener("touchcancel",ende);
 })();
-const skRechts=()=>{ if(nav.v!=="saeule"||!cur||!cur.s[nav.si]) return ""; const sx=cur.s[nav.si], st=nav.st||"geraet";
-  const t=[["geraet","Gerät",null],...Array.from({length:sx.lps},(_,i)=>[`lp${i}`,sx.lps>1?`Ladepunkt ${i+1}`:"Ladepunkt",lpState(sx,i)])];
-  return `<div class="schips" role="tablist">${t.map(([k,l,r])=>`<button class="schip" role="tab" data-act="sub" data-v="${k}" aria-selected="${st===k}">${r?`<i class="sd ${r}" data-lpres="${k}"></i>`:""}<span>${l}</span></button>`).join("")}</div>`; };
+const spickListe=()=>{ const sx=cur.s[nav.si]; return [["geraet","Gerät",null],...Array.from({length:sx.lps},(_,i)=>[`lp${i}`,sx.lps>1?`Ladepunkt ${i+1}`:"Ladepunkt",lpState(sx,i)])]; };
+const SP_TXT={ok:"i.O.",bad:"Mängel",wip:"in Arbeit",open:"offen"};
+const skRechts=()=>{ if(nav.v!=="saeule"||!cur||!cur.s[nav.si]) return ""; const st=nav.st||"geraet", L=spickListe(), a=L.find(x=>x[0]===st)||L[0];
+  return `<button class="spick" data-act="spick" aria-haspopup="menu" aria-label="Bereich wählen">${a[2]?`<i class="sd ${a[2]}" data-lpres="${a[0]}"></i>`:`<span class="spick-ic">${icon("wallbox")}</span>`}<span class="spick-t">${a[1]}</span><span class="spick-p">${icon("chev")}</span></button>`; };
+function spickOeffnen(b){ const st=nav.st||"geraet";
+  $("#menu").innerHTML=spickListe().map(([k,l,r])=>`<button class="mi spick-mi${k===st?" an":""}" role="menuitem" data-act="sub" data-v="${k}">${r?`<i class="sd ${r}"></i>`:`<span class="spick-ic">${icon("wallbox")}</span>`}<span>${l}</span>${r?`<small>${SP_TXT[r]||""}</small>`:""}${k===st?icon("check"):""}</button>`).join("");
+  const m=$("#menu"), r=b.getBoundingClientRect(); m.style.top=(r.bottom+6)+"px"; m.style.right=(innerWidth-r.right)+"px"; m.style.minWidth=Math.max(240,r.width)+"px";
+  m.hidden=false; $("#scrim").hidden=false; }
 function render(){
   const app=$("#app"), ed=EDITOR.includes(nav.v);
   if(((SYNC_ON&&!ME.signedIn)||testGesperrt())&&nav.v!=="login") nav={v:"login"};
@@ -2103,6 +2124,7 @@ async function katFotoAufnehmen(file,t){
 
 function closeOverlays(){ ["#menu","#dlg","#scrim"].forEach(s=>$(s).hidden=true); $("#scrim").classList.remove("dim"); $("#menuBtn").setAttribute("aria-expanded","false"); }
 function openMenu(){
+  $("#menu").style.top=""; $("#menu").style.right=""; $("#menu").style.minWidth="";
   const it=[], E=EDITOR.includes(nav.v), kind=VIEW_KIND[nav.v];
   if(nav.v==="start"||nav.v==="kunden"||nav.v==="archiv"){
     if(nav.v!=="archiv") it.push(["nav:archiv",`Archiv${META.archiv.length?` (${live("pruefungen").filter(p=>META.archiv.includes(p.id)).length})`:""}`,"archive"]);
@@ -2443,6 +2465,7 @@ document.addEventListener("click",ev=>{
   switch(a){
   case "crumb": crumbGo(+b.dataset.i); return;
   case "skZurueck": zurueck(); return;
+  case "spick": spickOeffnen(b); return;
   case "bfilter": BIB_F=b.dataset.v; render(); return;
   case "bibOpen": pvOeffnen(b.dataset.id); return;
   case "pvZu": pvZu(); return;
