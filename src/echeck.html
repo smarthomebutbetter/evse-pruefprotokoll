@@ -1144,7 +1144,7 @@ function applyTheme(t){
   if(t==="auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme=t;
   try{ localStorage.setItem(TH_KEY,t); }catch(e){}
   const dark = t==="dark" || (t==="auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
-  document.querySelector('meta[name="theme-color"]').setAttribute("content", dark?"#131314":"#FCFCFD");
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", dark?"#131314":"#FCFCFD"); if(window.sbFarbe) sbFarbe();
 }
 const IC={
   steckdose:"M16 7V3h-2v4h-4V3H8v4h-.01C6.9 7 6 7.9 6 8.99v5.49L9.5 18v3h5v-3l3.5-3.51v-5.5c0-1.1-.9-1.99-2-1.99z",
@@ -1484,6 +1484,26 @@ document.addEventListener("click",e=>{
     if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); hl=(hl+(e.key==="ArrowDown"?1:-1)+bs.length)%bs.length; bs.forEach((b,k)=>b.classList.toggle("hl",k===hl)); bs[hl].scrollIntoView({block:"nearest"}); }
     else if(e.key==="Enter"&&hl>=0){ e.preventDefault(); nimm(bs[hl].dataset.vw); } else if(e.key==="Escape"){ e.preventDefault(); zu(); } });
   addEventListener("scroll",lage,true); addEventListener("resize",lage); window.visualViewport&&visualViewport.addEventListener("resize",lage);
+})();
+/* Statusleiste (Android: theme-color) folgt der Farbe, die oben am Bildschirm tatsächlich zu sehen ist */
+(()=>{ const meta=document.querySelector('meta[name="theme-color"]'); if(!meta) return; let plan=0, alt="";
+  const rgba=s=>{ const m=String(s).match(/rgba?\(([^)]+)\)/); if(!m) return null; const p=m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [p[0],p[1],p[2],p.length>3?p[3]:1]; };
+  const hex=c=>"#"+c.slice(0,3).map(v=>Math.round(v).toString(16).padStart(2,"0")).join("");
+  const grund=el=>{ for(let e=el;e&&e.nodeType===1;e=e.parentElement){ const c=rgba(getComputedStyle(e).backgroundColor); if(c&&c[3]>=.95) return c; } return rgba(getComputedStyle(document.body).backgroundColor)||[252,252,253,1]; };
+  const mische=(u,o)=>[0,1,2].map(i=>o[i]*o[3]+u[i]*(1-o[3]));
+  function setzen(){ plan=0; try{
+    const x=Math.round(innerWidth/2), stapel=document.elementsFromPoint(x,1).filter(e=>e!==document.documentElement);
+    let farbe=null, ueber=[];
+    for(const e of stapel){ const c=rgba(getComputedStyle(e).backgroundColor); if(!c||c[3]===0) continue; if(c[3]>=.95){ farbe=c; break; } ueber.push(c); }
+    if(!farbe) farbe=grund(stapel[stapel.length-1]||document.body);
+    let f=farbe.slice(0,3); for(let i=ueber.length-1;i>=0;i--) f=mische(f,ueber[i]);
+    const h=hex(f); if(h!==alt){ alt=h; meta.setAttribute("content",h); } }catch(e){} }
+  const bald=()=>{ if(!plan) plan=requestAnimationFrame(setzen); };
+  window.sbFarbe=bald;
+  new MutationObserver(bald).observe(document.documentElement,{attributes:true,subtree:true,childList:true,attributeFilter:["class","hidden","data-theme","style"]});
+  addEventListener("scroll",bald,{passive:true}); addEventListener("resize",bald);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",()=>setTimeout(bald,50));
+  document.addEventListener("transitionend",bald,true); bald();
 })();
 function render(){
   const app=$("#app");
