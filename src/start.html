@@ -1013,7 +1013,7 @@ const Auth={pca:null,account:null,test:null,
     if(!SYNC_ON||!window.msal) return;
     try{
       this.pca=new msal.PublicClientApplication({auth:{clientId:CONFIG.clientId,authority:"https://login.microsoftonline.com/"+CONFIG.tenantId,
-        redirectUri:location.origin+location.pathname,postLogoutRedirectUri:location.origin+location.pathname,navigateToLoginRequestUrl:false},
+        redirectUri:location.origin+location.pathname.replace(/index\.html$/,""),postLogoutRedirectUri:location.origin+location.pathname.replace(/index\.html$/,""),navigateToLoginRequestUrl:false},
         cache:{cacheLocation:"localStorage"}});
       await this.pca.initialize();
       const r=await this.pca.handleRedirectPromise(); if(r&&r.account) this.account=r.account;
