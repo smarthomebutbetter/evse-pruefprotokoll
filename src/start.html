@@ -948,6 +948,31 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 .vl button{display:block;width:100%;min-height:44px;border:0;background:transparent;color:var(--on-surface);text-align:left;font:inherit;font-size:16px;padding:10px 14px;border-radius:10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vl button:hover,.vl button.hl{background:color-mix(in srgb,var(--on-surface) 8%,transparent)}
 .vl button b{font-weight:600;color:var(--primary)}
+
+/* Filter in der Suchleiste */
+.search.mit-f{padding-right:6px}
+.search input{flex:1;min-width:0}
+.such-f{flex:none;position:relative;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:var(--on-sv);display:grid;place-items:center;cursor:pointer}
+.such-f:hover{background:color-mix(in srgb,var(--on-surface) 8%,transparent)}
+.such-f.an{background:var(--sec-c);color:var(--on-sec-c)}
+.such-f .ic{width:22px;height:22px}
+#fpopBg{position:fixed;inset:0;z-index:95}
+.fpop{position:fixed;z-index:96;background:var(--sc-high);border-radius:24px;padding:12px;box-shadow:0 12px 32px rgba(0,0,0,.24),0 2px 6px rgba(0,0,0,.12);overflow:auto;overscroll-behavior:contain;animation:menuAuf .16s cubic-bezier(.2,.8,.2,1);transform-origin:top right}
+.fp-t{font-size:13px;font-weight:700;color:var(--on-sv);margin:4px 8px 6px}
+.fp-t:not(:first-child){margin-top:14px}
+.fp-sort{display:flex;flex-direction:column;gap:2px}
+.fp-i{border:0;background:transparent;color:var(--on-surface);text-align:left;font:inherit;font-size:16px;min-height:44px;padding:10px 12px;border-radius:12px;cursor:pointer}
+.fp-i:hover{background:color-mix(in srgb,var(--on-surface) 8%,transparent)}
+.fp-i.an{background:var(--sec-c);color:var(--on-sec-c);font-weight:600}
+.fp-chips{display:flex;flex-wrap:wrap;gap:8px;padding:0 4px}
+.fp-c{border:0;background:var(--sc-highest);color:var(--on-surface);font:inherit;font-size:14px;font-weight:600;height:36px;padding:0 14px;border-radius:18px;cursor:pointer}
+.fp-c.an{background:var(--sec-c);color:var(--on-sec-c)}
+.fp-f{display:flex;justify-content:flex-end;margin-top:10px}
+.abc-gr{display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px;align-items:start;margin-bottom:12px}
+.abc-b{position:sticky;top:8px;font-size:24px;font-weight:700;color:var(--primary);text-align:center;line-height:56px}
+.abc-l .list{margin:0}
+@media (max-width:743.98px){.abc-gr{grid-template-columns:28px minmax(0,1fr);gap:4px}.abc-b{font-size:20px;line-height:48px}}
+.f-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body class="is-list">
@@ -1163,7 +1188,8 @@ function applyTheme(t){
   const dark = t==="dark" || (t==="auto" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
   document.querySelector('meta[name="theme-color"]').setAttribute("content", dark?"#131314":"#FCFCFD");
 }
-const IC={
+const FDEF={};
+const IC={filt:"M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z",
   chart:"M4 9h4v11H4zm12 4h4v7h-4zm-6-9h4v16h-4z",
   baustelle:"M2 18h20v2.5H2zM4 16.5c0-3.9 2.6-7.1 6-8.1V5.6c0-.6.4-1.1 1-1.1h2c.6 0 1 .5 1 1.1v2.8c3.4 1 6 4.2 6 8.1z",
   share:"M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z",
@@ -1235,7 +1261,7 @@ function sf(path,label,val,opts,o={}){
 const datalist=(id,vals)=>`<datalist id="${id}">${[...new Set(vals.map(v=>String(v||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de",{numeric:true})).map(v=>`<option value="${esc(v)}">`).join("")}</datalist>`;
 const seg=(act,cur,opts,cls="")=>`<div class="seg ${cls}" role="group">${opts.map(([v,t])=>`<button type="button" data-act="${act}" data-v="${v}" aria-pressed="${String(cur)===String(v)}">${icon("check")}${esc(t)}</button>`).join("")}</div>`;
 const listOf=items=>items.length?`<div class="list">${items.join("")}</div>`:"";
-const searchBar=ph=>`<div class="search">${icon("search")}<input id="q" type="search" placeholder="${esc(ph)}" value="${esc(query)}" autocomplete="off" aria-label="Suchen"></div>`;
+const searchBar=(ph,f)=>`<div class="search${f?" mit-f":""}">${icon("search")}<input id="q" type="search" placeholder="${esc(ph)}" value="${esc(query)}" autocomplete="off" aria-label="Suchen">${f?`<button type="button" class="such-f${f.aktiv?" an":""}" data-act="${f.act}" data-n="${f.n||""}" aria-label="Filtern und sortieren">${icon("filt")}</button>`:""}</div>`;
 const FREEMAIL=/^(gmail|googlemail|web|gmx|t-online|outlook|hotmail|live|icloud|me|mac|yahoo|aol|freenet|arcor|posteo|mailbox|online|vodafone|1und1|ionos)\./i;
 const webHref=w=>!w?"":/^https?:\/\//i.test(w)?w:"https://"+w;
 const webText=w=>String(w||"").replace(/^https?:\/\//i,"").replace(/\/$/,"");
@@ -1511,16 +1537,18 @@ async function protLaden(){ try{ const d=await protOpen(); PROT=(await idbReq(d.
 async function protBlob(id){ const d=await protOpen(); return idbReq(d.transaction("blob").objectStore("blob").get(id)); }
 const BFILTER=[["alle","Alle"],["ok","Bestanden"],["bad","Mit Mängeln"]];
 const protZeit=t=>{ const d=new Date(t); return `${d.toLocaleDateString("de-DE")}, ${d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}`; };
+FDEF.bib={std:{sort:"neu",erg:"alle"},sort:[["neu","Neueste zuerst"],["alt","Älteste zuerst"],["kunde","Kunde A–Z"]],gruppen:[{k:"erg",t:"Ergebnis",opts:[["alle","Alle"],["ok","Bestanden"],["bad","Mit Mängeln"]]}],liste:()=>bibListe()};
 function bibListe(){
-  const q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q);
-  const L=PROT.filter(x=>(BIB_F==="alle"||x.ergebnis===BIB_F)&&(!q||H(x.titel)||H(x.name)||H(x.auftragsnr)||H(x.pruefer))).sort((a,b)=>b.created-a.created);
-  if(!L.length) return PROT.length?`<p class="meta">Keine Protokolle in dieser Auswahl.</p>`:`<div class="empty">${icon("folder")}<h2>Noch keine Protokolle</h2><p>Fertige Protokolle aus EVSE und später aus Baustelle und E-Check erscheinen hier, sobald dort ein PDF erstellt wurde.</p></div>`;
-  return nachMonat(L,x=>new Date(x.created).toISOString().slice(0,10),x=>`<div class="li" role="button" tabindex="0" data-act="bibOpen" data-id="${esc(x.id)}"><span class="av">${icon("doc")}</span><span class="lt"><span class="h">${esc(x.titel)}</span>
+  const n="bib", erg=fW(n,"erg"), so=fW(n,"sort"), q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q);
+  const L=PROT.filter(x=>(erg==="alle"||x.ergebnis===erg)&&(!q||H(x.titel)||H(x.name)||H(x.auftragsnr)||H(x.pruefer))); L.sort(so==="alt"?(a,b)=>a.created-b.created:so==="kunde"?(a,b)=>String(a.titel||"").localeCompare(String(b.titel||""),"de")||b.created-a.created:(a,b)=>b.created-a.created);
+  if(!L.length) return PROT.length?fInfo(n,0,"Protokoll","Protokolle")+`<p class="meta">Keine Protokolle in dieser Auswahl.</p>`:`<div class="empty">${icon("folder")}<h2>Noch keine Protokolle</h2><p>Fertige Protokolle aus EVSE und später aus Baustelle und E-Check erscheinen hier, sobald dort ein PDF erstellt wurde.</p></div>`;
+  const item=x=>`<div class="li" role="button" tabindex="0" data-act="bibOpen" data-id="${esc(x.id)}"><span class="av">${icon("doc")}</span><span class="lt"><span class="h">${esc(x.titel)}</span>
     <span class="s">${esc(["EVSE",deDate(x.datum),x.art,x.auftragsnr&&`Auftrag ${x.auftragsnr}`].filter(Boolean).join(" · "))}</span><span class="s">${esc(`PDF vom ${protZeit(x.created)}${x.von&&x.von.name?` · ${x.von.name}`:""}`)}</span>
-    <span class="st">${pill(x.ergebnis,x.ergebnis==="bad"?"nicht bestanden":"bestanden")}${x.fassung>1?pill("open",`Fassung ${x.fassung}`):""}${x.unterschrift?"":pill("open","ohne Unterschrift")}${x.demo?pill("open","Beispiel"):""}</span></span>${icon("chev")}</div>`);
+    <span class="st">${pill(x.ergebnis,x.ergebnis==="bad"?"nicht bestanden":"bestanden")}${x.fassung>1?pill("open",`Fassung ${x.fassung}`):""}${x.unterschrift?"":pill("open","ohne Unterschrift")}${x.demo?pill("open","Beispiel"):""}</span></span>${icon("chev")}</div>`;
+  return fInfo(n,L.length,"Protokoll","Protokolle")+(so==="kunde"?abcListe(L,x=>x.titel,item):nachMonat(L,x=>new Date(x.created).toISOString().slice(0,10),item));
 }
 function bibliothekView(){
-  return `<div class="narrow">${PROT.length?searchBar("Kunde, Ort, Auftrag oder Prüfer")+bibChips(BFILTER):""}<div id="res">${bibListe()}</div>
+  return `<div class="narrow">${PROT.length?searchBar("Kunde, Ort, Auftrag oder Prüfer",fKnopf("bib")):""}<div id="res">${bibListe()}</div>
     ${PROT.length?`<p class="hint">Fertige Protokolle aller Apps. Auf diesem Gerät liegen die, die hier erstellt wurden – mit dem Abgleich kommen alle aus der Share dazu.</p>`:""}</div>`;
 }
 function bibOpen(id){ const x=PROT.find(y=>y.id===id); if(!x) return;
@@ -1782,14 +1810,39 @@ function locItem(kind,r){
   return `<div class="li" role="button" tabindex="0" data-act="nav" data-v="${kind==="kunden"?"kunde":"standort"}" data-id="${esc(r.id)}"><span class="av">${icon(kind==="kunden"?"firma":"ort")}</span>
     <span class="lt"><span class="h">${esc(r.name)}</span>${sub?`<span class="s">${esc(sub)}</span>`:""}${pills?`<span class="st">${pills}</span>`:""}</span>${icon("chev")}</div>`;
 }
+/* Filter/Sortieren-Fenster an der Suchleiste (gleich für alle Listen) */
+const fW=(n,k)=>{ const v=(META.f||{})[n+"."+k]; return v==null?FDEF[n].std[k]:v; };
+const fAktiv=n=>Object.keys(FDEF[n].std).some(k=>fW(n,k)!==FDEF[n].std[k]);
+const fKnopf=n=>({act:"fPop",n,aktiv:fAktiv(n)});
+function fNeu(n){ const r=$("#res"); if(r) r.innerHTML=FDEF[n].liste(); const f=$(".such-f"); if(f) f.classList.toggle("an",fAktiv(n)); }
+function fSet(n,k,v){ META.f=Object.assign({},META.f||{},{[n+"."+k]:v}); metaSave(); fNeu(n); }
+function fWeg(n,alles){ const D=FDEF[n], f=Object.assign({},META.f||{}); Object.keys(D.std).forEach(k=>{ if(alles||k!=="sort") delete f[n+"."+k]; }); META.f=f; metaSave(); fNeu(n); }
+function fInfo(n,anz,ein,mehr){ const D=FDEF[n], t=D.gruppen.filter(g=>fW(n,g.k)!==D.std[g.k]).map(g=>(g.opts.find(o=>o[0]===fW(n,g.k))||[,""])[1]);
+  return t.length?`<p class="meta f-info">${anz} ${anz===1?ein:mehr} · ${esc(t.join(" · "))} <button class="btn-text inl" data-act="fWeg" data-n="${n}">Filter aufheben</button></p>`:""; }
+const abcB=x=>{ const c=String(x||"").trim().normalize("NFD").replace(/[̀-ͯ]/g,"").charAt(0).toUpperCase(); return /[A-Z]/.test(c)?c:"#"; };
+function abcListe(L,name,item){ const gr=[]; L.forEach(x=>{ const b=abcB(name(x)); if(!gr.length||gr[gr.length-1][0]!==b) gr.push([b,[]]); gr[gr.length-1][1].push(x); });
+  return gr.map(([b,G])=>`<div class="abc-gr"><div class="abc-b" aria-hidden="true">${b}</div><div class="abc-l">${listOf(G.map(item))}</div></div>`).join(""); }
+function filterPop(btn,n){ $("#fpop")?.remove(); $("#fpopBg")?.remove(); const D=FDEF[n];
+  const bg=document.createElement("div"); bg.id="fpopBg"; document.body.appendChild(bg);
+  const m=document.createElement("div"); m.id="fpop"; m.className="fpop";
+  const male=()=>{ m.innerHTML=`<div class="fp-t">Sortieren</div><div class="fp-sort">${D.sort.map(([v,t])=>`<button type="button" class="fp-i${fW(n,"sort")===v?" an":""}" data-fk="sort" data-fv="${esc(v)}">${esc(t)}</button>`).join("")}</div>`
+    +D.gruppen.map(g=>`<div class="fp-t">${esc(g.t)}</div><div class="fp-chips">${g.opts.map(([v,t])=>`<button type="button" class="fp-c${fW(n,g.k)===v?" an":""}" data-fk="${g.k}" data-fv="${esc(v)}">${esc(t)}</button>`).join("")}</div>`).join("")
+    +(fAktiv(n)?`<div class="fp-f"><button type="button" class="btn-text" data-freset="1">Zurücksetzen</button></div>`:""); };
+  male(); document.body.appendChild(m);
+  const r=btn.getBoundingClientRect(), w=Math.min(340,innerWidth-16); m.style.width=w+"px"; m.style.left=Math.max(8,Math.min(r.right-w,innerWidth-w-8))+"px"; m.style.top=(r.bottom+8)+"px"; m.style.maxHeight=(innerHeight-r.bottom-24)+"px";
+  m.addEventListener("click",e=>{ const a=e.target.closest("[data-fk]"); if(a){ fSet(n,a.dataset.fk,a.dataset.fv); male(); return; } if(e.target.closest("[data-freset]")){ fWeg(n,true); male(); } });
+  const zu=()=>{ m.remove(); bg.remove(); removeEventListener("resize",zu); }; bg.addEventListener("click",zu); addEventListener("resize",zu); }
+FDEF.kunden={std:{sort:"az"},sort:[["az","Name A–Z"],["za","Name Z–A"],["kdnr","Kundennummer"],["neu","Zuletzt angelegt"]],gruppen:[],liste:()=>kundenListe()};
 function kundenListe(){
-  const q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q);
-  const ks=live("kunden").sort((a,b)=>a.name.localeCompare(b.name,"de")).filter(k=>!q||H(k.name)||H(k.kdnr)||H(k.ort)||H(k.ansprech)||standorteVon(k.id).some(s=>H(s.name)||H(s.ort)||H(s.strasse)));
-  return ks.length?listOf(ks.map(k=>locItem("kunden",k))):`<p class="meta">Kein Kunde gefunden.</p>`;
+  const q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q), so=fW("kunden","sort"), nm=(a,b)=>a.name.localeCompare(b.name,"de");
+  const ks=live("kunden").filter(k=>!q||H(k.name)||H(k.kdnr)||H(k.ort)||H(k.ansprech)||standorteVon(k.id).some(s=>H(s.name)||H(s.ort)||H(s.strasse)));
+  ks.sort(so==="za"?(a,b)=>nm(b,a):so==="kdnr"?(a,b)=>String(a.kdnr||"~").localeCompare(String(b.kdnr||"~"),"de",{numeric:true})||nm(a,b):so==="neu"?(a,b)=>(b.created||0)-(a.created||0):nm);
+  if(!ks.length) return `<p class="meta">Kein Kunde gefunden.</p>`;
+  return so==="az"||so==="za"?abcListe(ks,k=>k.name,k=>locItem("kunden",k)):listOf(ks.map(k=>locItem("kunden",k)));
 }
 function kundenView(){
   if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Kunden aus den Apps EVSE, Baustelle und E-Check erscheinen hier automatisch.</p></div>`;
-  return `<div class="narrow">${searchBar("Kunde, Ort, Ansprechpartner suchen")}<div id="res">${kundenListe()}</div><p class="hint">Eine Kundendatenbank für alle Apps.${ME.admin?"":" Ändern können Admins."}</p></div>`;
+  return `<div class="narrow">${searchBar("Kunde, Ort, Ansprechpartner suchen",fKnopf("kunden"))}<div id="res">${kundenListe()}</div><p class="hint">Eine Kundendatenbank für alle Apps.${ME.admin?"":" Ändern können Admins."}</p></div>`;
 }
 function bezugListen(kind,id){
   const bs=live("baustellen").filter(b=>kind==="kunden"?b.kundeId===id:b.standortId===id).sort((a,b)=>bAktiv(b)-bAktiv(a));
@@ -1929,6 +1982,8 @@ document.addEventListener("click",async ev=>{
   case "crumb": crumbGo(+b.dataset.i); return;
   case "skZurueck": zurueck(); return;
   case "bfilter": BIB_F=b.dataset.v; render(); return;
+  case "fPop": filterPop(b,b.dataset.n); return;
+  case "fWeg": fWeg(b.dataset.n,false); return;
   case "bibOpen": pvOeffnen(b.dataset.id); return;
   case "pvZu": pvZu(); return;
   case "pvKopfAuf": $("#pv")?.classList.remove("kompakt"); return;

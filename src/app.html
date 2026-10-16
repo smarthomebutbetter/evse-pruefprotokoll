@@ -1420,6 +1420,7 @@ function applyTheme(t){
 let theme="auto"; try{ theme=localStorage.getItem(TH_KEY)||"auto"; }catch(e){}
 applyTheme(theme);
 
+const FDEF={};
 const IC={filt:"M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z",
   baustelle:"M2 18h20v2.5H2zM4 16.5c0-3.9 2.6-7.1 6-8.1V5.6c0-.6.4-1.1 1-1.1h2c.6 0 1 .5 1 1.1v2.8c3.4 1 6 4.2 6 8.1z",
   back:"M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
@@ -1558,16 +1559,20 @@ async function protBlob(id){ const d=await protOpen(); return idbReq(d.transacti
 async function protWeg(id){ const d=await protOpen(); const tx=d.transaction(["meta","blob"],"readwrite"); tx.objectStore("meta").delete(id); tx.objectStore("blob").delete(id); await new Promise(r=>{ tx.oncomplete=r; tx.onerror=r; }); PROT=PROT.filter(x=>x.id!==id); }
 const BFILTER=[["alle","Alle"],["ok","Bestanden"],["bad","Mit Mängeln"]];
 const protZeit=t=>{ const d=new Date(t); return `${d.toLocaleDateString("de-DE")}, ${d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})}`; };
+FDEF.bib={std:{sort:"neu",erg:"alle",art:"alle"},sort:[["neu","Neueste zuerst"],["alt","Älteste zuerst"],["kunde","Kunde A–Z"]],
+  gruppen:[{k:"erg",t:"Ergebnis",opts:[["alle","Alle"],["ok","Bestanden"],["bad","Mit Mängeln"]]},{k:"art",t:"Prüfart",opts:[["alle","Alle"],...PRUEFARTEN.map(x=>[x,x==="Wiederholungsprüfung"?"Wiederholung":x])]}],liste:()=>bibListe()};
 function bibListe(){
-  const q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q);
-  const L=PROT.filter(x=>(BIB_F==="alle"||x.ergebnis===BIB_F)&&(!q||H(x.titel)||H(x.name)||H(x.auftragsnr)||H(x.pruefer)||H(x.art))).sort((a,b)=>b.created-a.created);
-  if(!L.length) return PROT.length?`<p class="meta">Keine Protokolle in dieser Auswahl.</p>`:`<div class="empty">${icon("folder")}<h2>Noch keine Protokolle</h2><p>Sobald du in einer Prüfung unter Abschluss „PDF erstellen“ tippst, wird das fertige Protokoll hier abgelegt – genau so, wie es erstellt wurde.</p></div>`;
-  return nachMonat(L,x=>new Date(x.created).toISOString().slice(0,10),x=>`<div class="li" role="button" tabindex="0" data-act="bibOpen" data-id="${esc(x.id)}"><span class="av">${icon("doc")}</span><span class="lt"><span class="h">${esc(x.titel)}</span>
+  const n="bib", erg=fW(n,"erg"), art=fW(n,"art"), so=fW(n,"sort"), q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q);
+  const L=PROT.filter(x=>(erg==="alle"||x.ergebnis===erg)&&(art==="alle"||x.art===art)&&(!q||H(x.titel)||H(x.name)||H(x.auftragsnr)||H(x.pruefer)||H(x.art)));
+  if(!L.length) return PROT.length?fInfo(n,0,"Protokoll","Protokolle")+`<p class="meta">Keine Protokolle in dieser Auswahl.</p>`:`<div class="empty">${icon("folder")}<h2>Noch keine Protokolle</h2><p>Sobald du in einer Prüfung unter Abschluss „PDF erstellen“ tippst, wird das fertige Protokoll hier abgelegt – genau so, wie es erstellt wurde.</p></div>`;
+  L.sort(so==="alt"?(a,b)=>a.created-b.created:so==="kunde"?(a,b)=>String(a.titel||"").localeCompare(String(b.titel||""),"de")||b.created-a.created:(a,b)=>b.created-a.created);
+  const item=x=>`<div class="li" role="button" tabindex="0" data-act="bibOpen" data-id="${esc(x.id)}"><span class="av">${icon("doc")}</span><span class="lt"><span class="h">${esc(x.titel)}</span>
     <span class="s">${esc([deDate(x.datum),x.art,x.auftragsnr&&`Auftrag ${x.auftragsnr}`].filter(Boolean).join(" · "))}</span><span class="s">${esc(`PDF vom ${protZeit(x.created)}${x.von&&x.von.name?` · ${x.von.name}`:""}`)}</span>
-    <span class="st">${pill(x.ergebnis)}${x.fassung>1?pill("open",`Fassung ${x.fassung}`):""}${x.unterschrift?"":pill("open","ohne Unterschrift")}${x.demo?pill("open","Beispiel"):""}</span></span>${icon("chev")}</div>`);
+    <span class="st">${pill(x.ergebnis)}${x.fassung>1?pill("open",`Fassung ${x.fassung}`):""}${x.unterschrift?"":pill("open","ohne Unterschrift")}${x.demo?pill("open","Beispiel"):""}</span></span>${icon("chev")}</div>`;
+  return fInfo(n,L.length,"Protokoll","Protokolle")+(so==="kunde"?abcListe(L,x=>x.titel,item):nachMonat(L,x=>new Date(x.created).toISOString().slice(0,10),item));
 }
 function bibliothekView(){
-  return `<div class="narrow">${PROT.length?searchBar("Kunde, Ort, Auftrag oder Prüfer")+bibChips(BFILTER):""}<div id="res">${bibListe()}</div>
+  return `<div class="narrow">${PROT.length?searchBar("Kunde, Ort, Auftrag oder Prüfer",fKnopf("bib")):""}<div id="res">${bibListe()}</div>
     ${PROT.length?`<p class="hint">Fertige Protokolle so, wie sie erstellt wurden. Spätere Änderungen an der Prüfung ändern sie nicht – ein neues PDF wird als neue Fassung abgelegt.</p>`:""}</div>`;
 }
 async function protAblegen(p,blob,name){
@@ -1875,7 +1880,7 @@ function locItem(kind,r){
     <span class="lt"><span class="h">${esc(r.name)}</span><span class="s">${esc([sub,last&&`zuletzt ${deDate(last.p.datum)}`].filter(Boolean).join(" · ")||"noch keine Prüfung")}</span>${last?`<span class="st">${pill(protoState(last))}</span>`:""}</span>
     <button class="pin" data-act="pinLoc" data-kind="${kind}" data-id="${esc(r.id)}" aria-pressed="${pins}" aria-label="${pins?"Nicht mehr anpinnen":"Anpinnen"}">${icon(pins?"pin":"pinOff")}</button></div></div>`;
 }
-const searchBar=(ph,f)=>`<div class="search${f?" mit-f":""}">${icon("search")}<input id="q" type="search" placeholder="${esc(ph)}" value="${esc(query)}" autocomplete="off" aria-label="Suchen">${f?`<button type="button" class="such-f${f.aktiv?" an":""}" data-act="${f.act}" aria-label="Filtern und sortieren">${icon("filt")}</button>`:""}</div>`;
+const searchBar=(ph,f)=>`<div class="search${f?" mit-f":""}">${icon("search")}<input id="q" type="search" placeholder="${esc(ph)}" value="${esc(query)}" autocomplete="off" aria-label="Suchen">${f?`<button type="button" class="such-f${f.aktiv?" an":""}" data-act="${f.act}" data-n="${f.n||""}" aria-label="Filtern und sortieren">${icon("filt")}</button>`:""}</div>`;
 const listOf=items=>items.length?`<div class="list">${items.join("")}</div>`:"";
 const isDemo=r=>!!r.demo;
 
@@ -1906,14 +1911,33 @@ function startListen(){
   h+=rec.length?listOf(rec.map(p=>pItem(p,true))):`<p class="meta">Keine Prüfungen.</p>`;
   return h+`<p class="hint">Lange drücken: Wiederholungsprüfung anlegen · nach rechts wischen: archivieren · nach links: löschen</p>`;
 }
-const K_SORT=[["az","Name A–Z"],["za","Name Z–A"],["zuletzt","Zuletzt geprüft"],["kdnr","Kundennummer"]];
+/* Filter/Sortieren-Fenster an der Suchleiste (gleich für alle Listen) */
+const fW=(n,k)=>{ const v=(META.f||{})[n+"."+k]; return v==null?FDEF[n].std[k]:v; };
+const fAktiv=n=>Object.keys(FDEF[n].std).some(k=>fW(n,k)!==FDEF[n].std[k]);
+const fKnopf=n=>({act:"fPop",n,aktiv:fAktiv(n)});
+function fNeu(n){ const r=$("#res"); if(r) r.innerHTML=FDEF[n].liste(); const f=$(".such-f"); if(f) f.classList.toggle("an",fAktiv(n)); }
+function fSet(n,k,v){ META.f=Object.assign({},META.f||{},{[n+"."+k]:v}); metaSave(); fNeu(n); }
+function fWeg(n,alles){ const D=FDEF[n], f=Object.assign({},META.f||{}); Object.keys(D.std).forEach(k=>{ if(alles||k!=="sort") delete f[n+"."+k]; }); META.f=f; metaSave(); fNeu(n); }
+function fInfo(n,anz,ein,mehr){ const D=FDEF[n], t=D.gruppen.filter(g=>fW(n,g.k)!==D.std[g.k]).map(g=>(g.opts.find(o=>o[0]===fW(n,g.k))||[,""])[1]);
+  return t.length?`<p class="meta f-info">${anz} ${anz===1?ein:mehr} · ${esc(t.join(" · "))} <button class="btn-text inl" data-act="fWeg" data-n="${n}">Filter aufheben</button></p>`:""; }
+const abcB=x=>{ const c=String(x||"").trim().normalize("NFD").replace(/[̀-ͯ]/g,"").charAt(0).toUpperCase(); return /[A-Z]/.test(c)?c:"#"; };
+function abcListe(L,name,item){ const gr=[]; L.forEach(x=>{ const b=abcB(name(x)); if(!gr.length||gr[gr.length-1][0]!==b) gr.push([b,[]]); gr[gr.length-1][1].push(x); });
+  return gr.map(([b,G])=>`<div class="abc-gr"><div class="abc-b" aria-hidden="true">${b}</div><div class="abc-l">${listOf(G.map(item))}</div></div>`).join(""); }
+function filterPop(btn,n){ $("#fpop")?.remove(); $("#fpopBg")?.remove(); const D=FDEF[n];
+  const bg=document.createElement("div"); bg.id="fpopBg"; document.body.appendChild(bg);
+  const m=document.createElement("div"); m.id="fpop"; m.className="fpop";
+  const male=()=>{ m.innerHTML=`<div class="fp-t">Sortieren</div><div class="fp-sort">${D.sort.map(([v,t])=>`<button type="button" class="fp-i${fW(n,"sort")===v?" an":""}" data-fk="sort" data-fv="${esc(v)}">${esc(t)}</button>`).join("")}</div>`
+    +D.gruppen.map(g=>`<div class="fp-t">${esc(g.t)}</div><div class="fp-chips">${g.opts.map(([v,t])=>`<button type="button" class="fp-c${fW(n,g.k)===v?" an":""}" data-fk="${g.k}" data-fv="${esc(v)}">${esc(t)}</button>`).join("")}</div>`).join("")
+    +(fAktiv(n)?`<div class="fp-f"><button type="button" class="btn-text" data-freset="1">Zurücksetzen</button></div>`:""); };
+  male(); document.body.appendChild(m);
+  const r=btn.getBoundingClientRect(), w=Math.min(340,innerWidth-16); m.style.width=w+"px"; m.style.left=Math.max(8,Math.min(r.right-w,innerWidth-w-8))+"px"; m.style.top=(r.bottom+8)+"px"; m.style.maxHeight=(innerHeight-r.bottom-24)+"px";
+  m.addEventListener("click",e=>{ const a=e.target.closest("[data-fk]"); if(a){ fSet(n,a.dataset.fk,a.dataset.fv); male(); return; } if(e.target.closest("[data-freset]")){ fWeg(n,true); male(); } });
+  const zu=()=>{ m.remove(); bg.remove(); removeEventListener("resize",zu); }; bg.addEventListener("click",zu); addEventListener("resize",zu); }
 const K_STATUS=[["alle","Alle"],["wip","In Arbeit"],["bad","Nicht bestanden"],["ok","Bestanden"],["faellig","Fällig"],["ohne","Ohne Prüfung"]];
-const kSort=()=>META.kSort||"az", kStatus=()=>META.kStatus||"alle", kFilterAktiv=()=>kSort()!=="az"||kStatus()!=="alle";
-const buchstabe=n=>{ const c=String(n||"").trim().normalize("NFD").replace(/[̀-ͯ]/g,"").charAt(0).toUpperCase(); return /[A-Z]/.test(c)?c:"#"; };
 function kundeFaellig(k){ const grenze=new Date(Date.now()+90*864e5).toISOString().slice(0,10), ges=new Set();
   return pruefUnter("kunden",k.id).some(p=>{ const o=p.standortId+"|"+(p.ladeparkId||""); if(ges.has(o)) return false; ges.add(o); return !!(p.a&&p.a.naechste&&p.a.naechste<=grenze); }); }
 function kundenListe(){
-  const q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q), so=kSort(), st=kStatus();
+  const q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q), so=fW("kunden","sort"), st=fW("kunden","status");
   let ks=live("kunden").filter(k=>!q||H(k.name)||H(k.kdnr)||H(k.ort)||standorteVon(k.id).some(s=>H(s.name)||H(s.ort)));
   const last=new Map(ks.map(k=>[k.id,pruefUnter("kunden",k.id)[0]]));
   if(st!=="alle") ks=ks.filter(k=>{ const l=last.get(k.id); return st==="ohne"?!l:st==="faellig"?kundeFaellig(k):!!l&&protoState(l)===st; });
@@ -1921,28 +1945,14 @@ function kundenListe(){
   if(so==="az") ks.sort(nm); else if(so==="za") ks.sort((a,b)=>nm(b,a));
   else if(so==="kdnr") ks.sort((a,b)=>String(a.kdnr||"~").localeCompare(String(b.kdnr||"~"),"de",{numeric:true})||nm(a,b));
   else ks.sort((a,b)=>{ const x=last.get(a.id), y=last.get(b.id); return x&&y?byDate(x,y):x?-1:y?1:nm(a,b); });
-  const info=st!=="alle"?`<p class="meta f-info">${ks.length} ${ks.length===1?"Kunde":"Kunden"} · ${esc(K_STATUS.find(x=>x[0]===st)[1])} <button class="btn-text inl" data-act="kFilterWeg">Filter aufheben</button></p>`:"";
+  const info=fInfo("kunden",ks.length,"Kunde","Kunden");
   if(!ks.length) return info+`<p class="meta">Kein Kunde gefunden.</p>`;
-  if(so!=="az"&&so!=="za") return info+listOf(ks.map(k=>locItem("kunden",k)));
-  const gr=[]; ks.forEach(k=>{ const b=buchstabe(k.name); if(!gr.length||gr[gr.length-1][0]!==b) gr.push([b,[]]); gr[gr.length-1][1].push(k); });
-  return info+gr.map(([b,L])=>`<div class="abc-gr"><div class="abc-b" aria-hidden="true">${b}</div><div class="abc-l">${listOf(L.map(k=>locItem("kunden",k)))}</div></div>`).join("");
+  return info+(so==="az"||so==="za"?abcListe(ks,k=>k.name,k=>locItem("kunden",k)):listOf(ks.map(k=>locItem("kunden",k))));
 }
-function kFilterPop(btn){ $("#fpop")?.remove(); $("#fpopBg")?.remove();
-  const bg=document.createElement("div"); bg.id="fpopBg"; document.body.appendChild(bg);
-  const m=document.createElement("div"); m.id="fpop"; m.className="fpop";
-  const male=()=>{ m.innerHTML=`<div class="fp-t">Sortieren</div><div class="fp-sort">${K_SORT.map(([v,t])=>`<button type="button" class="fp-i${kSort()===v?" an":""}" data-ks="${v}">${t}</button>`).join("")}</div>
-    <div class="fp-t">Status</div><div class="fp-chips">${K_STATUS.map(([v,t])=>`<button type="button" class="fp-c${kStatus()===v?" an":""}" data-kst="${v}">${t}</button>`).join("")}</div>
-    ${kFilterAktiv()?`<div class="fp-f"><button type="button" class="btn-text" data-kreset="1">Zurücksetzen</button></div>`:""}`; };
-  male(); document.body.appendChild(m);
-  const r=btn.getBoundingClientRect(), w=Math.min(340,innerWidth-16); m.style.width=w+"px"; m.style.left=Math.max(8,Math.min(r.right-w,innerWidth-w-8))+"px"; m.style.top=(r.bottom+8)+"px";
-  m.style.maxHeight=(innerHeight-r.bottom-24)+"px";
-  const neu=()=>{ metaSave(); male(); const res=$("#res"); if(res) res.innerHTML=kundenListe(); const f=$(".such-f"); if(f) f.classList.toggle("an",kFilterAktiv()); };
-  m.addEventListener("click",e=>{ const a=e.target.closest("[data-ks]"), b=e.target.closest("[data-kst]"), c=e.target.closest("[data-kreset]");
-    if(a){ META.kSort=a.dataset.ks; neu(); } else if(b){ META.kStatus=b.dataset.kst; neu(); } else if(c){ META.kSort="az"; META.kStatus="alle"; neu(); } });
-  const zu=()=>{ m.remove(); bg.remove(); removeEventListener("resize",zu); }; bg.addEventListener("click",zu); addEventListener("resize",zu); }
+FDEF.kunden={std:{sort:"az",status:"alle"},sort:[["az","Name A–Z"],["za","Name Z–A"],["zuletzt","Zuletzt geprüft"],["kdnr","Kundennummer"]],gruppen:[{k:"status",t:"Status",opts:K_STATUS}],liste:()=>kundenListe()};
 function kundenView(){
   if(!live("kunden").length) return `<div class="empty">${icon("firma")}<h2>Noch keine Kunden</h2><p>Lege mit „Kunde“ den ersten an, zum Beispiel eine Firma mit mehreren Standorten.</p></div>`;
-  return `<div class="narrow">${searchBar("Kunde, Kundennr. oder Ort suchen",{act:"kFilter",aktiv:kFilterAktiv()})}<div id="res">${kundenListe()}</div></div><p class="hint">Nach rechts wischen: anpinnen · nach links: löschen</p>`;
+  return `<div class="narrow">${searchBar("Kunde, Kundennr. oder Ort suchen",fKnopf("kunden"))}<div id="res">${kundenListe()}</div></div><p class="hint">Nach rechts wischen: anpinnen · nach links: löschen</p>`;
 }
 const FREEMAIL=/^(gmail|googlemail|web|gmx|t-online|outlook|hotmail|live|icloud|me|mac|yahoo|aol|freenet|arcor|posteo|mailbox|online|vodafone|1und1|ionos)\./i;
 const webHref=w=>!w?"":/^https?:\/\//i.test(w)?w:"https://"+w;
@@ -1984,15 +1994,20 @@ function archivView(){
   return `<div class="narrow">${listOf(L.map(p=>pItem(p,true)))}<p class="hint">Nach rechts wischen: zurückholen · nach links: löschen</p></div>`;
 }
 const PFILTER=[["alle","Alle"],["wip","In Arbeit"],["bad","Mit Mängeln"],["ok","Fertig"]];
+const P_ART=[["alle","Alle"],...PRUEFARTEN.map(x=>[x,x==="Wiederholungsprüfung"?"Wiederholung":x])];
+FDEF.pruef={std:{sort:"neu",status:"alle",art:"alle",wer:"alle"},sort:[["neu","Neueste zuerst"],["alt","Älteste zuerst"],["kunde","Kunde A–Z"],["auftrag","Auftragsnummer"]],
+  gruppen:[{k:"status",t:"Status",opts:[["alle","Alle"],["wip","In Arbeit"],["bad","Mit Mängeln"],["ok","Fertig"]]},{k:"art",t:"Prüfart",opts:P_ART},{k:"wer",t:"Prüfer",opts:[["alle","Alle"],["meine","Nur meine"]]}],liste:()=>pruefungenListe()};
 function pruefungenListe(){
-  const f=META.pfilter||"alle", q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q);
-  const L=live("pruefungen").filter(p=>{ const st=protoState(p); return (f==="alle"||(f==="wip"?(st==="wip"||st==="open"):st===f))&&(!q||H(pfadText(p))||H(p.p.auftragsnr)||H(p.p.pruefer)||H(p.p.art)); }).sort(byDate);
-  return L.length?listOf(L.map(p=>pItem(p,true))):`<p class="meta">Keine Prüfungen${f!=="alle"?" in diesem Filter":""}.</p>`;
+  const n="pruef", f=fW(n,"status"), art=fW(n,"art"), wer=fW(n,"wer"), so=fW(n,"sort"), q=query.toLowerCase(), H=v=>String(v||"").toLowerCase().includes(q), ich=String(who().name||"").toLowerCase();
+  const L=live("pruefungen").filter(p=>{ const st=protoState(p); return (f==="alle"||(f==="wip"?(st==="wip"||st==="open"):st===f))&&(art==="alle"||p.p.art===art)&&(wer==="alle"||(ich&&String(p.p.pruefer||"").toLowerCase()===ich)||sameUser(p.createdBy,ME))&&(!q||H(pfadText(p))||H(p.p.auftragsnr)||H(p.p.pruefer)||H(p.p.art)); });
+  if(so==="alt") L.sort((a,b)=>byDate(b,a)); else if(so==="kunde") L.sort((a,b)=>pfadText(a).localeCompare(pfadText(b),"de")||byDate(a,b));
+  else if(so==="auftrag") L.sort((a,b)=>String(a.p.auftragsnr||"~").localeCompare(String(b.p.auftragsnr||"~"),"de",{numeric:true})); else L.sort(byDate);
+  const info=fInfo(n,L.length,"Prüfung","Prüfungen");
+  if(!L.length) return info+`<p class="meta">Keine Prüfungen${fAktiv(n)?" in dieser Auswahl":""}.</p>`;
+  return info+(so==="kunde"?abcListe(L,p=>pfadText(p),p=>pItem(p,true)):listOf(L.map(p=>pItem(p,true))));
 }
 function pruefungenView(){
-  return `<div class="narrow">${searchBar("Kunde, Ort, Auftrag oder Prüfer")}
-    <div class="chips" style="margin:4px 0 12px">${PFILTER.map(([v,t])=>`<button class="chip" data-act="pfilter" data-v="${v}" aria-pressed="${(META.pfilter||"alle")===v}">${icon("check")}${t}</button>`).join("")}</div>
-    <div id="res">${pruefungenListe()}</div></div>`;
+  return `<div class="narrow">${searchBar("Kunde, Ort, Auftrag oder Prüfer",fKnopf("pruef"))}<div id="res">${pruefungenListe()}</div></div>`;
 }
 function faelligListe(){
   const m=new Map();
@@ -2899,8 +2914,8 @@ document.addEventListener("click",ev=>{
   case "syncNow": syncNow(true); return;
   case "pfilter": META.pfilter=b.dataset.v; metaSave(); { const r=$("#res"); if(r) r.innerHTML=pruefungenListe(); } document.querySelectorAll('[data-act="pfilter"]').forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===META.pfilter)); return;
   case "filter": META.filter=b.dataset.v; metaSave(); softRender(); return;
-  case "kFilter": kFilterPop(b); return;
-  case "kFilterWeg": META.kStatus="alle"; metaSave(); { const res=$("#res"); if(res) res.innerHTML=kundenListe(); const f=$(".such-f"); if(f) f.classList.toggle("an",kFilterAktiv()); } return;
+  case "fPop": filterPop(b,b.dataset.n); return;
+  case "fWeg": fWeg(b.dataset.n,false); return;
   case "konto": {
     if(!SYNC_ON){ go({v:"team"}); return; }
     if(false){ dialog("Mein Name",`<div class="fg1">${tf("name","Name (erscheint als Prüfer und Ersteller)",META.profil.name,{form:true})}</div><p class="sup" style="margin:12px 0 0">Die Anmeldung mit dem Microsoft-Konto wird freigeschaltet, sobald die IT die App eingerichtet hat. Bis dahin bleibt alles auf diesem Gerät.</p>`,`<button class="btn-text" data-act="cancel">Abbrechen</button><button class="btn-text" data-act="saveName">Speichern</button>`); return; }
