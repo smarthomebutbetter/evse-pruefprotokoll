@@ -1,3 +1,12 @@
+# Umgezogen
+
+Die Apps liegen jetzt im Firmenkonto: https://github.com/elektroirrgang/webapp
+(App-Adresse: https://elektroirrgang.github.io/webapp/ bzw. https://webapp.elektro-irrgang.de/)
+
+Dieses Repository wird nicht mehr weiterentwickelt.
+
+---
+
 # Irrgang Apps
 
 Interne Web-Apps von Elektro Irrgang, Waldbröl: Startseite mit Übersicht, EVSE (`/evse/`) und Baustelle (`/baustelle/`).
