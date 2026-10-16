@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Übersicht">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#FCFCFD">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="<!--ICON-->">
@@ -973,6 +973,12 @@ body.pv-offen #scrim{z-index:90}body.pv-offen .menu{z-index:92}body.pv-offen .dl
 .abc-l .list{margin:0}
 @media (max-width:743.98px){.abc-gr{grid-template-columns:28px minmax(0,1fr);gap:4px}.abc-b{font-size:20px;line-height:48px}}
 .f-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* Statusleiste (iOS-Web-App, black-translucent): eigener, undurchsichtiger Streifen statt System-Glas */
+:root{--sb:#C8102E}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sb:var(--surface)}}
+:root[data-theme="dark"]{--sb:var(--surface)}
+html::after{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:var(--sb);z-index:2147483000;pointer-events:none}
 </style>
 </head>
 <body class="is-list">

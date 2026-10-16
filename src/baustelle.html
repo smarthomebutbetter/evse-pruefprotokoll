@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Baustelle">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#FCFCFD">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="<!--ICON-->">
@@ -913,6 +913,12 @@ html,body{overscroll-behavior-y:none}
 .vl button{display:block;width:100%;min-height:44px;border:0;background:transparent;color:var(--on-surface);text-align:left;font:inherit;font-size:16px;padding:10px 14px;border-radius:10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vl button:hover,.vl button.hl{background:color-mix(in srgb,var(--on-surface) 8%,transparent)}
 .vl button b{font-weight:600;color:var(--primary)}
+
+/* Statusleiste (iOS-Web-App, black-translucent): eigener, undurchsichtiger Streifen statt System-Glas */
+:root{--sb:#C8102E}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--sb:var(--surface)}}
+:root[data-theme="dark"]{--sb:var(--surface)}
+html::after{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:var(--sb);z-index:2147483000;pointer-events:none}
 </style>
 </head>
 <body class="is-list">
